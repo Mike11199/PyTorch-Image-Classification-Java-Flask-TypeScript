@@ -1,0 +1,19 @@
+{
+    "cSpell.words": [
+        "ciphertext",
+        "cloudinary",
+        "composables",
+        "Jetpack",
+        "onenote",
+        "sankey",
+        "templating",
+        "voronoi"
+    ],
+    "workbench.colorCustomizations": {
+        "terminal.foreground": "#00FD61",
+        "terminal.background": "#181717",
+        "activityBar.background": "#163232",
+        "titleBar.activeBackground": "#1F4646",
+        "titleBar.activeForeground": "#F5FBFB"
+    }
+}
