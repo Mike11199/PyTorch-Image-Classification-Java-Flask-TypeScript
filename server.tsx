@@ -1,10 +1,12 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
-import apiRoutes from './apiRoutes.mjs';
+import apiRoutes from "./apiRoutes";
+import dotenv from "dotenv";
 
 const app = express();
 app.use(cors());
+dotenv.config();
 
 if (process.env.NODE_ENV === "production") {
   app.use(
