@@ -97,6 +97,18 @@ const HomePage = () => {
   return (
     <>
       <div className="min-h-screen h-auto bg-slate-700 pt-8 pb-12">
+        <div className="text-sm text-white text-left mx-44 mb-14 mt-14">
+          <li>
+            Use buttons below to send a request to a pre-trained PyTorch{" "}
+            <strong className="text-red-700">fasterrcnn_resnet50_fpn_v2</strong>{" "}
+            computer vision model called by a custom inference.py script.
+          </li>
+          <li>
+            Model is deployed to a SageMaker HTTP Endpoint. The express server
+            calls an AWS API Gateway, which in turn calls a lambda to invoke the
+            SageMaker endpoint.
+          </li>
+        </div>
         <div className="text-sm text-white mb-4 font-semibold">
           Enter an Image URL below
         </div>
@@ -123,7 +135,7 @@ const HomePage = () => {
             Submit Image URL
           </button>
         </div>
-        <div className="text-white  text-left mx-44">
+        <div className="text-white text-left mx-44 mt-12">
           Examples
           <li>
             https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg
