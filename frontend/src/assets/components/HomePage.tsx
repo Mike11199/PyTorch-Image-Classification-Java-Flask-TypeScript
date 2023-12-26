@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { LineWave } from "react-loader-spinner";
 
 const HomePage = () => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(
+    "https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
+  );
   const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
   const [imageSrc, setImageSrc] = useState<any>(null);
   const [boundingBoxes, setBoundingBoxes] = useState<any>([]);
@@ -101,7 +103,8 @@ const HomePage = () => {
           <li>
             Use buttons below to send a request to a pre-trained PyTorch{" "}
             <strong className="text-red-700">fasterrcnn_resnet50_fpn_v2</strong>{" "}
-            computer vision model called by a custom inference.py script.
+            computer vision model called by a custom{" "}
+            <strong className="text-red-700">inference.py</strong> script.
           </li>
           <li>
             Model is deployed to a SageMaker HTTP Endpoint. The express server
@@ -109,7 +112,7 @@ const HomePage = () => {
             SageMaker endpoint.
           </li>
         </div>
-        <div className="text-sm text-white mb-4 font-semibold">
+        <div className="text-sm text-white mb-8 font-semibold">
           Enter an Image URL below
         </div>
         <div className="flex justify-center gap-24 w-full">
@@ -121,31 +124,38 @@ const HomePage = () => {
             onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
-        <div className="flex justify-center  gap-24">
-          <button
-            onClick={() => fetchPyTorchAnalysisUsingImageURL(sampleImageUrl)}
-            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
-          >
-            Use Sample Image URL
-          </button>
+        <div className="flex justify-center gap-14">
           <button
             onClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
-            className="bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
           >
             Submit Image URL
           </button>
         </div>
         <div className="text-white text-left mx-44 mt-12">
-          Examples
-          <li>
-            https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg
-          </li>
-          <li>
-            https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg
-          </li>
-          <li>
-            https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a
-          </li>
+          <label htmlFor="cars">Choose an Image URL for the Demo Button</label>
+          <select
+            onChange={(e) => setInputValue(e.target.value)}
+            className="text-black ml-8"
+            id="cars"
+            name="cars"
+          >
+            <option
+              selected
+              value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
+            >
+              Labrador
+            </option>
+            <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
+              Elephant
+            </option>
+            <option value="https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a">
+              Cats and Dogs
+            </option>
+            <option value="https://images.unsplash.com/photo-1602940659805-770d1b3b9911?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+              Times Square
+            </option>
+          </select>
         </div>
         <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-lime-400 text-left flex justify-center align-middle">
           {loading && (
