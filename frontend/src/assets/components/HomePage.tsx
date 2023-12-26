@@ -11,9 +11,6 @@ const HomePage = () => {
   const [boundingBoxes, setBoundingBoxes] = useState<any>([]);
   const [loading, setLoading] = useState(false);
 
-  const sampleImageUrl =
-    "https://images.freeimages.com/images/large-previews/bd1/cat-1404368.jpg";
-
   function clearCanvas() {
     const canvas = document.getElementById(
       "boundingBoxCanvas"
