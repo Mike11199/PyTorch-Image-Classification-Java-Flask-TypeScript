@@ -1,6 +1,9 @@
 # PyTorch-Image-Classification-TypeScript
 
-https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ 
+- Personal project.  Deployed a SageMaker endpoint and API Gateway using a pre-trained PyTorch fasterrcnn_resnet50_fpn_v2 computer vision model.
+
+- Deployed Website
+  - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ 
 
 - Back End Repo
   - https://github.com/Mike11199/PyTorch-Image-Classification/
