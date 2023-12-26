@@ -1,16 +1,35 @@
 import axios from "axios";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
+import { LineWave } from "react-loader-spinner";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState("");
   const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
   const [imageSrc, setImageSrc] = useState<any>(null);
   const [boundingBoxes, setBoundingBoxes] = useState<any>([]);
+  const [loading, setLoading] = useState(false);
 
   const sampleImageUrl =
     "https://images.freeimages.com/images/large-previews/bd1/cat-1404368.jpg";
 
+  function clearCanvas() {
+    const canvas = document.getElementById(
+      "boundingBoxCanvas"
+    ) as HTMLCanvasElement;
+    const ctx = canvas?.getContext("2d");
+
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
+    setLoading(true);
+    setImageSrc(null);
+    setBoundingBoxes([]);
+    setPyTorchImageResponse("");
+    clearCanvas();
+
     try {
       const response = await axios.post("/api/image-url-pytorch", {
         imageUrl: imageUrl,
@@ -18,15 +37,19 @@ const HomePage = () => {
       const jsonString = JSON.stringify(response?.data, null, 2); // the third argument (2) adds indentation for better readability
       console.log("Response:", jsonString);
       setPyTorchImageResponse(jsonString);
-      setBoundingBoxes(response?.data?.boxes)
+      setBoundingBoxes(response?.data);
       setImageSrc(imageUrl);
     } catch (error: any) {
       console.error("Error:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const drawBoundingBoxes = (image: any) => {
-    const canvas = document.getElementById("boundingBoxCanvas") as HTMLCanvasElement;
+  const drawBoundingBoxes = (image: any, boundingBoxData: any) => {
+    const canvas = document.getElementById(
+      "boundingBoxCanvas"
+    ) as HTMLCanvasElement;
     const ctx = canvas?.getContext("2d");
 
     if (!ctx) {
@@ -34,30 +57,42 @@ const HomePage = () => {
       return;
     }
 
-    canvas.height = image.height
-    canvas.width = image.width
+    canvas.height = image.height;
+    canvas.width = image.width;
 
     ctx.drawImage(image, 0, 0);
 
-  for (const box of boundingBoxes) {
-    const [x, y, width, height] = box.map((value: string) => parseInt(value, 10));
-    if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, width-x, height-y);
+    for (let i = 0; i < boundingBoxData.boxes.length; i++) {
+      const box = boundingBoxData?.boxes[i];
+      const className = boundingBoxData?.classes[i];
+      const accuracy = boundingBoxData?.scores[i];
+      const formattedClassName =
+        className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
+
+      const [x, y, width, height] = box.map((value: number) => value);
+      if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width - x, height - y);
+
+        ctx.fillStyle = "red";
+        ctx.font = "bold 12px Arial";
+        ctx.fillText(
+          `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
+          x + 5,
+          y + 15
+        );
+      }
     }
-  }
   };
 
   useEffect(() => {
     if (imageSrc) {
       const image = new Image();
       image.src = imageSrc;
-      image.onload = () => drawBoundingBoxes(image);
+      image.onload = () => drawBoundingBoxes(image, boundingBoxes);
     }
   }, [imageSrc, boundingBoxes]);
-
-
 
   return (
     <>
@@ -90,21 +125,40 @@ const HomePage = () => {
         </div>
         <div className="text-white  text-left mx-44">
           Examples
-          <li>https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg</li>
-          <li>https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg</li>
-          <li>https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a</li>
+          <li>
+            https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg
+          </li>
+          <li>
+            https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg
+          </li>
+          <li>
+            https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a
+          </li>
         </div>
-        <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-lime-400 text-left">
-          {pyTorchImageResponse}
+        <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-lime-400 text-left flex justify-center align-middle">
+          {loading && (
+            <div>
+              <LineWave height="100" width="100" color="green" />
+            </div>
+          )}
+          {!loading && pyTorchImageResponse}
         </div>
-        {/* <div className="mt-8 mx-44 h-[50rem] bg-black text-lime-400 text-left overflow-hidden object-center">
-          {imageSrc && <img className="" src={imageSrc} alt="Downloaded" />}
-        </div> */}
-
-        <div id="boundingBoxCanvasDiv" className="mt-8 mx-44 h-[50rem] bg-black text-lime-400 text-left ">
-        <canvas className=" object-contain  h-full w-full" id="boundingBoxCanvas"></canvas>
+        <div
+          id="boundingBoxCanvasDiv"
+          className="mt-8 mx-44 h-[50rem] bg-black text-lime-400 text-left flex justify-center align-middle"
+        >
+          {loading && (
+            <div>
+              <LineWave height="100" width="100" color="green" />
+            </div>
+          )}
+          {!loading && (
+            <canvas
+              className=" object-contain  h-full w-full"
+              id="boundingBoxCanvas"
+            ></canvas>
+          )}
         </div>
-
       </div>
     </>
   );
