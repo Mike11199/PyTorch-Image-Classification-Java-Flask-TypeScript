@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { LineWave } from "react-loader-spinner";
+import DropZone from "./Dropzone";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -22,6 +23,36 @@ const HomePage = () => {
     }
   }
 
+  const fetchPyTorchAnalysis= async (imageBlob: any) => {
+    setLoading(true);
+    setImageSrc(null);
+    setBoundingBoxes([]);
+    setPyTorchImageResponse("");
+    clearCanvas();
+
+    try {
+      const formData = new FormData();
+      formData.append('image', imageBlob, 'image.jpg');
+      const response = await axios.post('/api/image-url-pytorch', formData );
+
+      const jsonString = JSON.stringify(response?.data, null, 2); // the third argument (2) adds indentation for better readability
+      console.log("Response:", jsonString);
+      setPyTorchImageResponse(jsonString);
+      setBoundingBoxes(response?.data);
+      const imageUrl = URL.createObjectURL(imageBlob);
+
+      setImageSrc(imageUrl);
+    } catch (error: any) {
+      console.error("Error:", error.message);
+        // Log additional error details if available
+  if (error.response) {
+    console.error('Response Data:', error.response.data);
+  }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
     setLoading(true);
     setImageSrc(null);
@@ -30,9 +61,12 @@ const HomePage = () => {
     clearCanvas();
 
     try {
-      const response = await axios.post("/api/image-url-pytorch", {
-        imageUrl: imageUrl,
-      });
+      const imageBlob = await convertImageUrlToImage(imageUrl);
+      const formData = new FormData();
+      formData.append('image', imageBlob, 'image.jpg');
+
+      const response = await axios.post('/api/image-url-pytorch', formData );
+
       const jsonString = JSON.stringify(response?.data, null, 2); // the third argument (2) adds indentation for better readability
       console.log("Response:", jsonString);
       setPyTorchImageResponse(jsonString);
@@ -40,6 +74,10 @@ const HomePage = () => {
       setImageSrc(imageUrl);
     } catch (error: any) {
       console.error("Error:", error.message);
+        // Log additional error details if available
+  if (error.response) {
+    console.error('Response Data:', error.response.data);
+  }
     } finally {
       setLoading(false);
     }
@@ -85,6 +123,17 @@ const HomePage = () => {
     }
   };
 
+  async function convertImageUrlToImage(imageUrl: any) {
+    try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        return blob
+    } catch (error) {
+        console.error('Error converting image to base64:', error);
+        throw error;
+    }
+}
+
   useEffect(() => {
     if (imageSrc) {
       const image = new Image();
@@ -109,9 +158,13 @@ const HomePage = () => {
             SageMaker endpoint.
           </li>
         </div>
+
+        <DropZone buttonFunction={fetchPyTorchAnalysis}/>
+
         <div className="text-sm text-white mb-8 font-semibold">
-          Enter an Image URL below
+          OR Enter an Image URL below
         </div>
+        <div id="toast"></div>
         <div className="flex justify-center gap-24 w-full">
           <input
             className="mb-8 w-full mx-44"
