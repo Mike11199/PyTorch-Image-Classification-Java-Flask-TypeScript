@@ -34,14 +34,10 @@ const HomePage = () => {
       const formData = new FormData();
       formData.append("image", imageBlob, "image.jpg");
       const response = await axios.post("/api/image-url-pytorch", formData);
-
-      //  third argument (2) adds indentation for better readability
       const jsonString = JSON.stringify(response?.data, null, 2);
-      console.log("Response:", jsonString);
       setPyTorchImageResponse(jsonString);
       setBoundingBoxes(response?.data);
       const imageUrl = URL.createObjectURL(imageBlob);
-
       setImageSrc(imageUrl);
     } catch (error: any) {
       console.error("Error:", error.message);
@@ -54,33 +50,8 @@ const HomePage = () => {
   };
 
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
-    setLoading(true);
-    setImageSrc(null);
-    setBoundingBoxes([]);
-    setPyTorchImageResponse("");
-    clearCanvas();
-
-    try {
-      const imageBlob = await convertImageUrlToImage(imageUrl);
-      const formData = new FormData();
-      formData.append("image", imageBlob, "image.jpg");
-
-      const response = await axios.post("/api/image-url-pytorch", formData);
-
-      //  third argument (2) adds indentation for better readability
-      const jsonString = JSON.stringify(response?.data, null, 2);
-      console.log("Response:", jsonString);
-      setPyTorchImageResponse(jsonString);
-      setBoundingBoxes(response?.data);
-      setImageSrc(imageUrl);
-    } catch (error: any) {
-      console.error("Error:", error.message);
-      if (error.response) {
-        console.error("Response Data:", error.response.data);
-      }
-    } finally {
-      setLoading(false);
-    }
+    const imageBlob = await convertImageUrlToImage(imageUrl);
+    await fetchPyTorchAnalysis(imageBlob);
   };
 
   const drawBoundingBoxes = (image: any, boundingBoxData: any) => {
