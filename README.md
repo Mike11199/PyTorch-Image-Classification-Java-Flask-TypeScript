@@ -6,8 +6,12 @@
 - Deployed Website
   - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ 
 
-- Back End Repo
+- Back End Repo - AWS Endpoint/Model/etc
   - https://github.com/Mike11199/PyTorch-Image-Classification/
+
+- Video 
+  - https://www.youtube.com/watch?v=abtdBPFu_yM
+ 
 
 # Website Screenshots
 
