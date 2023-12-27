@@ -23,7 +23,7 @@ const HomePage = () => {
     }
   }
 
-  const fetchPyTorchAnalysis= async (imageBlob: any) => {
+  const fetchPyTorchAnalysis = async (imageBlob: any) => {
     setLoading(true);
     setImageSrc(null);
     setBoundingBoxes([]);
@@ -32,10 +32,11 @@ const HomePage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('image', imageBlob, 'image.jpg');
-      const response = await axios.post('/api/image-url-pytorch', formData );
+      formData.append("image", imageBlob, "image.jpg");
+      const response = await axios.post("/api/image-url-pytorch", formData);
 
-      const jsonString = JSON.stringify(response?.data, null, 2); // the third argument (2) adds indentation for better readability
+      //  third argument (2) adds indentation for better readability
+      const jsonString = JSON.stringify(response?.data, null, 2);
       console.log("Response:", jsonString);
       setPyTorchImageResponse(jsonString);
       setBoundingBoxes(response?.data);
@@ -44,10 +45,9 @@ const HomePage = () => {
       setImageSrc(imageUrl);
     } catch (error: any) {
       console.error("Error:", error.message);
-        // Log additional error details if available
-  if (error.response) {
-    console.error('Response Data:', error.response.data);
-  }
+      if (error.response) {
+        console.error("Response Data:", error.response.data);
+      }
     } finally {
       setLoading(false);
     }
@@ -63,21 +63,21 @@ const HomePage = () => {
     try {
       const imageBlob = await convertImageUrlToImage(imageUrl);
       const formData = new FormData();
-      formData.append('image', imageBlob, 'image.jpg');
+      formData.append("image", imageBlob, "image.jpg");
 
-      const response = await axios.post('/api/image-url-pytorch', formData );
+      const response = await axios.post("/api/image-url-pytorch", formData);
 
-      const jsonString = JSON.stringify(response?.data, null, 2); // the third argument (2) adds indentation for better readability
+      //  third argument (2) adds indentation for better readability
+      const jsonString = JSON.stringify(response?.data, null, 2);
       console.log("Response:", jsonString);
       setPyTorchImageResponse(jsonString);
       setBoundingBoxes(response?.data);
       setImageSrc(imageUrl);
     } catch (error: any) {
       console.error("Error:", error.message);
-        // Log additional error details if available
-  if (error.response) {
-    console.error('Response Data:', error.response.data);
-  }
+      if (error.response) {
+        console.error("Response Data:", error.response.data);
+      }
     } finally {
       setLoading(false);
     }
@@ -125,14 +125,14 @@ const HomePage = () => {
 
   async function convertImageUrlToImage(imageUrl: any) {
     try {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        return blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      return blob;
     } catch (error) {
-        console.error('Error converting image to base64:', error);
-        throw error;
+      console.error("Error converting image to base64:", error);
+      throw error;
     }
-}
+  }
 
   useEffect(() => {
     if (imageSrc) {
@@ -159,7 +159,7 @@ const HomePage = () => {
           </li>
         </div>
 
-        <DropZone buttonFunction={fetchPyTorchAnalysis}/>
+        <DropZone buttonFunction={fetchPyTorchAnalysis} />
 
         <div className="text-sm text-white mb-8 font-semibold">
           OR Enter an Image URL below
@@ -183,12 +183,12 @@ const HomePage = () => {
           </button>
         </div>
         <div className="text-white text-left mx-44 mt-12">
-          <label htmlFor="cars">Choose an Image URL for the Demo Button</label>
+          <label htmlFor="cars">Choose a pre-selected image URL</label>
           <select
             onChange={(e) => setInputValue(e.target.value)}
-            className="text-black ml-8"
-            id="cars"
-            name="cars"
+            className="text-black ml-6"
+            id="image_url_options"
+            name="image_url_options"
           >
             <option
               selected
@@ -207,7 +207,7 @@ const HomePage = () => {
             </option>
           </select>
         </div>
-        <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-lime-400 text-left flex justify-center align-middle">
+        <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-green-500 text-left flex justify-center align-middle">
           {loading && (
             <div>
               <LineWave height="100" width="100" color="green" />
@@ -217,7 +217,7 @@ const HomePage = () => {
         </div>
         <div
           id="boundingBoxCanvasDiv"
-          className="mt-8 mx-44 h-[50rem] bg-black text-lime-400 text-left flex justify-center align-middle"
+          className="mt-8 mx-44 h-[50rem] bg-black text-green-500 text-left flex justify-center align-middle"
         >
           {loading && (
             <div>

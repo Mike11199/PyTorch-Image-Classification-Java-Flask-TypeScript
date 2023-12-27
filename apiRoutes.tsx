@@ -1,17 +1,17 @@
 import express from "express";
-import axios from 'axios'
-import multer from 'multer'
+import axios from "axios";
+import multer from "multer";
 
-import { Request } from 'express';
-
-interface RequestWithFile extends express.Request {
-  file?: Express.Multer.File; // Adjust the type according to your needs
-}
+import { Request } from "express";
 
 const router = express.Router();
 
 const storage = multer.memoryStorage();
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
   // Check file type or other conditions if needed
   cb(null, true);
 };
@@ -25,7 +25,7 @@ const fetchImageAnalysisUsingBuffer = async (imageBuffer: any) => {
   try {
     const response = await axios.post(apiPytorchImageURL ?? "", imageBuffer, {
       headers: {
-        'Content-Type': 'image/jpg',
+        "Content-Type": "image/jpg",
       },
     });
 
@@ -34,17 +34,17 @@ const fetchImageAnalysisUsingBuffer = async (imageBuffer: any) => {
   } catch (error: any) {
     console.error("Error:", error);
     if (error?.response) {
-      console.error('Response Data:', error.response.data);
+      console.error("Response Data:", error.response.data);
     }
   }
 };
 
-router.post("/image-url-pytorch", upload.single('image'), async (req, res) => {
+router.post("/image-url-pytorch", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: 'Bad Request - Missing formData or file in the request.' });
+      return res.status(400).json({
+        error: "Bad Request - Missing formData or file in the request.",
+      });
     }
 
     const imageBuffer = req.file.buffer;
