@@ -4,7 +4,10 @@ import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 import Button from "./Button";
 import ImageCanvas from "./ImageCanvas";
-import { createImageURLFromBlob, convertImageUrlToImage } from "./FunctionUtils";
+import {
+  createImageURLFromBlob,
+  convertImageUrlToImage,
+} from "./FunctionUtils";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -70,9 +73,18 @@ const HomePage = () => {
             <strong className="text-red-700">inference.py</strong> script.
           </li>
           <li>
-            Model is deployed to a SageMaker HTTP Endpoint. The express server
-            calls an AWS API Gateway, which in turn calls a lambda to invoke the
-            SageMaker endpoint.
+            Model is deployed to a SageMaker HTTP endpoint. The Express.js
+            server calls an AWS API Gateway endpoint via Axios with binary image
+            data included directly in the request body.
+            <li>
+              The API Gateway then calls a lambda, which converts the raw image
+              data to base64 and sends it directly to the PyTorch model.
+            </li>
+            <li>
+              In the <strong className="text-red-700">inference.py</strong>{" "}
+              script, I decode the base64 image data to a NumPy array, then to a
+              tensor with Torch, as input for the model.
+            </li>
           </li>
         </div>
 
