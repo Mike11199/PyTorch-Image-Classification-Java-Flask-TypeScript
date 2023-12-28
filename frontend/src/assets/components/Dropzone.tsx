@@ -7,7 +7,11 @@ interface DropZoneProps {
   loading: boolean;
 }
 
-const DropZone = ({ setterUploadedImages, uploadedImages, loading }: DropZoneProps) => {
+const DropZone = ({
+  setterUploadedImages,
+  uploadedImages,
+  loading,
+}: DropZoneProps) => {
   const onDrop = useCallback(async (acceptedFiles: any, rejectedFiles: any) => {
     for (const file of acceptedFiles) {
       const blob = await fileToBlob(file);
@@ -61,14 +65,12 @@ const DropZone = ({ setterUploadedImages, uploadedImages, loading }: DropZonePro
         <input {...getInputProps()} />
         {isDragActive ? (
           <p className="text-white mt-12">Drop file(s) here ...</p>
+        ) : loading ? (
+          <p className="text-white mt-12">Processing image...</p>
         ) : (
-          loading ? (
-            <p className="text-white mt-12">Processing image...</p>
-          ) : (
-            <p className="text-white mt-12">
-              Drag and drop file(s) here, or click to select files
-            </p>
-          )
+          <p className="text-white mt-12">
+            Drag and drop file(s) here, or click to select files
+          </p>
         )}
         {uploadedImages.length == 0 && (
           <svg
@@ -80,9 +82,9 @@ const DropZone = ({ setterUploadedImages, uploadedImages, loading }: DropZonePro
           >
             <path
               stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
             />
           </svg>

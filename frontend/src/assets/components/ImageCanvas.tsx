@@ -16,7 +16,7 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
     const ctx = canvas?.getContext("2d");
 
     if (!ctx) {
-      console.error("2D context not supported");
+      //console.error("2D context not supported");
       return;
     }
 

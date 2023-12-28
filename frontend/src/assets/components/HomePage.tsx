@@ -79,15 +79,15 @@ const HomePage = () => {
             Model is deployed to a SageMaker HTTP endpoint. The Express.js
             server calls an AWS API Gateway endpoint via Axios with binary image
             data included directly in the request body.
-            <li>
-              The API Gateway then calls a lambda, which converts the raw image
-              data to base64 and sends it directly to the PyTorch model.
-            </li>
-            <li>
-              In the <strong className="text-red-700">inference.py</strong>{" "}
-              script, I decode the base64 image data to a NumPy array, then to a
-              tensor with Torch, as input for the model.
-            </li>
+          </li>
+          <li>
+            The API Gateway then calls a lambda, which converts the raw image
+            data to base64 and sends it directly to the PyTorch model.
+          </li>
+          <li>
+            In the <strong className="text-red-700">inference.py</strong>{" "}
+            script, I decode the base64 image data to a NumPy array, then to a
+            tensor with Torch, as input for the model.
           </li>
         </div>
 
@@ -124,17 +124,18 @@ const HomePage = () => {
         />
 
         <div className="text-white text-left mx-44 mt-12">
-          <label htmlFor="cars">Choose a pre-selected image URL</label>
+          <label htmlFor="imageURLPreSelected">
+            Choose a pre-selected image URL
+          </label>
+
           <select
             onChange={(e) => setInputValue(e.target.value)}
+            value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
             className="text-black ml-6"
             id="image_url_options"
             name="image_url_options"
           >
-            <option
-              selected
-              value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
-            >
+            <option value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg">
               Labrador
             </option>
             <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
