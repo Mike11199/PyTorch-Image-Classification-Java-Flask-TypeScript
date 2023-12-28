@@ -34,3 +34,24 @@ export function createImageURLFromBlob(
     image.src = imageUrl;
   });
 }
+
+export function trimPytorchDataObject(pyTorchData: any) {
+  try {
+    if (!pyTorchData) return;
+    const { scores, classes, boxes, labels } = pyTorchData;
+    if (!scores || !classes || !boxes || !labels) return;
+
+    const maxLength = boxes?.length;
+
+    const modifiedBoundingBoxData = {
+      scores: scores.slice(0, maxLength),
+      classes: classes.slice(0, maxLength),
+      boxes: boxes.slice(0, maxLength),
+      labels: labels.slice(0, maxLength),
+    };
+
+    return modifiedBoundingBoxData;
+  } catch (error) {
+    return null;
+  }
+}

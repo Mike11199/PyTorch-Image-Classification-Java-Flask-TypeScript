@@ -7,30 +7,33 @@ import ImageCanvas from "./ImageCanvas";
 import {
   createImageURLFromBlob,
   convertImageUrlToImage,
+  trimPytorchDataObject,
 } from "./FunctionUtils";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
     "https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
   );
-  const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
+  const [pyTorchImageResponseObj, setPyTorchImageResponseObj] =
+    useState<any>(null);
+  const [pyTorchImageResponseString, setPyTorchImageResponseString] =
+    useState("");
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<any>([]);
   const [canvasImage, setCanvasImage] = useState<any>(null);
 
-  const boundingBoxData = pyTorchImageResponse
-    ? JSON.parse(pyTorchImageResponse)
-    : null;
-
   const fetchPyTorchAnalysis = async (imageBlob: any) => {
     setLoading(true);
-    setPyTorchImageResponse("");
+    setPyTorchImageResponseString("");
+    setPyTorchImageResponseObj(null);
 
     try {
       const formData = new FormData();
       formData.append("image", imageBlob, "image.jpg");
       const response = await axios.post("/api/image-url-pytorch", formData);
-      setPyTorchImageResponse(JSON.stringify(response?.data, null, 2));
+      const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? "";
+      setPyTorchImageResponseObj(parsedPyTorchData);
+      setPyTorchImageResponseString(JSON.stringify(parsedPyTorchData, null, 2));
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
       return response?.data;
@@ -151,12 +154,12 @@ const HomePage = () => {
               <LineWave height="100" width="100" color="green" />
             </div>
           )}
-          {!loading && pyTorchImageResponse}
+          {!loading && pyTorchImageResponseString}
         </div>
         <ImageCanvas
           loading={loading}
           image={canvasImage}
-          boundingBoxData={boundingBoxData}
+          boundingBoxData={pyTorchImageResponseObj}
         />
       </div>
     </>
