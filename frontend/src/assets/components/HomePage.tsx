@@ -54,7 +54,7 @@ const HomePage = () => {
     const imageBlob = await convertImageUrlToImage(imageUrl);
 
     if (!imageBlob) {
-      alert("Please enter a valid URL ending with .jpg, .jpeg, or .png");
+      alert("Please enter a valid image URL before submitting.");
       return;
     }
     await fetchPyTorchAnalysis(imageBlob);
