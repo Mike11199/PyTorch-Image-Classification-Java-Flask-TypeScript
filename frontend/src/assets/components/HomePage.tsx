@@ -68,8 +68,8 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="min-h-screen h-auto bg-slate-700 pt-8 pb-12">
-        <div className="text-sm text-white text-left mx-4 md:mx-44 mb-14 mt-14">
+      <div className="min-h-screen h-auto bg-slate-700 pt-12 pb-12">
+        <div className="text-sm text-white text-left mx-4 md:mx-44 mt-4 mb-16">
           <li className="mb-4 md:mb-0">
             Use buttons below to send a request to a pre-trained PyTorch{" "}
             <strong className="text-red-700">fasterrcnn_resnet50_fpn_v2</strong>{" "}

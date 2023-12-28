@@ -11,7 +11,7 @@ const JSONBox = ({ loading, pyTorchImageResponseString }: JSONBoxProps) => {
   return (
     <>
       <div
-        className="overflow-auto text-left pl-4 h-full"
+        className={`text-left pl-4 h-full ${!loading ? 'overflow-auto' : ''}`}
         style={{ backgroundColor: "#272822" }}
       >
       {loading && (

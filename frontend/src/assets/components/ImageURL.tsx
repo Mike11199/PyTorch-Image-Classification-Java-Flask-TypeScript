@@ -6,10 +6,10 @@ interface ImageURLProps {
 const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
   return (
     <>
-      <div className="text-white mx-4 md:mx-44 mt-12 flex flex-col justify-center items-center">
+      <div className="text-black mx-4 md:mx-44 mt-12 flex flex-col justify-center items-center text-center">
         <select
           onChange={(e) => setterURLInputValue(e.target.value)}
-          className="text-black w-40 text-center"
+          className="mb-2 w-52 text-center mx-4 md:mx-44 bg-slate-500 outline-2 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 tex"
           id="image_url_options"
           name="image_url_options"
         >
@@ -30,7 +30,7 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
 
       <div className="flex justify-center gap-24 w-full mt-8">
         <input
-          className="mb-8 w-full mx-4 md:mx-44"
+          className="mb-8 w-full mx-4 md:mx-44 bg-slate-500 outline-2 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           type="text"
           id="inputField"
           value={urlInputValue}
