@@ -1,6 +1,6 @@
 interface ImageURLProps {
   urlInputValue: string;
-  setterURLInputValue: React.Dispatch<React.SetStateAction<any>>;
+  setterURLInputValue: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {

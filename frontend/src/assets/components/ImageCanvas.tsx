@@ -1,14 +1,18 @@
 import { LineWave } from "react-loader-spinner";
 import { useEffect } from "react";
+import { PyTorchImageResponseType } from "./types";
 
 interface ImageCanvasProps {
   loading: boolean;
-  image?: any;
-  boundingBoxData?: string;
+  image?: HTMLImageElement | undefined | null;
+  boundingBoxData?: PyTorchImageResponseType | null;
 }
 
 const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
-  const drawBoundingBoxes = (image: any, boundingBoxData: any) => {
+  const drawBoundingBoxes = (
+    image: HTMLImageElement | undefined | null,
+    boundingBoxData: PyTorchImageResponseType | null
+  ) => {
     if (!image || !boundingBoxData) return;
     const canvas = document.getElementById(
       "boundingBoxCanvas"
@@ -65,7 +69,7 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
   }, [loading]);
 
   useEffect(() => {
-    drawBoundingBoxes(image, boundingBoxData);
+    drawBoundingBoxes(image, boundingBoxData ?? null);
   }, [image, boundingBoxData]);
 
   return (

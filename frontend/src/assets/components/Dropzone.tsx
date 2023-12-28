@@ -1,9 +1,10 @@
 import { useDropzone } from "react-dropzone";
 import { useCallback, useMemo } from "react";
+import { FileRejection } from "react-dropzone";
 
 interface DropZoneProps {
-  uploadedImages: [];
-  setterUploadedImages: React.Dispatch<React.SetStateAction<any>>;
+  uploadedImages: Blob[];
+  setterUploadedImages: React.Dispatch<React.SetStateAction<Blob[]>>;
   loading: boolean;
 }
 
@@ -12,14 +13,17 @@ const DropZone = ({
   uploadedImages,
   loading,
 }: DropZoneProps) => {
-  const onDrop = useCallback(async (acceptedFiles: any, rejectedFiles: any) => {
-    for (const file of acceptedFiles) {
-      const blob = await fileToBlob(file);
-      setterUploadedImages([blob]);
-      console.log(file);
-      console.log(blob);
-    }
-  }, []);
+  const onDrop = useCallback(
+    async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+      for (const file of acceptedFiles) {
+        const blob = await fileToBlob(file);
+        setterUploadedImages([blob]);
+        console.log(file);
+        console.log(blob);
+      }
+    },
+    []
+  );
 
   const {
     getRootProps,
@@ -91,7 +95,7 @@ const DropZone = ({
         )}
         <div className="mb-12">
           {uploadedImages.length > 0 &&
-            uploadedImages.map((image: any, index: any) => (
+            uploadedImages.map((image: Blob, index: number) => (
               <img
                 className="h-44 rounded-md shadow-md"
                 src={`${URL.createObjectURL(image)}`}

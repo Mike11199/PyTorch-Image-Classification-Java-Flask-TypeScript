@@ -1,3 +1,5 @@
+import { PyTorchImageResponseType } from "./types";
+
 export async function convertImageUrlToImage(
   imageUrl: string
 ): Promise<Blob | null> {
@@ -20,7 +22,7 @@ export async function convertImageUrlToImage(
 }
 
 export function createImageURLFromBlob(
-  imageBlob: any
+  imageBlob: Blob
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -35,7 +37,7 @@ export function createImageURLFromBlob(
   });
 }
 
-export function trimPytorchDataObject(pyTorchData: any) {
+export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
   try {
     if (!pyTorchData) return;
     const { scores, classes, boxes, labels } = pyTorchData;

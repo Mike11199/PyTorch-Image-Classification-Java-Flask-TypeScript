@@ -10,31 +10,32 @@ import {
 } from "./FunctionUtils";
 import JSONBox from "./JSONBox";
 import ImageURL from "./ImageURL";
+import { PyTorchImageResponseType } from "./types";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
     "https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
   );
-  const [pyTorchImageResponseObj, setPyTorchImageResponseObj] =
-    useState<any>(null);
-  const [pyTorchImageResponseString, setPyTorchImageResponseString] =
+  const [pyTorchResponseObj, setPyTorchResponseObj] =
+    useState<PyTorchImageResponseType | null>(null);
+  const [pyTorchResponseString, setPyTorchResponseString] =
     useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<any>([]);
-  const [canvasImage, setCanvasImage] = useState<any>(null);
+  const [uploadedImages, setUploadedImages] = useState<Blob[]>([]);
+  const [canvasImage, setCanvasImage] = useState<HTMLImageElement | null>(null);
 
-  const fetchPyTorchAnalysis = async (imageBlob: any) => {
+  const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
     setLoading(true);
-    setPyTorchImageResponseString("");
-    setPyTorchImageResponseObj(null);
+    setPyTorchResponseString("");
+    setPyTorchResponseObj(null);
 
     try {
       const formData = new FormData();
       formData.append("image", imageBlob, "image.jpg");
       const response = await axios.post("/api/image-url-pytorch", formData);
-      const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? "";
-      setPyTorchImageResponseObj(parsedPyTorchData);
-      setPyTorchImageResponseString(JSON.stringify(parsedPyTorchData, null, 2));
+      const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
+      setPyTorchResponseObj(parsedPyTorchData);
+      setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
       return response?.data;
@@ -119,14 +120,14 @@ const HomePage = () => {
           <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8 md:mr-8">
             <JSONBox
               loading={loading}
-              pyTorchImageResponseString={pyTorchImageResponseString}
+              pyTorchImageResponseString={pyTorchResponseString}
             />
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
             <ImageCanvas
               loading={loading}
               image={canvasImage}
-              boundingBoxData={pyTorchImageResponseObj}
+              boundingBoxData={pyTorchResponseObj}
             />
           </div>
         </div>
