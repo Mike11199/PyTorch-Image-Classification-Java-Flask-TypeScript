@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useState } from "react";
-import { LineWave, ColorRing } from "react-loader-spinner";
+import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
+import Button from "./Button";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -151,34 +152,18 @@ const HomePage = () => {
           uploadedImages={uploadedImages}
           loading={loading}
         />
+
         <div className="mt-8 mb-16">
-          <button
-            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm w-72"
-            onClick={() => handleSubmitUploadedImageButton()}
-          >
-            <div className="flex justify-center items-center gap-4">
-              Submit Uploaded Image File
-              {loading && (
-                <ColorRing
-                  height="20"
-                  width="20"
-                  colors={[
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                  ]}
-                />
-              )}
-            </div>
-          </button>
+          <Button
+            buttonOnClick={handleSubmitUploadedImageButton}
+            loading={loading}
+            buttonText={"Submit Image File"}
+          />
         </div>
 
         <div className="text-sm text-white mb-8 font-semibold">
           OR Enter an Image URL below
         </div>
-        <div id="toast"></div>
         <div className="flex justify-center gap-24 w-full">
           <input
             className="mb-8 w-full mx-44"
@@ -188,29 +173,12 @@ const HomePage = () => {
             onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
-        <div className="flex justify-center gap-14">
-          <button
-            onClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
-            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm w-72"
-          >
-            <div className="flex justify-center items-center gap-4">
-              Submit Image URL
-              {loading && (
-                <ColorRing
-                  height="20"
-                  width="20"
-                  colors={[
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                    "#ffffff",
-                  ]}
-                />
-              )}
-            </div>
-          </button>
-        </div>
+        <Button
+          buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
+          loading={loading}
+          buttonText={"Submit Image URL"}
+        />
+
         <div className="text-white text-left mx-44 mt-12">
           <label htmlFor="cars">Choose a pre-selected image URL</label>
           <select
