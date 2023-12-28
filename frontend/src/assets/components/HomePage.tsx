@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { LineWave, ColorRing } from "react-loader-spinner";
 import DropZone from "./Dropzone";
+import validUrl from "valid-url";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -50,9 +51,38 @@ const HomePage = () => {
     }
   };
 
+  const isImageUrlValid = (imageUrl: string): boolean => {
+    const lowerCasedUrl = imageUrl.toLowerCase();
+    return Boolean(
+      imageUrl &&
+        validUrl.isUri(imageUrl) &&
+        (lowerCasedUrl.endsWith(".jpg") ||
+          lowerCasedUrl.endsWith(".jpeg") ||
+          lowerCasedUrl.endsWith(".png"))
+    );
+  };
+
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
+    if (!isImageUrlValid(imageUrl)) {
+      alert("Please enter a valid URL ending with .jpg, .jpeg, or .png");
+      return;
+    }
+
     const imageBlob = await convertImageUrlToImage(imageUrl);
+
+    if (!imageBlob) {
+      alert("Please enter a valid URL ending with .jpg, .jpeg, or .png");
+      return;
+    }
     await fetchPyTorchAnalysis(imageBlob);
+  };
+
+  const handleSubmitUploadedImageButton = async () => {
+    if (uploadedImages.length === 0) {
+      alert("Please upload an image before submitting.");
+      return;
+    }
+    await fetchPyTorchAnalysis(uploadedImages[0]);
   };
 
   const drawBoundingBoxes = (image: any, boundingBoxData: any) => {
@@ -95,14 +125,24 @@ const HomePage = () => {
     }
   };
 
-  async function convertImageUrlToImage(imageUrl: any) {
+  async function convertImageUrlToImage(
+    imageUrl: string
+  ): Promise<Blob | null> {
     try {
       const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      return blob;
+      if (
+        response.ok &&
+        response.headers.get("content-type")?.startsWith("image/")
+      ) {
+        const blob = await response.blob();
+        return blob;
+      } else {
+        console.error("Invalid image URL or not an image file.");
+        return null;
+      }
     } catch (error) {
-      console.error("Error converting image to base64:", error);
-      throw error;
+      console.error("Error fetching image:", error);
+      return null;
     }
   }
 
@@ -131,7 +171,7 @@ const HomePage = () => {
         <div className="mt-8 mb-16">
           <button
             className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm w-72"
-            onClick={() => fetchPyTorchAnalysis(uploadedImages[0])}
+            onClick={() => handleSubmitUploadedImageButton()}
           >
             <div className="flex justify-center items-center gap-4">
               Submit Uploaded Image File
@@ -209,7 +249,7 @@ const HomePage = () => {
               Cats and Dogs
             </option>
             <option value="https://images.unsplash.com/photo-1602940659805-770d1b3b9911?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
-              Times Square
+              City Crosswalk
             </option>
           </select>
         </div>
