@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { LineWave } from "react-loader-spinner";
+import { LineWave, ColorRing } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 
 const HomePage = () => {
@@ -9,6 +9,7 @@ const HomePage = () => {
   );
   const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<any>([]);
 
   function clearCanvas() {
     const canvas = document.getElementById(
@@ -122,7 +123,34 @@ const HomePage = () => {
           </li>
         </div>
 
-        <DropZone buttonFunction={fetchPyTorchAnalysis} />
+        <DropZone
+          setterUploadedImages={setUploadedImages}
+          uploadedImages={uploadedImages}
+          loading={loading}
+        />
+        <div className="mt-8 mb-16">
+          <button
+            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm w-72"
+            onClick={() => fetchPyTorchAnalysis(uploadedImages[0])}
+          >
+            <div className="flex justify-center items-center gap-4">
+              Submit Uploaded Image File
+              {loading && (
+                <ColorRing
+                  height="20"
+                  width="20"
+                  colors={[
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                  ]}
+                />
+              )}
+            </div>
+          </button>
+        </div>
 
         <div className="text-sm text-white mb-8 font-semibold">
           OR Enter an Image URL below
@@ -140,9 +168,24 @@ const HomePage = () => {
         <div className="flex justify-center gap-14">
           <button
             onClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
-            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
+            className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm w-72"
           >
-            Submit Image URL
+            <div className="flex justify-center items-center gap-4">
+              Submit Image URL
+              {loading && (
+                <ColorRing
+                  height="20"
+                  width="20"
+                  colors={[
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                  ]}
+                />
+              )}
+            </div>
           </button>
         </div>
         <div className="text-white text-left mx-44 mt-12">

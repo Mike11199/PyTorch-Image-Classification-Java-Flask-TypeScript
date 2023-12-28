@@ -1,13 +1,20 @@
 import { useDropzone } from "react-dropzone";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
-const DropZone = ({ buttonFunction }: any) => {
-  const [selectedImages, setSelectedImages] = useState<any>([]);
+interface DropZoneProps {
+  uploadedImages: [];
+  setterUploadedImages: React.Dispatch<React.SetStateAction<any>>;
+  loading: boolean;
+}
 
-  const onDrop = useCallback((acceptedFiles: any, rejectedFiles: any) => {
-    acceptedFiles.forEach((file: any) => {
-      setSelectedImages([file]);
-    });
+const DropZone = ({ setterUploadedImages, uploadedImages, loading }: DropZoneProps) => {
+  const onDrop = useCallback(async (acceptedFiles: any, rejectedFiles: any) => {
+    for (const file of acceptedFiles) {
+      const blob = await fileToBlob(file);
+      setterUploadedImages([blob]);
+      console.log(file);
+      console.log(blob);
+    }
   }, []);
 
   const {
@@ -16,15 +23,13 @@ const DropZone = ({ buttonFunction }: any) => {
     isDragActive,
     isDragAccept,
     isDragReject,
-  } = useDropzone({ onDrop });
-
-  const handleImageUpload = async () => {
-    const blobs = selectedImages.map((file: any) => {
-      return new Blob([file], { type: file.type });
-    });
-    console.log(blobs[0]);
-    await buttonFunction(blobs[0]);
-  };
+  } = useDropzone({
+    onDrop,
+    multiple: false,
+    accept: {
+      "image/*": [".jpg", ".jpeg", ".png"],
+    },
+  });
 
   const style = useMemo(
     () => ({
@@ -33,6 +38,19 @@ const DropZone = ({ buttonFunction }: any) => {
     }),
     [isDragAccept, isDragReject]
   );
+
+  const fileToBlob = (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const blob = new Blob([reader.result as ArrayBuffer], {
+          type: file.type,
+        });
+        resolve(blob);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
 
   return (
     <div className="mx-44">
@@ -44,11 +62,15 @@ const DropZone = ({ buttonFunction }: any) => {
         {isDragActive ? (
           <p className="text-white mt-12">Drop file(s) here ...</p>
         ) : (
-          <p className="text-white mt-12">
-            Drag and drop file(s) here, or click to select files
-          </p>
+          loading ? (
+            <p className="text-white mt-12">Processing image...</p>
+          ) : (
+            <p className="text-white mt-12">
+              Drag and drop file(s) here, or click to select files
+            </p>
+          )
         )}
-        {selectedImages.length == 0 && (
+        {uploadedImages.length == 0 && (
           <svg
             className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
             aria-hidden="true"
@@ -66,8 +88,8 @@ const DropZone = ({ buttonFunction }: any) => {
           </svg>
         )}
         <div className="mb-12">
-          {selectedImages.length > 0 &&
-            selectedImages.map((image: any, index: any) => (
+          {uploadedImages.length > 0 &&
+            uploadedImages.map((image: any, index: any) => (
               <img
                 className="h-44 rounded-md shadow-md"
                 src={`${URL.createObjectURL(image)}`}
@@ -76,15 +98,6 @@ const DropZone = ({ buttonFunction }: any) => {
               />
             ))}
         </div>
-      </div>
-
-      <div className="mt-8 mb-16">
-        <button
-          className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
-          onClick={handleImageUpload}
-        >
-          Submit Uploaded Image File
-        </button>
       </div>
     </div>
   );
