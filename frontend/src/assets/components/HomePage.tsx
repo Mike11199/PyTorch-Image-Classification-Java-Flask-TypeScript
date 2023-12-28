@@ -3,6 +3,8 @@ import { useState } from "react";
 import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 import Button from "./Button";
+import ImageCanvas from "./ImageCanvas";
+import { convertImageUrlToImage, createImageURLFromBlob } from "./utils";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -11,35 +13,23 @@ const HomePage = () => {
   const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<any>([]);
+  const [canvasImage, setCanvasImage] = useState<any>(null);
 
-  function clearCanvas() {
-    const canvas = document.getElementById(
-      "boundingBoxCanvas"
-    ) as HTMLCanvasElement;
-    const ctx = canvas?.getContext("2d");
-
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  }
+  const boundingBoxData = pyTorchImageResponse
+    ? JSON.parse(pyTorchImageResponse)
+    : null;
 
   const fetchPyTorchAnalysis = async (imageBlob: any) => {
     setLoading(true);
     setPyTorchImageResponse("");
-    clearCanvas();
 
     try {
       const formData = new FormData();
       formData.append("image", imageBlob, "image.jpg");
-      console.log(imageBlob);
       const response = await axios.post("/api/image-url-pytorch", formData);
-      const jsonString = JSON.stringify(response?.data, null, 2);
-      setPyTorchImageResponse(jsonString);
-      // draw image on canvas
-      const image = new Image();
-      const imageUrl = URL.createObjectURL(imageBlob);
-      image.src = imageUrl;
-      image.onload = () => drawBoundingBoxes(image, response?.data);
+      setPyTorchImageResponse(JSON.stringify(response?.data, null, 2));
+      const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
+      setCanvasImage(imageURLFromBlob);
       return response?.data;
     } catch (error: any) {
       console.error("Error:", error.message);
@@ -68,67 +58,6 @@ const HomePage = () => {
     }
     await fetchPyTorchAnalysis(uploadedImages[0]);
   };
-
-  const drawBoundingBoxes = (image: any, boundingBoxData: any) => {
-    const canvas = document.getElementById(
-      "boundingBoxCanvas"
-    ) as HTMLCanvasElement;
-    const ctx = canvas?.getContext("2d");
-
-    if (!ctx) {
-      console.error("2D context not supported");
-      return;
-    }
-
-    canvas.height = image.height;
-    canvas.width = image.width;
-
-    ctx.drawImage(image, 0, 0);
-
-    for (let i = 0; i < boundingBoxData.boxes.length; i++) {
-      const box = boundingBoxData?.boxes[i];
-      const className = boundingBoxData?.classes[i];
-      const accuracy = boundingBoxData?.scores[i];
-      const formattedClassName =
-        className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
-
-      const [x, y, width, height] = box.map((value: number) => value);
-      if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, width - x, height - y);
-
-        ctx.fillStyle = "red";
-        ctx.font = "bold 12px Arial";
-        ctx.fillText(
-          `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
-          x + 5,
-          y + 15
-        );
-      }
-    }
-  };
-
-  async function convertImageUrlToImage(
-    imageUrl: string
-  ): Promise<Blob | null> {
-    try {
-      const response = await fetch(imageUrl);
-      if (
-        response.ok &&
-        response.headers.get("content-type")?.startsWith("image/")
-      ) {
-        const blob = await response.blob();
-        return blob;
-      } else {
-        console.error("Invalid image URL or not an image file.");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching image:", error);
-      return null;
-    }
-  }
 
   return (
     <>
@@ -212,22 +141,11 @@ const HomePage = () => {
           )}
           {!loading && pyTorchImageResponse}
         </div>
-        <div
-          id="boundingBoxCanvasDiv"
-          className="mt-8 mx-44 h-[50rem] bg-black text-green-500 text-left flex justify-center align-middle"
-        >
-          {loading && (
-            <div>
-              <LineWave height="100" width="100" color="green" />
-            </div>
-          )}
-          {!loading && (
-            <canvas
-              className=" object-contain  h-full w-full"
-              id="boundingBoxCanvas"
-            ></canvas>
-          )}
-        </div>
+        <ImageCanvas
+          loading={loading}
+          image={canvasImage}
+          boundingBoxData={boundingBoxData}
+        />
       </div>
     </>
   );
