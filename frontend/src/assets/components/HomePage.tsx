@@ -4,7 +4,7 @@ import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 import Button from "./Button";
 import ImageCanvas from "./ImageCanvas";
-import { convertImageUrlToImage, createImageURLFromBlob } from "./utils";
+import { createImageURLFromBlob, convertImageUrlToImage } from "./FunctionUtils";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(

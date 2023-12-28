@@ -7,10 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "tsx watch server.tsx",
-    "client": "yarn start --prefix ./frontend",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
-    "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
-    "heroku-postbuild": "cd frontend && yarn install && yarn build"
+    "client": "npm start --prefix ./frontend",
+    "dev": "concurrently --kill-others-on-fail \"npm server\" \"npm client\"",
+    "start": "concurrently --kill-others-on-fail \"npm server\" \"npm client\"",
+    "heroku-postbuild": "cd frontend && npm install && npm build"
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
