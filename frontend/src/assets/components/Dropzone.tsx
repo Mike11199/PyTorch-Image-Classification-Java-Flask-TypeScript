@@ -3,7 +3,7 @@ import { useCallback, useState, useMemo } from "react";
 
 const DropZone = ({ buttonFunction }: any) => {
   const [selectedImages, setSelectedImages] = useState<any>([]);
-  //const [uploadStatus, setUploadStatus] = useState<any>("");
+
   const onDrop = useCallback((acceptedFiles: any, rejectedFiles: any) => {
     acceptedFiles.forEach((file: any) => {
       setSelectedImages([file]);
@@ -19,37 +19,11 @@ const DropZone = ({ buttonFunction }: any) => {
   } = useDropzone({ onDrop });
 
   const handleImageUpload = async () => {
-    //setUploadStatus("Uploading....");
-
-    const formData = new FormData();
     const blobs = selectedImages.map((file: any) => {
       return new Blob([file], { type: file.type });
     });
-
-    console.log(blobs)
-    console.log(blobs);
-    blobs.forEach((image: any) => {
-      console.log(`Type of image at index :`,  image);
-
-      formData.append('image', image, 'image.jpg');
-    });
-
-
-
-    buttonFunction(blobs[0])
-
-    try {
-      //   const response = await axios.post(
-      //     "https://cloudinary-react-dropzone.vercel.app/api/upload",
-      //     formData
-      //   );
-      //   console.log(response.data);
-      
-      //setUploadStatus("upload successful");
-    } catch (error) {
-      console.log("" + error);
-      //      setUploadStatus("Upload failed..");
-    }
+    console.log(blobs[0]);
+    await buttonFunction(blobs[0]);
   };
 
   const style = useMemo(
@@ -111,7 +85,6 @@ const DropZone = ({ buttonFunction }: any) => {
         >
           Submit Uploaded Image File
         </button>
-        {/* <p className="text-white">{uploadStatus}</p> */}
       </div>
     </div>
   );

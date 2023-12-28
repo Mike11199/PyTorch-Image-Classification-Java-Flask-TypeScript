@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 
@@ -8,8 +8,6 @@ const HomePage = () => {
     "https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
   );
   const [pyTorchImageResponse, setPyTorchImageResponse] = useState("");
-  const [imageSrc, setImageSrc] = useState<any>(null);
-  const [boundingBoxes, setBoundingBoxes] = useState<any>([]);
   const [loading, setLoading] = useState(false);
 
   function clearCanvas() {
@@ -25,20 +23,22 @@ const HomePage = () => {
 
   const fetchPyTorchAnalysis = async (imageBlob: any) => {
     setLoading(true);
-    setImageSrc(null);
-    setBoundingBoxes([]);
     setPyTorchImageResponse("");
     clearCanvas();
 
     try {
       const formData = new FormData();
       formData.append("image", imageBlob, "image.jpg");
+      console.log(imageBlob);
       const response = await axios.post("/api/image-url-pytorch", formData);
       const jsonString = JSON.stringify(response?.data, null, 2);
       setPyTorchImageResponse(jsonString);
-      setBoundingBoxes(response?.data);
+      // draw image on canvas
+      const image = new Image();
       const imageUrl = URL.createObjectURL(imageBlob);
-      setImageSrc(imageUrl);
+      image.src = imageUrl;
+      image.onload = () => drawBoundingBoxes(image, response?.data);
+      return response?.data;
     } catch (error: any) {
       console.error("Error:", error.message);
       if (error.response) {
@@ -104,14 +104,6 @@ const HomePage = () => {
       throw error;
     }
   }
-
-  useEffect(() => {
-    if (imageSrc) {
-      const image = new Image();
-      image.src = imageSrc;
-      image.onload = () => drawBoundingBoxes(image, boundingBoxes);
-    }
-  }, [imageSrc, boundingBoxes]);
 
   return (
     <>
