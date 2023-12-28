@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState } from "react";
 import DropZone from "./Dropzone";
 import Button from "./Button";
@@ -6,11 +5,11 @@ import ImageCanvas from "./ImageCanvas";
 import {
   createImageURLFromBlob,
   convertImageUrlToImage,
-  trimPytorchDataObject,
 } from "./FunctionUtils";
 import JSONBox from "./JSONBox";
 import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
+import { fetchPyTorchAnalysis } from "./FunctionUtils";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -24,47 +23,31 @@ const HomePage = () => {
   const [uploadedImages, setUploadedImages] = useState<Blob[]>([]);
   const [canvasImage, setCanvasImage] = useState<HTMLImageElement | null>(null);
 
-  const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
+  const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
-    setPyTorchResponseString("");
-    setPyTorchResponseObj(null);
-
-    try {
-      const formData = new FormData();
-      formData.append("image", imageBlob, "image.jpg");
-      const response = await axios.post("/api/image-url-pytorch", formData);
-      const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
-      setPyTorchResponseObj(parsedPyTorchData);
-      setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
-      const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
-      setCanvasImage(imageURLFromBlob);
-      return response?.data;
-    } catch (error: any) {
-      console.error("Error:", error.message);
-      if (error.response) {
-        console.error("Response Data:", error.response.data);
-      }
-    } finally {
-      setLoading(false);
-    }
+    const parsedPyTorchData = await fetchPyTorchAnalysis(imageBlob);
+    setPyTorchResponseObj(parsedPyTorchData ?? null);
+    setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
+    const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
+    setCanvasImage(imageURLFromBlob);
+    setLoading(false);
   };
 
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
     const imageBlob = await convertImageUrlToImage(imageUrl);
-
     if (!imageBlob) {
       alert("Please enter a valid image URL before submitting.");
       return;
     }
-    await fetchPyTorchAnalysis(imageBlob);
+    await pyTorchResultsFromImageBlob(imageBlob);
   };
 
-  const handleSubmitUploadedImageButton = async () => {
+  const fetchPyTorchAnalysisUsingUploadedImage = async () => {
     if (uploadedImages.length === 0) {
       alert("Please upload an image before submitting.");
       return;
     }
-    await fetchPyTorchAnalysis(uploadedImages[0]);
+    await pyTorchResultsFromImageBlob(uploadedImages[0]);
   };
 
   return (
@@ -101,7 +84,7 @@ const HomePage = () => {
 
         <div className="mt-8 mb-16">
           <Button
-            buttonOnClick={handleSubmitUploadedImageButton}
+            buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
             loading={loading}
             buttonText={"Submit Image File"}
           />

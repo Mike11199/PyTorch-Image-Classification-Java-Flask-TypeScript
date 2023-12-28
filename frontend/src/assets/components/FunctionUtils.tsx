@@ -1,4 +1,5 @@
 import { PyTorchImageResponseType } from "./types";
+import axios from "axios";
 
 export async function convertImageUrlToImage(
   imageUrl: string
@@ -57,3 +58,19 @@ export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
     return null;
   }
 }
+
+export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", imageBlob, "image.jpg");
+    const response = await axios.post("/api/image-url-pytorch", formData);
+    const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
+    return parsedPyTorchData;
+  } catch (error: any) {
+    console.error("Error:", error.message);
+    if (error.response) {
+      console.error("Response Data:", error.response.data);
+    }
+  } finally {
+  }
+};
