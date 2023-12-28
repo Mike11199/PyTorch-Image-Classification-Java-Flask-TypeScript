@@ -68,23 +68,23 @@ const HomePage = () => {
   return (
     <>
       <div className="min-h-screen h-auto bg-slate-700 pt-8 pb-12">
-        <div className="text-sm text-white text-left mx-44 mb-14 mt-14">
-          <li>
+        <div className="text-sm text-white text-left mx-4 md:mx-44 mb-14 mt-14">
+          <li className="mb-4 md:mb-0">
             Use buttons below to send a request to a pre-trained PyTorch{" "}
             <strong className="text-red-700">fasterrcnn_resnet50_fpn_v2</strong>{" "}
             computer vision model called by a custom{" "}
             <strong className="text-red-700">inference.py</strong> script.
           </li>
-          <li>
+          <li className="mb-4 md:mb-0">
             Model is deployed to a SageMaker HTTP endpoint. The Express.js
             server calls an AWS API Gateway endpoint via Axios with binary image
             data included directly in the request body.
           </li>
-          <li>
+          <li className="mb-4 md:mb-0">
             The API Gateway then calls a lambda, which converts the raw image
             data to base64 and sends it directly to the PyTorch model.
           </li>
-          <li>
+          <li className="mb-4 md:mb-0">
             In the <strong className="text-red-700">inference.py</strong>{" "}
             script, I decode the base64 image data to a NumPy array, then to a
             tensor with Torch, as input for the model.
@@ -110,7 +110,7 @@ const HomePage = () => {
         </div>
         <div className="flex justify-center gap-24 w-full">
           <input
-            className="mb-8 w-full mx-44"
+            className="mb-8 w-full  mx-4 md:mx-44"
             type="text"
             id="inputField"
             value={inputValue}
@@ -123,7 +123,7 @@ const HomePage = () => {
           buttonText={"Submit Image URL"}
         />
 
-        <div className="text-white text-left mx-44 mt-12">
+        <div className="text-white text-left  mx-4 md:mx-44 mt-12">
           <label htmlFor="imageURLPreSelected">
             Choose a pre-selected image URL
           </label>
@@ -149,7 +149,7 @@ const HomePage = () => {
             </option>
           </select>
         </div>
-        <div className="mt-8 mx-44 h-40 overflow-auto bg-black text-green-500 text-left flex justify-center align-middle">
+        <div className="mt-8  mx-4 md:mx-44 h-40 overflow-auto bg-black text-green-500 text-left flex justify-center align-middle">
           {loading && (
             <div>
               <LineWave height="100" width="100" color="green" />

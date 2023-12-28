@@ -57,7 +57,7 @@ const DropZone = ({
   };
 
   return (
-    <div className="mx-44">
+    <div className="mx-4 md:mx-44">
       <div
         className="flex flex-col gap-12 items-center justify-center w-full min-h-60  border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
         {...getRootProps({ style })}
