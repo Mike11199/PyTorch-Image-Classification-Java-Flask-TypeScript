@@ -10,7 +10,7 @@
     "client": "npm start --prefix ./frontend",
     "dev": "concurrently --kill-others-on-fail \"npm server\" \"npm client\"",
     "start": "concurrently --kill-others-on-fail \"npm server\" \"npm client\"",
-    "heroku-postbuild": "cd frontend && npm install && npm build"
+    "heroku-postbuild": "cd frontend && npm install && npm run build"
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
@@ -35,7 +35,6 @@
     "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "yarn": "1.22.x"
+    "node": ">=18.0.0"
   }
 }
