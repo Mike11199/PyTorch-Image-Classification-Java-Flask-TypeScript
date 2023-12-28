@@ -9,6 +9,7 @@ import {
   trimPytorchDataObject,
 } from "./FunctionUtils";
 import JSONBox from "./JSONBox";
+import ImageURL from "./ImageURL";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -105,51 +106,16 @@ const HomePage = () => {
           />
         </div>
 
-        <div className="text-sm text-white mb-8 font-semibold">
-          OR Enter an Image URL below
-        </div>
-        <div className="flex justify-center gap-24 w-full">
-          <input
-            className="mb-8 w-full  mx-4 md:mx-44"
-            type="text"
-            id="inputField"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-          />
-        </div>
+        <ImageURL
+          urlInputValue={inputValue}
+          setterURLInputValue={setInputValue}
+        />
         <Button
           buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
           loading={loading}
           buttonText={"Submit Image URL"}
         />
-
-        <div className="text-white text-left  mx-4 md:mx-44 mt-12">
-          <label htmlFor="imageURLPreSelected">
-            Choose a pre-selected image URL
-          </label>
-
-          <select
-            onChange={(e) => setInputValue(e.target.value)}
-            value={inputValue}
-            className="text-black ml-6"
-            id="image_url_options"
-            name="image_url_options"
-          >
-            <option value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg">
-              Labrador
-            </option>
-            <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
-              Elephant
-            </option>
-            <option value="https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a">
-              Cats and Dogs
-            </option>
-            <option value="https://images.unsplash.com/photo-1602940659805-770d1b3b9911?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
-              City Crosswalk
-            </option>
-          </select>
-        </div>
-        <div className="flex flex-col md:flex-row mt-8 mx-4 md:mx-44 h-[50rem]">
+        <div className="flex flex-col md:flex-row mt-16 mx-4 md:mx-44 h-[50rem]">
           <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8 md:mr-8">
             <JSONBox
               loading={loading}
