@@ -2,7 +2,6 @@ import axios from "axios";
 import { useState } from "react";
 import { LineWave, ColorRing } from "react-loader-spinner";
 import DropZone from "./Dropzone";
-import validUrl from "valid-url";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -51,23 +50,7 @@ const HomePage = () => {
     }
   };
 
-  const isImageUrlValid = (imageUrl: string): boolean => {
-    const lowerCasedUrl = imageUrl.toLowerCase();
-    return Boolean(
-      imageUrl &&
-        validUrl.isUri(imageUrl) &&
-        (lowerCasedUrl.endsWith(".jpg") ||
-          lowerCasedUrl.endsWith(".jpeg") ||
-          lowerCasedUrl.endsWith(".png"))
-    );
-  };
-
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
-    if (!isImageUrlValid(imageUrl)) {
-      alert("Please enter a valid URL ending with .jpg, .jpeg, or .png");
-      return;
-    }
-
     const imageBlob = await convertImageUrlToImage(imageUrl);
 
     if (!imageBlob) {
