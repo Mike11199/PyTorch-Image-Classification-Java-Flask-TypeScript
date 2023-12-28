@@ -17,9 +17,6 @@
 
 ![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/8af8d07d-b6f9-4f1d-84db-9631d99ea10d)
 
-![Uploading image.png…]()
-
-
 ![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/27c4dada-3332-4229-abc5-8c02f3f3f04f)
 
 ![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/fdebd5fc-13d1-4134-b57f-9e92e9e8365a)
