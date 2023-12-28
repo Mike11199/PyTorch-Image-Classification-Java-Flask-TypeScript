@@ -72,7 +72,7 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
     <>
       <div
         id="boundingBoxCanvasDiv"
-        className="mt-8 mx-4 md:mx-44 h-[50rem] bg-black text-green-500 text-left flex justify-center align-middle"
+        className="mt-8 mx-4 md:mx-44 h-[25rem] md:h-[50rem] bg-black text-green-500 text-left flex justify-center align-middle"
       >
         {loading && (
           <div>
@@ -81,7 +81,7 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
         )}
         {!loading && (
           <canvas
-            className=" object-contain  h-full w-full"
+            className=" object-contain h-full w-full"
             id="boundingBoxCanvas"
           ></canvas>
         )}
