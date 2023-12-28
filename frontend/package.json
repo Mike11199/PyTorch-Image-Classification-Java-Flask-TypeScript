@@ -1,12 +1,12 @@
 {
-  "name": "my-vite-project",
+  "name": "pytorch-front-end",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "npm",
+    "build": "npm build",
+    "preview": "npm preview"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.2.1",
