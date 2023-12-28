@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useState } from "react";
-import { LineWave } from "react-loader-spinner";
 import DropZone from "./Dropzone";
 import Button from "./Button";
 import ImageCanvas from "./ImageCanvas";
@@ -9,6 +8,7 @@ import {
   convertImageUrlToImage,
   trimPytorchDataObject,
 } from "./FunctionUtils";
+import JSONBox from "./JSONBox";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -17,7 +17,7 @@ const HomePage = () => {
   const [pyTorchImageResponseObj, setPyTorchImageResponseObj] =
     useState<any>(null);
   const [pyTorchImageResponseString, setPyTorchImageResponseString] =
-    useState("");
+    useState<string>("");
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<any>([]);
   const [canvasImage, setCanvasImage] = useState<any>(null);
@@ -130,7 +130,7 @@ const HomePage = () => {
 
           <select
             onChange={(e) => setInputValue(e.target.value)}
-            value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
+            value={inputValue}
             className="text-black ml-6"
             id="image_url_options"
             name="image_url_options"
@@ -149,19 +149,21 @@ const HomePage = () => {
             </option>
           </select>
         </div>
-        <div className="mt-8  mx-4 md:mx-44 h-40 overflow-auto bg-black text-green-500 text-left flex justify-center align-middle">
-          {loading && (
-            <div>
-              <LineWave height="100" width="100" color="green" />
-            </div>
-          )}
-          {!loading && pyTorchImageResponseString}
+        <div className="flex flex-col md:flex-row mt-8 mx-4 md:mx-44 h-[50rem]">
+          <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8">
+            <JSONBox
+              loading={loading}
+              pyTorchImageResponseString={pyTorchImageResponseString}
+            />
+          </div>
+          <div className="w-full md:w-10/12 h-[25rem] md:h-full">
+            <ImageCanvas
+              loading={loading}
+              image={canvasImage}
+              boundingBoxData={pyTorchImageResponseObj}
+            />
+          </div>
         </div>
-        <ImageCanvas
-          loading={loading}
-          image={canvasImage}
-          boundingBoxData={pyTorchImageResponseObj}
-        />
       </div>
     </>
   );
