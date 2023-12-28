@@ -1,5 +1,6 @@
 import JSONPretty from "react-json-pretty";
 import "react-json-pretty/themes/monikai.css";
+import { LineWave } from "react-loader-spinner";
 
 interface JSONBoxProps {
   loading: boolean;
@@ -13,6 +14,11 @@ const JSONBox = ({ loading, pyTorchImageResponseString }: JSONBoxProps) => {
         className="overflow-auto text-left pl-4 h-full"
         style={{ backgroundColor: "#272822" }}
       >
+      {loading && (
+          <div className="w-full flex justify-center">
+            <LineWave height="100" width="100" color="green" />
+          </div>
+        )}
         <JSONPretty
           className="w-full h-full"
           style={{ backgroundColor: "#272822" }}

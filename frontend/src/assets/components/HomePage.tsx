@@ -150,7 +150,7 @@ const HomePage = () => {
           </select>
         </div>
         <div className="flex flex-col md:flex-row mt-8 mx-4 md:mx-44 h-[50rem]">
-          <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8">
+          <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8 md:mr-8">
             <JSONBox
               loading={loading}
               pyTorchImageResponseString={pyTorchImageResponseString}

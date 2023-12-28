@@ -75,11 +75,11 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
         className="h-full flex"
         style={{ backgroundColor: "#272822" }}
       >
-        {/* {loading && (
-          <div className="w-full flex justify-center mr-[22rem]">
+        {loading && (
+          <div className="w-full flex justify-center">
             <LineWave height="100" width="100" color="green" />
           </div>
-        )} */}
+        )}
         {!loading && (
           <canvas
             className=" object-contain h-full w-full"
