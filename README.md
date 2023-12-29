@@ -17,11 +17,7 @@
 
 <br />
 
-<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703805806/cats_and_dogs_ezhzka.png">
-
-<br />
-
-![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/27c4dada-3332-4229-abc5-8c02f3f3f04f)
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703816511/cats_and_dogs_tusiwn.png">
 
 <br />
 
