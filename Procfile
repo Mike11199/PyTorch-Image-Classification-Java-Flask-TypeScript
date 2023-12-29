@@ -1,1 +1,1 @@
-web: tsx server.tsx
+web: tsx backend/server.tsx

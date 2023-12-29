@@ -4,14 +4,14 @@
 - Can accept both an image URL or an uploaded image from one's computer.  It sends binary data to the lambda/ PyTorch Model etiher way.
 
 - Deployed Website
-  - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ 
+  - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/
 
 - Back End Repo - AWS Endpoint/Model/etc
   - https://github.com/Mike11199/PyTorch-Image-Classification/
 
-- Video 
+- Video
   - https://www.youtube.com/watch?v=abtdBPFu_yM
- 
+
 
 # Website Screenshots
 
