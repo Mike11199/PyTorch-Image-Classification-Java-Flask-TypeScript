@@ -21,6 +21,10 @@
 
 <br />
 
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703832095/traffic_analysis_mcwwdg.png">
+
+<br />
+
 <img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823645/nat_geo_collage_analysis_tpnipt.png">
 
 <br />
