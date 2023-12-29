@@ -25,6 +25,9 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           <option value="https://images.unsplash.com/photo-1602940659805-770d1b3b9911?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
             City Crosswalk
           </option>
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823336/nat_geo_collage_aufbyo.png">
+            Nat Geo Collage
+          </option>
         </select>
       </div>
 
