@@ -16,6 +16,7 @@
   "dependencies": {
     "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
+    "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.0.10"
   },
   "devDependencies": {
