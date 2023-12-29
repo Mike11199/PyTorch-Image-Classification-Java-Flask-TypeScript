@@ -37,7 +37,6 @@ const ImageCanvas = ({
     image: HTMLImageElement | undefined | null,
     boundingBoxData: PyTorchImageResponseType | null
   ) => {
-    console.log("draw!");
     if (!image || !boundingBoxData) return;
     const canvas = document.getElementById(
       "boundingBoxCanvas"

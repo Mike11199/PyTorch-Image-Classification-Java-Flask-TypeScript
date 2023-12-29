@@ -109,7 +109,7 @@ const HomePage = () => {
           loading={loading}
           buttonText={"Submit Image URL"}
         />
-        <div className="mt-8">
+        <div className="mt-32">
           <Button
             color={"bg-purple-900"}
             hoverColor={"hover:bg-purple-800"}
