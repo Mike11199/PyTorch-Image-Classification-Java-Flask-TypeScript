@@ -17,7 +17,7 @@
 
 <br />
 
-<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703816511/cats_and_dogs_tusiwn.png">
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703822238/cats_and_dogs_lnwfi9.png">
 
 <br />
 
