@@ -28,6 +28,9 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823336/nat_geo_collage_aufbyo.png">
             Nat Geo Collage
           </option>
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703829029/20171225_184853_srzt72.jpg">
+            Cat Image
+          </option>
         </select>
       </div>
 
