@@ -11,13 +11,13 @@ dotenv.config();
 if (process.env.NODE_ENV === "production") {
   app.use(
     express.static(
-      path.join(new URL("./frontend/dist", import.meta.url).pathname)
+      path.join(new URL("../frontend/dist", import.meta.url).pathname)
     )
   );
   app.get("*", (req, res) =>
     res.sendFile(
       path.resolve(
-        new URL("./frontend/dist/index.html", import.meta.url).pathname
+        new URL("../frontend/dist/index.html", import.meta.url).pathname
       )
     )
   );
