@@ -25,10 +25,13 @@
 
 <br />
 
-![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/fdebd5fc-13d1-4134-b57f-9e92e9e8365a)
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831262/winter_traffic_analysis_caxrhm.png">
 
 <br />
 
-![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/2102f5c3-e62b-4cf7-9d02-49aa36393e69)
+<br />
+
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703828564/labrador_new_ogez0w.png">
 
 <br />
+
