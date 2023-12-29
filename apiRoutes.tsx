@@ -1,6 +1,7 @@
 import express from "express";
 import axios from "axios";
 import multer from "multer";
+import { PyTorchImageResponseType } from "./types";
 
 import { Request } from "express";
 
@@ -12,7 +13,6 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  // Check file type or other conditions if needed
   cb(null, true);
 };
 
@@ -30,7 +30,7 @@ const fetchImageAnalysisUsingBuffer = async (imageBuffer: any) => {
     });
 
     console.log("Response:", response?.data);
-    return response?.data;
+    return response?.data as PyTorchImageResponseType;
   } catch (error: any) {
     console.error("Error:", error);
     if (error?.response) {
