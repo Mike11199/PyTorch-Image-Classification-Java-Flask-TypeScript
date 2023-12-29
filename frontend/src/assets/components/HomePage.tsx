@@ -23,7 +23,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<Blob[]>([]);
   const [canvasImage, setCanvasImage] = useState<HTMLImageElement | null>(null);
-  const [pyTorchBoxLineWidth, setPyTorchBoxLineWidth] = useState<number>(2);
+  const [pyTorchBoxLineWidth, setPyTorchBoxLineWidth] = useState<number>(3);
   const [pyTorchBoxFontSize, setPyTorchBoxFontSize] = useState<number>(12);
   const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
