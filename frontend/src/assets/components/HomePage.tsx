@@ -10,6 +10,7 @@ import JSONBox from "./JSONBox";
 import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
 import { fetchPyTorchAnalysis } from "./FunctionUtils";
+import PyTorchSlider from "./Slider";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
@@ -22,6 +23,10 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<Blob[]>([]);
   const [canvasImage, setCanvasImage] = useState<HTMLImageElement | null>(null);
+  const [pyTorchBoxLineWidth, setPyTorchBoxLineWidth] = useState<number>(2);
+  const [pyTorchBoxFontSize, setPyTorchBoxFontSize] = useState<number>(12);
+  const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
+  const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
@@ -99,7 +104,37 @@ const HomePage = () => {
           loading={loading}
           buttonText={"Submit Image URL"}
         />
-        <div className="flex flex-col md:flex-row mt-16 mx-4 md:mx-44 h-[50rem]">
+        <div className="mt-4 flex flex-col justify-center md:flex-row">
+          <div className=" md:w-1/4 flex justify-center text-white">
+            <PyTorchSlider
+              setterValue={pyTorchBoxLineWidth}
+              setterFunction={setPyTorchBoxLineWidth}
+              sliderName={"Box Line Width"}
+            />
+          </div>
+          <div className=" md:w-1/4 flex justify-center text-white">
+            <PyTorchSlider
+              setterValue={pyTorchBoxFontSize}
+              setterFunction={setPyTorchBoxFontSize}
+              sliderName={"Label Font Size"}
+            />
+          </div>
+          <div className=" md:w-1/4 flex justify-center text-white">
+            <PyTorchSlider
+              setterValue={pyTorchBoxXOffset}
+              setterFunction={setPyTorchBoxXOffset}
+              sliderName={"Label X Offset"}
+            />
+          </div>
+          <div className=" md:w-1/4 flex justify-center text-white">
+            <PyTorchSlider
+              setterValue={pyTorchBoxYOffset}
+              setterFunction={setPyTorchBoxYOffset}
+              sliderName={"Label Y Offset"}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row mt-4 mx-4 md:mx-44 h-[50rem]">
           <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8 md:mr-8">
             <JSONBox
               loading={loading}
@@ -108,6 +143,10 @@ const HomePage = () => {
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
             <ImageCanvas
+              pyTorchBoxXOffset={pyTorchBoxXOffset}
+              pyTorchBoxYOffset={pyTorchBoxYOffset}
+              pyTorchBoxFontSize={pyTorchBoxFontSize}
+              pyTorchBoxLineWidth={pyTorchBoxLineWidth}
               loading={loading}
               image={canvasImage}
               boundingBoxData={pyTorchResponseObj}

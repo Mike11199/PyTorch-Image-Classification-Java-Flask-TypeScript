@@ -6,9 +6,21 @@ interface ImageCanvasProps {
   loading: boolean;
   image?: HTMLImageElement | undefined | null;
   boundingBoxData?: PyTorchImageResponseType | null;
+  pyTorchBoxLineWidth: number;
+  pyTorchBoxFontSize: number;
+  pyTorchBoxXOffset: number;
+  pyTorchBoxYOffset: number;
 }
 
-const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
+const ImageCanvas = ({
+  loading,
+  image,
+  boundingBoxData,
+  pyTorchBoxLineWidth,
+  pyTorchBoxFontSize,
+  pyTorchBoxXOffset,
+  pyTorchBoxYOffset,
+}: ImageCanvasProps) => {
   const drawBoundingBoxes = (
     image: HTMLImageElement | undefined | null,
     boundingBoxData: PyTorchImageResponseType | null
@@ -39,15 +51,15 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
       const [x, y, width, height] = box.map((value: number) => value);
       if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
         ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = pyTorchBoxLineWidth;
         ctx.strokeRect(x, y, width - x, height - y);
 
         ctx.fillStyle = "red";
-        ctx.font = "bold 12px Arial";
+        ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
         ctx.fillText(
           `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
-          x + 5,
-          y + 15
+          x + pyTorchBoxXOffset,
+          y + pyTorchBoxYOffset
         );
       }
     }
@@ -70,7 +82,14 @@ const ImageCanvas = ({ loading, image, boundingBoxData }: ImageCanvasProps) => {
 
   useEffect(() => {
     drawBoundingBoxes(image, boundingBoxData ?? null);
-  }, [image, boundingBoxData]);
+  }, [
+    image,
+    boundingBoxData,
+    pyTorchBoxLineWidth,
+    pyTorchBoxFontSize,
+    pyTorchBoxXOffset,
+    pyTorchBoxYOffset,
+  ]);
 
   return (
     <>
