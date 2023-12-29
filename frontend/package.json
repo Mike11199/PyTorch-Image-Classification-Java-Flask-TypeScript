@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "client": "vite",
     "build": "vite build"
   },
   "dependencies": {

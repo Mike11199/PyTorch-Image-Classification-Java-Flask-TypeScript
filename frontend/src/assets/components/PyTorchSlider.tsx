@@ -43,6 +43,8 @@ const CustomSlider = styled(Slider)({
 });
 
 interface PyTorchSliderProps {
+  minValue: number;
+  maxValue: number;
   sliderName: string;
   setterValue: number;
   setterFunction: React.Dispatch<React.SetStateAction<number>>;
@@ -52,6 +54,8 @@ const PyTorchSlider = ({
   sliderName,
   setterValue,
   setterFunction,
+  minValue,
+  maxValue
 }: PyTorchSliderProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setterFunction(newValue as number);
@@ -64,10 +68,10 @@ const PyTorchSlider = ({
   };
 
   const handleBlur = () => {
-    if (setterValue < -100) {
-      setterFunction(-100);
-    } else if (setterValue > 100) {
-      setterFunction(100);
+    if (setterValue < minValue) {
+      setterFunction(minValue);
+    } else if (setterValue > maxValue) {
+      setterFunction(maxValue);
     }
   };
 
@@ -93,8 +97,8 @@ const PyTorchSlider = ({
             value={setterValue}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
-            min={-100}
-            max={100}
+            min={minValue}
+            max={maxValue}
           />
         </Grid>
         <Grid item style={{ color: "white", borderBottomColor: "white" }}>
@@ -110,8 +114,8 @@ const PyTorchSlider = ({
             onBlur={handleBlur}
             inputProps={{
               step: 1,
-              min: -100,
-              max: 100,
+              min: {minValue},
+              max: {maxValue},
               type: "number",
               "aria-labelledby": "input-slider",
             }}

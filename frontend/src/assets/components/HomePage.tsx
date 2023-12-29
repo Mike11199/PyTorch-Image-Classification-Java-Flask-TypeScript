@@ -123,6 +123,8 @@ const HomePage = () => {
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
+              minValue={1}
+              maxValue={20}
               setterValue={pyTorchBoxLineWidth}
               setterFunction={setPyTorchBoxLineWidth}
               sliderName={"Box Line Width"}
@@ -130,6 +132,8 @@ const HomePage = () => {
           </div>
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
+              minValue={1}
+              maxValue={65}
               setterValue={pyTorchBoxFontSize}
               setterFunction={setPyTorchBoxFontSize}
               sliderName={"Label Font Size"}
@@ -137,6 +141,8 @@ const HomePage = () => {
           </div>
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
+              minValue={-200}
+              maxValue={200}
               setterValue={pyTorchBoxXOffset}
               setterFunction={setPyTorchBoxXOffset}
               sliderName={"Label X Offset"}
@@ -144,6 +150,8 @@ const HomePage = () => {
           </div>
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
+              minValue={-200}
+              maxValue={200}
               setterValue={pyTorchBoxYOffset}
               setterFunction={setPyTorchBoxYOffset}
               sliderName={"Label Y Offset"}
