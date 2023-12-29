@@ -8,18 +8,17 @@ import MuiInput from "@mui/material/Input";
 
 const Input = styled(MuiInput)`
   width: 42px;
-  color: white !important; // Text color with !important
+  color: white !important;
   &::before,
   &::after {
-    // Underline color
     border-bottom: 0px solid white !important;
   }
 
   &:hover {
-    color: white !important; // Text color on hover
+    color: white !important;
     &::before,
     &::after {
-      border-bottom: 0px solid white !important; // Underline color on hover
+      border-bottom: 0px solid white !important;
     }
   }
 `;
@@ -30,20 +29,24 @@ interface PyTorchSliderProps {
   setterFunction: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const PyTorchSlider = ({ sliderName, setterValue, setterFunction  }: PyTorchSliderProps) => {
-
-
+const PyTorchSlider = ({
+  sliderName,
+  setterValue,
+  setterFunction,
+}: PyTorchSliderProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setterFunction(newValue as number);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setterFunction(event.target.value === "" ? 0 : Number(event.target.value));
+    const inputValue =
+      event.target.value === "" ? 0 : Number(event.target.value);
+    setterFunction(inputValue);
   };
 
   const handleBlur = () => {
-    if (setterValue < 0) {
-      setterFunction(0);
+    if (setterValue < -100) {
+      setterFunction(-100);
     } else if (setterValue > 100) {
       setterFunction(100);
     }
@@ -68,22 +71,28 @@ const PyTorchSlider = ({ sliderName, setterValue, setterFunction  }: PyTorchSlid
         <Grid item xs>
           <Slider
             color="secondary"
-            value={typeof setterValue === "number" ? setterValue : 0}
+            value={setterValue}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
+            min={-100}
+            max={100}
           />
         </Grid>
         <Grid item style={{ color: "white", borderBottomColor: "white" }}>
           <Input
-            style={{ color: "white", borderBottomColor: "white" }}
+            style={{
+              color: "white",
+              borderBottomColor: "white",
+              width: "55px",
+            }}
             value={setterValue}
             size="small"
             onChange={handleInputChange}
             onBlur={handleBlur}
             inputProps={{
               step: 1,
-              min: -20,
-              max: 20,
+              min: -100,
+              max: 100,
               type: "number",
               "aria-labelledby": "input-slider",
             }}

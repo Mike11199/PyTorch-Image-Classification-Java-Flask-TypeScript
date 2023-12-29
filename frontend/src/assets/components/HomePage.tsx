@@ -10,7 +10,7 @@ import JSONBox from "./JSONBox";
 import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
 import { fetchPyTorchAnalysis } from "./FunctionUtils";
-import PyTorchSlider from "./Slider";
+import PyTorchSlider from "./PyTorchSlider";
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState(
