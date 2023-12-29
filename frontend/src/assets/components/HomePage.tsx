@@ -104,7 +104,7 @@ const HomePage = () => {
           loading={loading}
           buttonText={"Submit Image URL"}
         />
-        <div className="mt-4 flex flex-col justify-center md:flex-row">
+        <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
               setterValue={pyTorchBoxLineWidth}

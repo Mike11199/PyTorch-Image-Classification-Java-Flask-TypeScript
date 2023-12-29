@@ -1,6 +1,7 @@
 import { LineWave } from "react-loader-spinner";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { PyTorchImageResponseType } from "./types";
+import { createClassColorMap } from "./FunctionUtils";
 
 interface ImageCanvasProps {
   loading: boolean;
@@ -21,6 +22,11 @@ const ImageCanvas = ({
   pyTorchBoxXOffset,
   pyTorchBoxYOffset,
 }: ImageCanvasProps) => {
+  const classColorMap: any = useMemo(
+    () => createClassColorMap(boundingBoxData),
+    [boundingBoxData]
+  );
+
   const drawBoundingBoxes = (
     image: HTMLImageElement | undefined | null,
     boundingBoxData: PyTorchImageResponseType | null
@@ -50,11 +56,12 @@ const ImageCanvas = ({
 
       const [x, y, width, height] = box.map((value: number) => value);
       if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
-        ctx.strokeStyle = "red";
+        const classColor = classColorMap[className];
+        ctx.strokeStyle = classColor;
         ctx.lineWidth = pyTorchBoxLineWidth;
         ctx.strokeRect(x, y, width - x, height - y);
 
-        ctx.fillStyle = "red";
+        ctx.fillStyle = classColor;
         ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
         ctx.fillText(
           `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,

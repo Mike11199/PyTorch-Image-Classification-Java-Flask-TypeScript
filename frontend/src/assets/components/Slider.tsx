@@ -82,7 +82,7 @@ const PyTorchSlider = ({ sliderName, setterValue, setterFunction  }: PyTorchSlid
             onBlur={handleBlur}
             inputProps={{
               step: 1,
-              min: 0,
+              min: -20,
               max: 20,
               type: "number",
               "aria-labelledby": "input-slider",

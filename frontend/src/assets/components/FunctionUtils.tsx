@@ -74,3 +74,26 @@ export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
   } finally {
   }
 };
+
+export function createClassColorMap(
+  boundingBoxData: PyTorchImageResponseType | null | undefined
+) {
+  const getRandomColor = () => {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
+  if (!boundingBoxData) return null;
+  const classColorMap: any = {};
+  for (let i = 0; i < boundingBoxData.boxes.length; i++) {
+    const className = boundingBoxData?.classes[i];
+    if (className && !classColorMap[className]) {
+      classColorMap[className] = getRandomColor();
+    }
+  }
+  return classColorMap;
+}
