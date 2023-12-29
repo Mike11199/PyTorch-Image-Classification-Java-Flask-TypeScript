@@ -15,7 +15,8 @@
   "author": "Michael Iwanek",
   "dependencies": {
     "ts-node": "^10.9.2",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "vite": "^5.0.10"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
