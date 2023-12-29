@@ -4,3 +4,4 @@ export interface PyTorchImageResponseType {
   boxes: number[][];
   labels: number[];
 }
+
