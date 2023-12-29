@@ -21,6 +21,10 @@
 
 <br />
 
+<img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823645/nat_geo_collage_analysis_tpnipt.png">
+
+<br />
+
 ![image](https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/fdebd5fc-13d1-4134-b57f-9e92e9e8365a)
 
 <br />
