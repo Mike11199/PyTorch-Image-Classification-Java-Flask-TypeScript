@@ -16,6 +16,9 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           <option value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg">
             Labrador
           </option>
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831056/winter_road_aiqpqk.jpg">
+            Winter Road
+          </option>
           <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
             Elephant
           </option>
