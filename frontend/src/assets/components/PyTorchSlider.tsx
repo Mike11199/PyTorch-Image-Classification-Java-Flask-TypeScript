@@ -23,6 +23,25 @@ const Input = styled(MuiInput)`
   }
 `;
 
+const CustomSlider = styled(Slider)({
+  "& .MuiSlider-track": {
+    color: "#ba0000",
+  },
+
+  "& .MuiSlider-thumb": {
+    color: "#271817",
+    boxShadow: "0 0 0 0px rgba(255, 0, 0, 0.3) !important",
+
+    "&:hover, &:focus, &:active": {
+      boxShadow: "0 0 15px 10px rgba(255, 0, 0, 0.2) !important",
+    },
+  },
+
+  "& .MuiSlider-rail": {
+    color: "#000000",
+  },
+});
+
 interface PyTorchSliderProps {
   sliderName: string;
   setterValue: number;
@@ -69,7 +88,7 @@ const PyTorchSlider = ({
       >
         <Grid item></Grid>
         <Grid item xs>
-          <Slider
+          <CustomSlider
             color="secondary"
             value={setterValue}
             onChange={handleSliderChange}
