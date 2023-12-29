@@ -12,6 +12,7 @@ interface ImageCanvasProps {
   pyTorchBoxXOffset: number;
   pyTorchBoxYOffset: number;
   colorMapCounter: number;
+  pyTorchOpacity: number;
 }
 
 const ImageCanvas = ({
@@ -23,6 +24,7 @@ const ImageCanvas = ({
   pyTorchBoxXOffset,
   pyTorchBoxYOffset,
   colorMapCounter,
+  pyTorchOpacity,
 }: ImageCanvasProps) => {
   const [classColorMap, setClassColorMap] = useState(
     createClassColorMap(boundingBoxData)
@@ -32,7 +34,6 @@ const ImageCanvas = ({
     setClassColorMap(createClassColorMap(boundingBoxData));
     drawBoundingBoxes(image, boundingBoxData ?? null);
   }, [colorMapCounter, boundingBoxData]);
-
   const drawBoundingBoxes = (
     image: HTMLImageElement | undefined | null,
     boundingBoxData: PyTorchImageResponseType | null
@@ -63,11 +64,15 @@ const ImageCanvas = ({
       const [x, y, width, height] = box.map((value: number) => value);
       if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
         const classColor = classColorMap[className];
-        ctx.strokeStyle = classColor;
+
+        const alpha = pyTorchOpacity * 0.01;
+        if (classColor) {
+          ctx.strokeStyle = `rgba${classColor.slice(3, -1)},${alpha})`;
+          ctx.fillStyle = `rgba${classColor.slice(3, -1)},${alpha})`;
+        }
         ctx.lineWidth = pyTorchBoxLineWidth;
         ctx.strokeRect(x, y, width - x, height - y);
 
-        ctx.fillStyle = classColor;
         ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
         ctx.fillText(
           `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
@@ -104,6 +109,7 @@ const ImageCanvas = ({
     pyTorchBoxYOffset,
     colorMapCounter,
     classColorMap,
+    pyTorchOpacity
   ]);
 
   return (

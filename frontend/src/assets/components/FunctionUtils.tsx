@@ -78,14 +78,9 @@ export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
 export function createClassColorMap(
   boundingBoxData: PyTorchImageResponseType | null | undefined
 ) {
-  const getRandomColor = () => {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
+  const getRandomValue = () => Math.floor(Math.random() * 256);
+  const getRandomColor = () =>
+    `rgb(${getRandomValue()}, ${getRandomValue()}, ${getRandomValue()})`;
 
   if (!boundingBoxData) return null;
   const classColorMap: any = {};

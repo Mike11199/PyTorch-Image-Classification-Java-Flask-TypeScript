@@ -27,6 +27,7 @@ const HomePage = () => {
   const [pyTorchBoxFontSize, setPyTorchBoxFontSize] = useState<number>(12);
   const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
+  const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
   const [colorMapCounter, setColorMapCounter] = useState(0);
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
@@ -121,7 +122,16 @@ const HomePage = () => {
           />
         </div>
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
-          <div className=" md:w-1/4 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white">
+            <PyTorchSlider
+              minValue={0}
+              maxValue={100}
+              setterValue={pyTorchOpacity}
+              setterFunction={setPyTorchOpacity}
+              sliderName={"Opacity"}
+            />
+          </div>
+          <div className=" md:w-2/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={1}
               maxValue={20}
@@ -130,7 +140,7 @@ const HomePage = () => {
               sliderName={"Box Line Width"}
             />
           </div>
-          <div className=" md:w-1/4 flex justify-center text-white">
+          <div className="md:w-2/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={1}
               maxValue={65}
@@ -139,7 +149,7 @@ const HomePage = () => {
               sliderName={"Label Font Size"}
             />
           </div>
-          <div className=" md:w-1/4 flex justify-center text-white">
+          <div className=" md:w-3/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={-200}
               maxValue={200}
@@ -148,7 +158,7 @@ const HomePage = () => {
               sliderName={"Label X Offset"}
             />
           </div>
-          <div className=" md:w-1/4 flex justify-center text-white">
+          <div className=" md:w-3/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={-200}
               maxValue={200}
@@ -175,6 +185,7 @@ const HomePage = () => {
               image={canvasImage}
               boundingBoxData={pyTorchResponseObj}
               colorMapCounter={colorMapCounter}
+              pyTorchOpacity={pyTorchOpacity}
             />
           </div>
         </div>
