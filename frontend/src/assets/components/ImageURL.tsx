@@ -22,6 +22,9 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
             Elephant
           </option>
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831905/new_york_crosswalk_hsyblv.jpg">
+            New York Traffic
+          </option>
           <option value="https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a">
             Cats and Dogs
           </option>
