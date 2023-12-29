@@ -21,6 +21,12 @@
 
 <br />
 
+<img width="1659" alt="traffic_analysis" src="https://github.com/Mike11199/PyTorch-Image-Classification-TypeScript/assets/91037796/d57d26fa-45d3-4731-ae33-60b32b585d50">
+
+<br />
+<br />
+<br />
+
 <img src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823645/nat_geo_collage_analysis_tpnipt.png">
 
 <br />
