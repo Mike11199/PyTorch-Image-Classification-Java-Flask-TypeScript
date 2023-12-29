@@ -1,5 +1,5 @@
 import { LineWave } from "react-loader-spinner";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { PyTorchImageResponseType } from "./types";
 import { createClassColorMap } from "./FunctionUtils";
 
@@ -11,6 +11,7 @@ interface ImageCanvasProps {
   pyTorchBoxFontSize: number;
   pyTorchBoxXOffset: number;
   pyTorchBoxYOffset: number;
+  colorMapCounter: number;
 }
 
 const ImageCanvas = ({
@@ -21,16 +22,22 @@ const ImageCanvas = ({
   pyTorchBoxFontSize,
   pyTorchBoxXOffset,
   pyTorchBoxYOffset,
+  colorMapCounter,
 }: ImageCanvasProps) => {
-  const classColorMap: any = useMemo(
-    () => createClassColorMap(boundingBoxData),
-    [boundingBoxData]
+  const [classColorMap, setClassColorMap] = useState(
+    createClassColorMap(boundingBoxData)
   );
+
+  useEffect(() => {
+    setClassColorMap(createClassColorMap(boundingBoxData));
+    drawBoundingBoxes(image, boundingBoxData ?? null);
+  }, [colorMapCounter, boundingBoxData]);
 
   const drawBoundingBoxes = (
     image: HTMLImageElement | undefined | null,
     boundingBoxData: PyTorchImageResponseType | null
   ) => {
+    console.log("draw!");
     if (!image || !boundingBoxData) return;
     const canvas = document.getElementById(
       "boundingBoxCanvas"
@@ -96,6 +103,8 @@ const ImageCanvas = ({
     pyTorchBoxFontSize,
     pyTorchBoxXOffset,
     pyTorchBoxYOffset,
+    colorMapCounter,
+    classColorMap,
   ]);
 
   return (

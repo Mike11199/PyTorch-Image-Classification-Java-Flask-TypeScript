@@ -27,6 +27,7 @@ const HomePage = () => {
   const [pyTorchBoxFontSize, setPyTorchBoxFontSize] = useState<number>(12);
   const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
+  const [colorMapCounter, setColorMapCounter] = useState(0);
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
@@ -89,6 +90,8 @@ const HomePage = () => {
 
         <div className="mt-8 mb-16">
           <Button
+            color={"bg-red-700"}
+            hoverColor={"hover:bg-red-600"}
             buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
             loading={loading}
             buttonText={"Submit Image File"}
@@ -100,10 +103,23 @@ const HomePage = () => {
           setterURLInputValue={setInputValue}
         />
         <Button
+          color={"bg-red-700"}
+          hoverColor={"hover:bg-red-600"}
           buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
           loading={loading}
           buttonText={"Submit Image URL"}
         />
+        <div className="mt-8">
+          <Button
+            color={"bg-purple-900"}
+            hoverColor={"hover:bg-purple-800"}
+            buttonOnClick={() =>
+              setColorMapCounter((prevCounter) => prevCounter + 1)
+            }
+            loading={loading}
+            buttonText={"Regenerate Colors"}
+          />
+        </div>
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
           <div className=" md:w-1/4 flex justify-center text-white">
             <PyTorchSlider
@@ -150,6 +166,7 @@ const HomePage = () => {
               loading={loading}
               image={canvasImage}
               boundingBoxData={pyTorchResponseObj}
+              colorMapCounter={colorMapCounter}
             />
           </div>
         </div>
