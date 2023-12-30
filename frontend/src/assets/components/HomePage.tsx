@@ -74,25 +74,27 @@ const HomePage = () => {
             region proposal network generates regions/bounding boxes by sliding
             a small CNN over the feature map obtained by the backbone.
           </li>
-
+          <div className="w-full flex justify-center">
           <img
-            className="my-8 md:mx-44 flex w-[65rem] rounded-lg shadow-2xl"
+            className="my-8 flex w-[70rem] rounded-lg shadow-2xl"
             alt="faster-r-cnn-pipeline"
             src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703965451/faster_rcnn_o7riso.png"
           ></img>
+          </div>
           <li className="mb-4 md:mb-6">
-            ROI or region of interest pooling is then used to extract features from
-            each region proposal, which is finally fed into an object detection
-            network. This consists of a box head to generate bounding box
-            coordinates and a class head to predict class labels of objects, and
-            consists of fully connected layers. After this process, class scores
-            and bounding boxes for detected objects are then returned from the
-            model.
+            ROI or region of interest pooling is then used to extract features
+            from each region proposal, which is finally fed into an object
+            detection network. This consists of a box head to generate bounding
+            box coordinates and a class head to predict class labels of objects,
+            and consists of fully connected layers. After this process, class
+            scores and bounding boxes for detected objects are then returned
+            from the model.
           </li>
           <li className="mb-4 md:mb-6">
-            The model and inference script is deployed to a SageMaker HTTP endpoint. The Express.js
-            server calls an AWS API Gateway endpoint via Axios with binary image
-            data included directly in the request body.
+            The model and inference script is deployed to a SageMaker HTTP
+            endpoint. The Express.js server calls an AWS API Gateway endpoint
+            via Axios with binary image data included directly in the request
+            body.
           </li>
           <li className="mb-4 md:mb-6">
             The API Gateway then calls a lambda, which converts the raw image
@@ -101,7 +103,8 @@ const HomePage = () => {
           <li className="mb-4 md:mb-6">
             In the <strong className="text-red-700">inference.py</strong>{" "}
             script, I decode the base64 image data to a NumPy array, then to a
-            tensor with Torch, as input for the model.  Then return the results as JSON.
+            tensor with Torch, as input for the model. Then return the results
+            as JSON.
           </li>
         </div>
 
