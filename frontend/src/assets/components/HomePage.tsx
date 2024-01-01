@@ -60,52 +60,71 @@ const HomePage = () => {
   return (
     <>
       <div className="min-h-screen h-auto bg-slate-700 pt-12 pb-12">
-        <div className="text-sm text-white text-left mx-4 md:mx-44 mt-4 mb-16">
-          <li className="mb-4 md:mb-6">
-            Use buttons below to send a request to a pre-trained PyTorch{" "}
-            <strong className="text-red-700">fasterrcnn_resnet50_fpn_v2</strong>{" "}
-            computer vision model called by a custom{" "}
-            <strong className="text-red-700">inference.py</strong> script.
-          </li>
-          <li className="mb-4 md:mb-6">
-            Faster R-CNN is a region-based convolutional neural network. It
-            consists of a ResNet50 CNN backbone containing a FPN (Feature
-            Pyramid Network) for feature extraction from each image. A RPN or
-            region proposal network generates regions/bounding boxes by sliding
-            a small CNN over the feature map obtained by the backbone.
-          </li>
-          <div className="w-full flex justify-center">
-          <img
-            className="my-8 flex w-[70rem] rounded-lg shadow-2xl"
-            alt="faster-r-cnn-pipeline"
-            src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703965451/faster_rcnn_o7riso.png"
-          ></img>
+        <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
+          <h1 className="font-bold mb-4 md:mb-4">App Description</h1>
+          <div className="ml-2 md:ml-8">
+            <li className="mb-4 md:mb-6">
+              Use buttons below to send a request to a pre-trained PyTorch{" "}
+              <strong className="text-red-700">
+                fasterrcnn_resnet50_fpn_v2
+              </strong>{" "}
+              computer vision model called by a custom{" "}
+              <strong className="text-red-700">inference.py</strong> script.
+            </li>
           </div>
-          <li className="mb-4 md:mb-6">
-            ROI or region of interest pooling is then used to extract features
-            from each region proposal, which is finally fed into an object
-            detection network. This consists of a box head to generate bounding
-            box coordinates and a class head to predict class labels of objects,
-            and consists of fully connected layers. After this process, class
-            scores and bounding boxes for detected objects are then returned
-            from the model.
-          </li>
-          <li className="mb-4 md:mb-6">
-            The model and inference script is deployed to a SageMaker HTTP
-            endpoint. The Express.js server calls an AWS API Gateway endpoint
-            via Axios with binary image data included directly in the request
-            body.
-          </li>
-          <li className="mb-4 md:mb-6">
-            The API Gateway then calls a lambda, which converts the raw image
-            data to base64 and sends it directly to the PyTorch model.
-          </li>
-          <li className="mb-4 md:mb-6">
-            In the <strong className="text-red-700">inference.py</strong>{" "}
-            script, I decode the base64 image data to a NumPy array, then to a
-            tensor with Torch, as input for the model. Then return the results
-            as JSON.
-          </li>
+          <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14">
+            Model Description
+          </h1>
+          <div className="ml-2 md:ml-8">
+            <li className="mb-4 md:mb-6">
+              Faster R-CNN is an acronym for a Region-based CNN (Convolutional
+              Neural Network). It utilizes a ResNet-50 (50 layer Residual
+              Network) as the CNN backbone. The backbone incorporates a FPN
+              (Feature Pyramid Network) for feature extraction from each image.
+              A RPN (Region Proposal Network) slides a small CNN over the
+              feature map to generate region proposals, which represent
+              potential objects of interest.
+            </li>
+          </div>
+          <div className="w-full flex justify-center">
+            <img
+              className="my-8 flex w-[70rem] rounded-lg shadow-2xl"
+              alt="faster-r-cnn-pipeline"
+              src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703965451/faster_rcnn_o7riso.png"
+            ></img>
+          </div>
+          <div className="ml-2 md:ml-8">
+            <li className="mb-4 md:mb-6">
+              Region of Interest (ROI) pooling is then applied to these regions
+              to generate fixed-size feature maps. These feature maps are passed
+              to two separate branches in the network, the box head, responsible
+              for generate bounding box coordinates, and a class head, used to
+              predict class labels of objects. After this process, class
+              labels/scores and bounding boxes for detected objects are returned
+              from the model.
+            </li>
+          </div>
+          <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14">
+            Model Deployment
+          </h1>
+          <div className="ml-2 md:ml-8">
+            <li className="mb-4 md:mb-4">
+              The model and inference script is deployed to a SageMaker HTTP
+              endpoint. The Express.js server calls an AWS API Gateway endpoint
+              via Axios with binary image data included directly in the request
+              body.
+            </li>
+            <li className="mb-4 md:mb-4">
+              The API Gateway then calls a lambda, which converts the raw image
+              data to Base64 and sends it directly to the PyTorch model.
+            </li>
+            <li className="mb-4 md:mb-4">
+              In the <strong className="text-red-700">inference.py</strong>{" "}
+              script, I decode the Base64 image data to a NumPy array, then to a
+              Tensor with Torch, as input for the model. Inference results from
+              the model are then returned as JSON.
+            </li>
+          </div>
         </div>
 
         <DropZone
