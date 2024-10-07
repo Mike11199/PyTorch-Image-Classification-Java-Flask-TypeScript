@@ -24,3 +24,5 @@ yarn-debug.log*
 yarn-error.log*
 .env
 .vscode
+backend-v3/venv/*
+backend-v3/venv/*
