@@ -22,7 +22,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 print(model_dir)
 model = model_fn(model_dir)
 
-@app.route('/api/image-url-pytorch', methods=['POST'])
+@app.route('/api-pytorch/image-url-pytorch', methods=['POST'])
 def predict():
     try:
         print('API Request received.')
@@ -38,7 +38,6 @@ def predict():
         if file and allowed_file(file.filename):
             image_data = file.read()
             input_tensor = input_fn(image_data)
-            print('HEREEEEE')
             prediction = predict_fn(input_tensor, model)
             response = output_fn(prediction, 'application/json')
             print(jsonify(json.loads(response)))

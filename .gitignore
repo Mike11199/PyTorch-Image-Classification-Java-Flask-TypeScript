@@ -24,5 +24,12 @@ yarn-debug.log*
 yarn-error.log*
 .env
 .vscode
-backend-v3/venv/*
-backend-v3/venv/*
+
+# java
+backend-flask-pytorch/.venv/*
+backend-java-spring-boot/target/
+backend-java-spring-boot/src/main/resources/application.properties
+
+# Ignore Python cache files
+backend-flask-pytorch/__pycache__/
+backend-flask-pytorch/*.py[cod]
