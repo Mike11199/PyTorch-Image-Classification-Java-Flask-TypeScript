@@ -14,7 +14,7 @@
 
 
 # EC2 Screenshots
-![image](https://github.com/user-attachments/assets/1569e8d3-cf37-49b5-83da-a71dcedaae8f)
+![image](https://github.com/user-attachments/assets/a4b823e0-6bf8-4e37-b228-bfc1980449aa)
 
 # Website Screenshots
 
