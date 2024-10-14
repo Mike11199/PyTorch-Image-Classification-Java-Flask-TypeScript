@@ -3,12 +3,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   server: {
     proxy: {
-      //'/api':'http://localhost:5001', // express.js
-      // '/api': {
+      //'/api-java-spring-boot':'http://localhost:5001', // express.js
+      // '/api-java-spring-boot': {
       //   target: 'http://127.0.0.1:5000',  // python flask
       //   changeOrigin: true,
       // }
-      '/api': {
+      '/api-java-spring-boot': {
         target: 'http://127.0.0.1:8080',  // java spring boot
         changeOrigin: true,
       }

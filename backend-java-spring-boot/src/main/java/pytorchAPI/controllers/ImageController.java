@@ -61,9 +61,12 @@ public class ImageController {
             // Create request entity
             HttpEntity<byte[]> requestEntity = new HttpEntity<>(imageBuffer, headers);
 
+            // var modelUrl = "http://localhost:5000/api-flask-pytorch-models/image-url-pytorch";
+            var modelUrl = "/api-flask-pytorch-models/image-url-pytorch";
+
             // Send POST request
             ResponseEntity<PyTorchImageResponseType> response = restTemplate.postForEntity(
-                    "http://localhost:5000/api-pytorch/image-url-pytorch", requestEntity, PyTorchImageResponseType.class);
+                    modelUrl, requestEntity, PyTorchImageResponseType.class);
 
             // Return the response body (PyTorchImageResponseType object)
             return response.getBody();

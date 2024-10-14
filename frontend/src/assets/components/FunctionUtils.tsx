@@ -63,7 +63,7 @@ export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
   try {
     const formData = new FormData();
     formData.append("image", imageBlob, "image.jpg");
-    const response = await axios.post("/api/image-url-pytorch", formData);
+    const response = await axios.post("/api-java-spring-boot/image-url-pytorch", formData);
     const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
     return parsedPyTorchData;
   } catch (error: any) {
