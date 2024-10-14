@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api-java-spring-boot")
 public class ImageController {
 
     // POST endpoint for image file upload

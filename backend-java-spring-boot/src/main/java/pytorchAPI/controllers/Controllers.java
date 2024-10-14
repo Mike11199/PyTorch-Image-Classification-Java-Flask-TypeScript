@@ -15,6 +15,6 @@ public class Controllers {
     // Catch-all route to handle unmapped URLs
     @RequestMapping("/**")
     public String handleUnknown() {
-        return "API is running.";
+        return "Java Spring API is running.";
     }
 }
