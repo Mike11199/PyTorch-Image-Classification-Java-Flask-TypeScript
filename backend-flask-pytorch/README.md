@@ -16,3 +16,6 @@
 - `aws s3 cp s3://michael-models/fasterrcnn_resnet50_fpn.pth .`
 - show ec2 cpu usage - `mpstat`
 - show processes `ps`
+
+## Start nginx - Frontend
+- `sudo systemctl start nginx`
