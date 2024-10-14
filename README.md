@@ -13,6 +13,9 @@
   - https://www.youtube.com/watch?v=abtdBPFu_yM
 
 
+# EC2 Screenshots
+![image](https://github.com/user-attachments/assets/1569e8d3-cf37-49b5-83da-a71dcedaae8f)
+
 # Website Screenshots
 
 <br />
