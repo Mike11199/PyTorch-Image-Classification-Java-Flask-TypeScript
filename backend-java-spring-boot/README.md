@@ -8,6 +8,7 @@
 - run locally `java -jar target/demo-0.0.1-SNAPSHOT.jar`
 
 ## Run Java EC2
+- Note to self - Maven refuses to build on EC2 `t2.micro`.  Had to temporarily stop instance and scale up to `t2.large` for it to build.  So a CI/CD pipeline from Github might not work due to this.
 - Runs in background with &, redirects stdout to output.log and stderr.  `nohup java -jar target/demo-0.0.1-SNAPSHOT.jar > output.log 2>&1 &`
 - check if app is running `ps -ef | grep java`
 - build with `mvn clean install`
@@ -16,3 +17,5 @@
 
 ## Start nginx - Frontend
 - `sudo systemctl start nginx`
+- `sudo systemctl status nginx`
+- `sudo systemctl restart nginx`
