@@ -19,3 +19,5 @@
 
 ## Start nginx - Frontend
 - `sudo systemctl start nginx`
+- `sudo systemctl status nginx`
+- `sudo systemctl restart nginx`
