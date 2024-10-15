@@ -14,6 +14,9 @@
 - build with `mvn clean install`
 - skip tests with `mvn clean install -DskipTests`
 - remember to kill process if running to build again
+- Add `application.properties` to `/home/ec2-user/pytorch-projects/PyTorch-Image-Classification-TypeScript/backend-java-spring-boot/src/main/resources` and then manually add these lines:
+  - spring.servlet.multipart.max-file-size=100MB
+  - spring.servlet.multipart.max-request-size=100MB
 
 ## Start nginx - Frontend
 - `sudo systemctl start nginx`
