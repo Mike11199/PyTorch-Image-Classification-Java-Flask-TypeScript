@@ -1,17 +1,27 @@
-# PyTorch-Image-Classification-Java-Spring-Boot-Flask-TypeScript-EC2
-
-- Personal project involving a Java Spring Boot API, and TypeScript front end.  The API sends requests to a Flask service hosting a PyTorch fasterrcnn_resnet50_fpn_v2 computer vision model.  This is deployed on an EC2 instance with its own Route 53 domain.
-- This was originally deployed on Heroku as a TypeScript/Express.js Server, using Amazon API Gateway/a lambda to send requests to a SageMaker endpoint.  I have refactored the project as this endpoint was costing roughly $50 a month.
-- Can accept both an image URL or an uploaded image from one's computer.  It sends binary data to the lambda/ PyTorch Model etiher way.
-
-- Deployed Website
+# Deployments
   - https://machine-learning-projects.com/  - EC2 (TypeScript/ Java Spring Boot/ Flask) - NEW
   - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ - Heroku/ AWS SageMaker Endpoint - OLD
 
-- Back End Repo - AWS Endpoint/Model/etc
+# Stack/Technologies
+  - Java Spring Boot
+  - AWS EC2
+  - TypeScript
+  - Flask
+  - Pytorch (Python)
+  - AWS SageMaker/ Lambda (Heroku Version)
+
+# PyTorch-Image-Classification-Project
+- Personal project involving a Java Spring Boot API, Flask microservice, and TypeScript front end.
+- The Java API sends requests to a Flask service hosting a PyTorch fasterrcnn_resnet50_fpn_v2 computer vision model.  This is deployed on an EC2 instance with its own Route 53 domain.
+- This was originally deployed on Heroku as a TypeScript/Express.js application, using Amazon API Gateway to expose a lambda to send requests to a SageMaker endpoint.  I have refactored the project as this endpoint was costing roughly $50 a month.
+- Can accept both an image URL or an uploaded image from one's computer.  It sends binary data to the lambda/ PyTorch Model etiher way.
+
+
+
+# Back End Repo - AWS Endpoint/Model/etc
   - https://github.com/Mike11199/PyTorch-Image-Classification/
 
-- Video
+# Video
   - https://www.youtube.com/watch?v=abtdBPFu_yM
 
 
