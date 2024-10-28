@@ -109,20 +109,11 @@ const ImageClassificationPage = () => {
           </h1>
           <div className="ml-2 md:ml-8">
             <li className="mb-4 md:mb-4">
-              The model and inference script is deployed to a SageMaker HTTP
-              endpoint. The Express.js server calls an AWS API Gateway endpoint
-              via Axios with binary image data included directly in the request
-              body.
-            </li>
-            <li className="mb-4 md:mb-4">
-              The API Gateway then calls a lambda, which converts the raw image
-              data to Base64 and sends it directly to the PyTorch model.
-            </li>
-            <li className="mb-4 md:mb-4">
-              In the <strong className="text-red-700">inference.py</strong>{" "}
-              script, I decode the Base64 image data to a NumPy array, then to a
-              Tensor with Torch, as input for the model. Inference results from
-              the model are then returned as JSON.
+              The model and <strong className="text-red-700">inference.py</strong> script is provisioned on a Flask microservice running in
+              an EC2.  A Java Spring Boot API takes requests from the front end and sends an
+              image as multipart form-data to the model.  The Flask endpoint converts this data into
+              a NumPy array, and normalizes its pixel values for input into the PyTorch model.  Inference results from
+              the model are then returned as JSON to the front end to be plotted on the image.
             </li>
           </div>
         </div>
