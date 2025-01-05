@@ -68,38 +68,47 @@ const ImageCanvas = ({
       return null;
     }
     // Iterate through each box
-    boundingBoxData.boxes.forEach((box, i) => {
+    boundingBoxData.boxes?.forEach((box, i) => {
       const className = boundingBoxData.classes?.[i];
+      console.log(className)
       if (!className) {
         console.error("Class name missing for index:", i);
         return;
       }
-      let classColor = classColorMap[className];
-      if (!classColor) {
-        console.warn("No color found for class:", className, "Defaulting to black");
-        classColor = "rgb(0, 0, 0)";
-      }
 
-      const alpha = pyTorchMaskOpacity * 0.01; // Adjust opacity as needed
-      const mask = pyTorchMasksArray[i];
-      if (!mask) {
-        console.warn("No mask found for index:", i);
+      if (!classColorMap) {
+        console.error("classColorMap is not defined or null.");
         return;
       }
-      const rgb = extractRGB(classColor);
 
-      // Safely iterate through the mask
-      mask.forEach((row, y) => {
-        row.forEach((pixel, x) => {
+      let classColor = classColorMap?.[className] ?? "rgb(0, 0, 0)";
+      if (classColor === "rgb(0, 0, 0)") {
+        console.warn(`No color found for class: ${className}. Defaulting to black.`);
+      }
+
+      const mask = pyTorchMasksArray?.[i];
+      if (!mask || !Array.isArray(mask)) {
+        console.warn("No valid mask found for index:", i);
+        return;
+      }
+
+      const rgb = extractRGB(classColor);
+      const alpha = pyTorchMaskOpacity * 0.01;
+
+      console.log(className)
+
+      mask?.forEach((row, y) => {
+        row?.forEach((pixel, x) => {
           if (pixel === 1) {
-            maskCtx.fillStyle = `rgba(${rgb}, ${alpha})`; // Fixed syntax for rgba
+            maskCtx.fillStyle = `rgba(${rgb}, ${alpha})`;
             maskCtx.fillRect(x, y, 1, 1);
           }
         });
       });
     });
 
-    // Convert the mask canvas to a data URL
+
+    console.log("finish mask")
     return maskCanvas.toDataURL();
   }, [pyTorchMasksArray, boundingBoxData, classColorMap, image, pyTorchMaskOpacity]);
 
