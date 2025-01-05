@@ -52,44 +52,47 @@ const ImageCanvas = ({
     return '0, 0, 0'; // Default to black if parsing fails
   };
 
-  // **Cache the Mask Image Using useMemo**
   const cachedMaskImage = useMemo(() => {
-    if (!pyTorchMasksArray || pyTorchMasksArray?.length === 0 || !image || !boundingBoxData || !pyTorchMaskOpacity) return null;
-
+    // Early return if any required data is missing
+    if (!pyTorchMasksArray || !pyTorchMasksArray.length || !image || !boundingBoxData?.boxes || !pyTorchMaskOpacity) {
+      console.error("Required data missing");
+      return null;
+    }
     // Create an off-screen canvas for mask rendering
-    const maskCanvas = document.createElement('canvas');
+    const maskCanvas = document.createElement("canvas");
     maskCanvas.width = image.width;
     maskCanvas.height = image.height;
-    const maskCtx = maskCanvas.getContext('2d');
-    if (!maskCtx) return null;
-
-    // Iterate through each mask (assuming one mask per box)
-    boundingBoxData?.boxes?.forEach((box, i) => {
-
-      const className = boundingBoxData.classes[i];
+    const maskCtx = maskCanvas.getContext("2d");
+    if (!maskCtx) {
+      console.error("Failed to get 2D context from canvas");
+      return null;
+    }
+    // Iterate through each box
+    boundingBoxData.boxes.forEach((box, i) => {
+      const className = boundingBoxData.classes?.[i];
       if (!className) {
-        console.log('bad class name')
+        console.error("Class name missing for index:", i);
         return;
       }
-
       let classColor = classColorMap[className];
       if (!classColor) {
-        console.log('bad class color')
-        classColor = 'rgb(0, 0, 0)';
+        console.warn("No color found for class:", className, "Defaulting to black");
+        classColor = "rgb(0, 0, 0)";
       }
 
       const alpha = pyTorchMaskOpacity * 0.01; // Adjust opacity as needed
-
       const mask = pyTorchMasksArray[i];
-      if (!mask) return;
-
+      if (!mask) {
+        console.warn("No mask found for index:", i);
+        return;
+      }
       const rgb = extractRGB(classColor);
 
-      mask?.forEach((row, y) => {
-        row?.forEach((pixel, x) => {
+      // Safely iterate through the mask
+      mask.forEach((row, y) => {
+        row.forEach((pixel, x) => {
           if (pixel === 1) {
-            // Correctly construct RGBA string
-            maskCtx.fillStyle = `rgba(${rgb}, ${alpha})`;
+            maskCtx.fillStyle = `rgba(${rgb}, ${alpha})`; // Fixed syntax for rgba
             maskCtx.fillRect(x, y, 1, 1);
           }
         });
@@ -99,6 +102,7 @@ const ImageCanvas = ({
     // Convert the mask canvas to a data URL
     return maskCanvas.toDataURL();
   }, [pyTorchMasksArray, boundingBoxData, classColorMap, image, pyTorchMaskOpacity]);
+
 
   // **Function to Draw Bounding Boxes and Overlay Masks**
   const drawBoundingBoxes = (
