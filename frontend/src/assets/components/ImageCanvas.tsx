@@ -65,8 +65,17 @@ const ImageCanvas = ({
 
     // Iterate through each mask (assuming one mask per box)
     boundingBoxData?.boxes?.forEach((box, i) => {
+
       const className = boundingBoxData.classes[i];
-      const classColor = classColorMap[className];
+      if (!className) {
+        return;
+      }
+
+      let classColor = classColorMap[className];
+      if (!classColor) {
+        classColor = 'rgb(0, 0, 0)';
+      }
+
       const alpha = pyTorchMaskOpacity * 0.01; // Adjust opacity as needed
 
       const mask = pyTorchMasksArray[i];
