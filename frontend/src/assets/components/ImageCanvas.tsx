@@ -70,7 +70,7 @@ const ImageCanvas = ({
     // Iterate through each box
     boundingBoxData.boxes?.forEach((box, i) => {
       const className = boundingBoxData.classes?.[i];
-      console.log(className)
+      // console.log(className)
       if (!className) {
         console.error("Class name missing for index:", i);
         return;
@@ -95,7 +95,7 @@ const ImageCanvas = ({
       const rgb = extractRGB(classColor);
       const alpha = pyTorchMaskOpacity * 0.01;
 
-      console.log(className)
+      // console.log(className)
 
       mask?.forEach((row, y) => {
         row?.forEach((pixel, x) => {
@@ -108,7 +108,7 @@ const ImageCanvas = ({
     });
 
 
-    console.log("finish mask")
+    // console.log("finish mask")
     return maskCanvas.toDataURL();
   }, [pyTorchMasksArray, boundingBoxData, classColorMap, image, pyTorchMaskOpacity]);
 
@@ -144,11 +144,11 @@ const ImageCanvas = ({
         ctx.drawImage(maskImg, 0, 0);
         // After drawing masks, draw bounding boxes
         drawBoundingBoxesOverlays(ctx, boundingBoxData);
-        console.log('draw mask')
+        // console.log('draw mask')
       };
     } else {
       // If no masks, just draw bounding boxes
-      console.log('do not draw mask')
+      //console.log('do not draw mask')
       drawBoundingBoxesOverlays(ctx, boundingBoxData);
     }
   };

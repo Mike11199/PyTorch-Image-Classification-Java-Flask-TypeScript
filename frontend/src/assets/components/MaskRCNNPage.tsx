@@ -142,6 +142,11 @@ const MaskRCNNPage = () => {
           loading={loading}
           buttonText={"Submit Image URL"}
         />
+        <div className="w-full flex justify-center items-center mt-6 ">
+          <strong className="text-red-700 text-center mx-4">
+            Warning: this can take anywhere from 10 to 60 seconds while the model runs.
+          </strong>
+        </div>
         <div className="mt-32">
           <Button
             color={"bg-purple-900"}
