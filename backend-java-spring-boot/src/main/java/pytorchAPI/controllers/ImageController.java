@@ -44,9 +44,8 @@ public class ImageController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error reading the image file.");
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            // Directly return the exception message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
@@ -64,14 +63,12 @@ public class ImageController {
             Object response = fetchImageAnalysisUsingMultipartMask(imageFile);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error reading the image file.");
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            // Directly return the exception message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
     public PyTorchImageResponseType fetchImageAnalysisUsingMultipart(MultipartFile imageFile) {
-        try {
             RestTemplate restTemplate = new RestTemplate();
 
             // Set headers for multipart form-data
@@ -105,16 +102,9 @@ public class ImageController {
             }
 
             return response.getBody();
-
-        } catch (Exception e) {
-            // Log the error and return null or handle appropriately
-            System.err.println("Error: " + e.getMessage());
-            return null;
-        }
     }
 
     public PyTorchImageResponseType fetchImageAnalysisUsingMultipartMask(MultipartFile imageFile) {
-        try {
             RestTemplate restTemplate = new RestTemplate();
 
             // Set headers for multipart form-data
@@ -148,11 +138,5 @@ public class ImageController {
             }
 
             return response.getBody();
-
-        } catch (Exception e) {
-            // Log the error and return null or handle appropriately
-            System.err.println("Error: " + e.getMessage());
-            return null;
-        }
     }
 }
