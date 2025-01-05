@@ -193,9 +193,9 @@ def output_fn(prediction_dict, accept):
         masks_array.append(mask_list)
 
     # Save the final annotated image locally - debugging only
-    debug_save_path = "annotated_image_debug.jpg"
-    cv2.imwrite(debug_save_path, original_image)
-    logger.info(f"Annotated image saved to {debug_save_path}")
+    # debug_save_path = "annotated_image_debug.jpg"
+    # cv2.imwrite(debug_save_path, original_image)
+    # logger.info(f"Annotated image saved to {debug_save_path}")
 
     # Convert the annotated image to Base64
     _, buffer = cv2.imencode(".jpg", original_image)

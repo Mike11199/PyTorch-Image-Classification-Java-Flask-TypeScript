@@ -1,5 +1,5 @@
 import { LineWave } from "react-loader-spinner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { PyTorchImageResponseType } from "./types";
 import { createClassColorMap } from "./FunctionUtils";
 
@@ -32,76 +32,135 @@ const ImageCanvas = ({
     createClassColorMap(boundingBoxData)
   );
 
+  // Update classColorMap when colorMapCounter or boundingBoxData changes
   useEffect(() => {
     setClassColorMap(createClassColorMap(boundingBoxData));
-    drawBoundingBoxes(image, boundingBoxData ?? null);
   }, [colorMapCounter, boundingBoxData]);
 
-
-
-const drawBoundingBoxes = (
-  image: HTMLImageElement | undefined | null,
-  boundingBoxData: PyTorchImageResponseType | null
-) => {
-  if (!image || !boundingBoxData) return;
-  const canvas = document.getElementById(
-    "boundingBoxCanvas"
-  ) as HTMLCanvasElement;
-  const ctx = canvas?.getContext("2d");
-
-  if (!ctx) {
-    return;
-  }
-
-  canvas.height = image.height;
-  canvas.width = image.width;
-
-  ctx.drawImage(image, 0, 0);
-
-  for (let i = 0; i < boundingBoxData.boxes.length; i++) {
-    const box = boundingBoxData?.boxes[i];
-    const className = boundingBoxData?.classes[i];
-    const accuracy = boundingBoxData?.scores[i];
-    const formattedClassName =
-      className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
-
-    const [x, y, width, height] = box.map((value: number) => value);
-    if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
-      const classColor = classColorMap[className];
-
-      const alpha = pyTorchOpacity * 0.01;
-      if (classColor) {
-        ctx.strokeStyle = `rgba${classColor.slice(3, -1)},${alpha})`;
-        ctx.fillStyle = `rgba${classColor.slice(3, -1)},${alpha})`;
-      }
-      ctx.lineWidth = pyTorchBoxLineWidth;
-      ctx.strokeRect(x, y, width - x, height - y);
-
-      ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
-      ctx.fillText(
-        `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
-        x + pyTorchBoxXOffset,
-        y + pyTorchBoxYOffset
-      );
-
-      // **Add Mask Drawing Here**
-      if (pyTorchMasksArray && pyTorchMasksArray[i]) { // Ensure mask exists for this box
-        const mask = pyTorchMasksArray[i];
-        for (let row = 0; row < mask.length; row++) {
-          for (let col = 0; col < mask[row].length; col++) {
-            if (mask[row][col] === 1) {
-              // Use the same class color with adjusted opacity for the mask
-              ctx.fillStyle = `rgba${classColor.slice(3, -1)},${alpha * 0.5})`; // 50% opacity
-              ctx.fillRect(col, row, 1, 1); // Draw pixel
-            }
-          }
-        }
-      }
-      // **End of Mask Drawing**
+  // **Helper Function to Extract RGB Components**
+  const extractRGB = (rgbString: string): string => {
+    // Expected format: 'rgb(r, g, b)'
+    const matches = rgbString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (matches) {
+      const r = matches[1];
+      const g = matches[2];
+      const b = matches[3];
+      return `${r}, ${g}, ${b}`;
     }
-  }
-};
+    return '0, 0, 0'; // Default to black if parsing fails
+  };
 
+  // **Cache the Mask Image Using useMemo**
+  const cachedMaskImage = useMemo(() => {
+    if (!pyTorchMasksArray || pyTorchMasksArray?.length === 0 || !image || !boundingBoxData) return null;
+
+    // Create an off-screen canvas for mask rendering
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = image.width;
+    maskCanvas.height = image.height;
+    const maskCtx = maskCanvas.getContext('2d');
+    if (!maskCtx) return null;
+
+    // Iterate through each mask (assuming one mask per box)
+    boundingBoxData?.boxes?.forEach((box, i) => {
+      const className = boundingBoxData.classes[i];
+      const classColor = classColorMap[className];
+      const alpha = pyTorchOpacity * 0.005; // Adjust opacity as needed
+
+      const mask = pyTorchMasksArray[i];
+      if (!mask) return;
+
+      const rgb = extractRGB(classColor);
+
+      mask?.forEach((row, y) => {
+        row?.forEach((pixel, x) => {
+          if (pixel === 1) {
+            // Correctly construct RGBA string
+            maskCtx.fillStyle = `rgba(${rgb}, ${alpha})`;
+            maskCtx.fillRect(x, y, 1, 1);
+          }
+        });
+      });
+    });
+
+    // Convert the mask canvas to a data URL
+    return maskCanvas.toDataURL();
+  }, [pyTorchMasksArray, boundingBoxData, classColorMap, pyTorchOpacity, image]);
+
+  // **Function to Draw Bounding Boxes and Overlay Masks**
+  const drawBoundingBoxes = (
+    image: HTMLImageElement | undefined | null,
+    boundingBoxData: PyTorchImageResponseType | null,
+    cachedMaskImage: string | null
+  ) => {
+    if (!image || !boundingBoxData) return;
+    const canvas = document.getElementById(
+      "boundingBoxCanvas"
+    ) as HTMLCanvasElement;
+    const ctx = canvas?.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
+    // Set canvas dimensions
+    canvas.height = image.height;
+    canvas.width = image.width;
+
+    // Draw the base image
+    ctx.drawImage(image, 0, 0);
+
+    // **Draw the Cached Mask Image**
+    if (cachedMaskImage) {
+      const maskImg = new Image();
+      maskImg.src = cachedMaskImage;
+      maskImg.onload = () => {
+        ctx.drawImage(maskImg, 0, 0);
+        // After drawing masks, draw bounding boxes
+        drawBoundingBoxesOverlays(ctx, boundingBoxData);
+      };
+    } else {
+      // If no masks, just draw bounding boxes
+      drawBoundingBoxesOverlays(ctx, boundingBoxData);
+    }
+  };
+
+  // **Separate Function to Draw Bounding Boxes and Labels**
+  const drawBoundingBoxesOverlays = (
+    ctx: CanvasRenderingContext2D,
+    boundingBoxData: PyTorchImageResponseType
+  ) => {
+    for (let i = 0; i < boundingBoxData.boxes.length; i++) {
+      const box = boundingBoxData.boxes[i];
+      const className = boundingBoxData.classes[i];
+      const accuracy = boundingBoxData.scores[i];
+      const formattedClassName =
+        className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
+
+      const [x, y, width, height] = box.map((value: number) => value);
+      if (!isNaN(x) && !isNaN(y) && !isNaN(width) && !isNaN(height)) {
+        const classColor = classColorMap[className];
+
+        const alpha = pyTorchOpacity * 0.01;
+        if (classColor) {
+          const rgb = extractRGB(classColor);
+          ctx.strokeStyle = `rgba(${rgb}, ${alpha})`;
+          ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+        }
+        ctx.lineWidth = pyTorchBoxLineWidth;
+        ctx.strokeRect(x, y, width - x, height - y);
+
+        ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
+        ctx.fillText(
+          `${formattedClassName} ${(accuracy * 100).toFixed(1)}% `,
+          x + pyTorchBoxXOffset,
+          y + pyTorchBoxYOffset
+        );
+      }
+    }
+  };
+
+  // **Function to Clear the Canvas**
   function clearCanvas() {
     const canvas = document.getElementById(
       "boundingBoxCanvas"
@@ -113,12 +172,14 @@ const drawBoundingBoxes = (
     }
   }
 
+  // **Clear Canvas When Loading State Changes**
   useEffect(() => {
     clearCanvas();
   }, [loading]);
 
+  // **Draw Bounding Boxes and Masks When Dependencies Change**
   useEffect(() => {
-    drawBoundingBoxes(image, boundingBoxData ?? null);
+    drawBoundingBoxes(image, boundingBoxData ?? null, cachedMaskImage);
   }, [
     image,
     boundingBoxData,
@@ -128,7 +189,8 @@ const drawBoundingBoxes = (
     pyTorchBoxYOffset,
     colorMapCounter,
     classColorMap,
-    pyTorchOpacity
+    pyTorchOpacity,
+    cachedMaskImage
   ]);
 
   return (
@@ -145,7 +207,7 @@ const drawBoundingBoxes = (
         )}
         {!loading && (
           <canvas
-            className=" object-contain h-full w-full"
+            className="object-contain h-full w-full"
             id="boundingBoxCanvas"
           ></canvas>
         )}
