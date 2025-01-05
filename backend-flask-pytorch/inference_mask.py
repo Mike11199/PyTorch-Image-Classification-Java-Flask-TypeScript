@@ -126,11 +126,6 @@ def predict_fn(data, model):
 
 
 def output_fn(prediction_dict, accept):
-    """
-    Overlays bounding boxes and masks on the 'original_image' and
-    returns a JSON with detection data + base64-encoded annotated image.
-    Also saves the final annotated image locally.
-    """
     logger.info("output_fn_start")
 
     predictions = prediction_dict["predictions"][0]   # single image
@@ -140,28 +135,26 @@ def output_fn(prediction_dict, accept):
     scores = predictions.get("scores", [])
     labels = predictions.get("labels", [])
     masks = predictions.get("masks", [])  # shape: [N, 1, H, W]
+
     # Convert to CPU numpy
     if torch.is_tensor(boxes):
-        boxes = boxes.cpu().numpy()
+        boxes = boxes.detach().cpu().numpy()
     if torch.is_tensor(scores):
-        scores = scores.cpu().numpy()
+        scores = scores.detach().cpu().numpy()
     if torch.is_tensor(labels):
-        labels = labels.cpu().numpy()
+        labels = labels.detach().cpu().numpy()
     if torch.is_tensor(masks):
-        masks = masks.cpu().numpy()
+        masks = masks.detach().cpu().numpy()
 
     detection_threshold = 0.9
     idxs = np.where(scores >= detection_threshold)[0]
 
-    print(predictions)
     boxes = boxes[idxs].astype(int)
     scores = scores[idxs]
     labels = labels[idxs]
-    print(masks)
     masks = masks[idxs]
 
-
-    # Draw bounding boxes + label text
+    # Draw bounding boxes + label text on the original image
     for i, box in enumerate(boxes):
         cls_id = labels[i]
         class_name = coco_names[cls_id] if cls_id < len(coco_names) else f"ID_{cls_id}"
@@ -184,25 +177,27 @@ def output_fn(prediction_dict, accept):
             thickness=1
         )
 
-    # overlay each mask
-    alpha = 0.5
-    color_bgr = (255, 0, 255)  # pink
-    for i in range(len(boxes)):
-        mask = masks[i, 0]
-        mask_binary = (mask > 0.5).astype(np.uint8)  # 0 or 1
-        original_image = overlay_mask_manual(
-            original_image,
-            mask_binary,
-            color_bgr,
-            alpha=alpha
-        )
+    # Initialize list to hold all masks as arrays
+    masks_array = []
 
-    # save the final annotated image locally - debugging only
+    # Process each mask
+    for i in range(len(boxes)):
+        mask = masks[i, 0]  # shape: [H, W]
+        mask_binary = (mask > 0.5).astype(int)  # 0 or 1
+
+        # Optionally, resize mask to match image size if needed
+        # mask_binary = cv2.resize(mask_binary, (original_image.shape[1], original_image.shape[0]), interpolation=cv2.INTER_NEAREST)
+
+        # Convert mask to list for JSON serialization
+        mask_list = mask_binary.tolist()
+        masks_array.append(mask_list)
+
+    # Save the final annotated image locally - debugging only
     debug_save_path = "annotated_image_debug.jpg"
     cv2.imwrite(debug_save_path, original_image)
     logger.info(f"Annotated image saved to {debug_save_path}")
 
-    # return as base64 in JSON 
+    # Convert the annotated image to Base64
     _, buffer = cv2.imencode(".jpg", original_image)
     image_bytes = buffer.tobytes()
     image_b64 = base64.b64encode(image_bytes).decode("utf-8")
@@ -214,7 +209,7 @@ def output_fn(prediction_dict, accept):
         "boxes": boxes.tolist(),
         "labels": labels.tolist(),
         "classes": pred_classes,
-        "annotated_image_b64": image_b64
+        "masks_array": masks_array  # Array of mask arrays
     }
 
     response_json = json.dumps(response_data)

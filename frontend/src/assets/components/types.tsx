@@ -3,5 +3,6 @@ export interface PyTorchImageResponseType {
   classes: string[];
   boxes: number[][];
   labels: number[];
+  masks_array?: number[][][];
 }
 

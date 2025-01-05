@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DropZone from "./Dropzone";
 import Button from "./Button";
 import ImageCanvas from "./ImageCanvas";
@@ -29,15 +29,49 @@ const MaskRCNNPage = () => {
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
   const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
   const [colorMapCounter, setColorMapCounter] = useState(0);
+  const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
+
+  useEffect(() => {
+    console.log(pyTorchMasksArray);
+    console.log(
+      `Total number of 1's in masks_array: ${
+        pyTorchMasksArray.flat(2).filter((x) => x === 1).length
+      }`
+    );
+    console.log(
+      `Total number of 0's in masks_array: ${
+        pyTorchMasksArray.flat(2).filter((x) => x === 0).length
+      }`
+    );
+  }, [pyTorchMasksArray]);
+
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
-    const parsedPyTorchData = await fetchPyTorchAnalysisMask(imageBlob);
-    setPyTorchResponseObj(parsedPyTorchData ?? null);
-    setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
-    const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
-    setCanvasImage(imageURLFromBlob);
-    setLoading(false);
+
+    try {
+      const parsedPyTorchData = await fetchPyTorchAnalysisMask(imageBlob);
+
+      if (parsedPyTorchData) {
+        const { masks_array, ...dataWithoutMasks } = parsedPyTorchData;
+        setPyTorchMasksArray(masks_array || []);
+        setPyTorchResponseObj(dataWithoutMasks);
+        setPyTorchResponseString(JSON.stringify(dataWithoutMasks, null, 2));
+      } else {
+        setPyTorchResponseObj(null);
+        setPyTorchResponseString("");
+        setPyTorchMasksArray([]);
+      }
+      const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
+      setCanvasImage(imageURLFromBlob);
+    } catch (error) {
+      console.error("Error fetching PyTorch analysis:", error);
+      setPyTorchResponseObj(null);
+      setPyTorchResponseString("");
+      setPyTorchMasksArray([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
@@ -197,6 +231,7 @@ const MaskRCNNPage = () => {
               boundingBoxData={pyTorchResponseObj}
               colorMapCounter={colorMapCounter}
               pyTorchOpacity={pyTorchOpacity}
+              pyTorchMasksArray={pyTorchMasksArray}
             />
           </div>
         </div>

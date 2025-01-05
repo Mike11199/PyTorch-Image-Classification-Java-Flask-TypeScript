@@ -41,7 +41,7 @@ export function createImageURLFromBlob(
 export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
   try {
     if (!pyTorchData) return;
-    console.log(pyTorchData)
+    
     const { scores, classes, boxes, labels } = pyTorchData;
     if (!scores || !classes || !boxes || !labels) return;
 
@@ -52,10 +52,11 @@ export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
       classes: classes.slice(0, maxLength),
       boxes: boxes.slice(0, maxLength),
       labels: labels.slice(0, maxLength),
+      masks_array: pyTorchData?.masks_array
     };
 
     return modifiedBoundingBoxData;
-    
+
   } catch (error) {
     return null;
   }
