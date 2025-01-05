@@ -68,11 +68,13 @@ const ImageCanvas = ({
 
       const className = boundingBoxData.classes[i];
       if (!className) {
+        console.log('bad class name')
         return;
       }
 
       let classColor = classColorMap[className];
       if (!classColor) {
+        console.log('bad class color')
         classColor = 'rgb(0, 0, 0)';
       }
 
@@ -129,9 +131,11 @@ const ImageCanvas = ({
         ctx.drawImage(maskImg, 0, 0);
         // After drawing masks, draw bounding boxes
         drawBoundingBoxesOverlays(ctx, boundingBoxData);
+        console.log('draw mask')
       };
     } else {
       // If no masks, just draw bounding boxes
+      console.log('do not draw mask')
       drawBoundingBoxesOverlays(ctx, boundingBoxData);
     }
   };
