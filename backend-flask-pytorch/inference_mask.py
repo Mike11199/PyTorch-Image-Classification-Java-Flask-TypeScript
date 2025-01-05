@@ -140,9 +140,6 @@ def output_fn(prediction_dict, accept):
     scores = predictions.get("scores", [])
     labels = predictions.get("labels", [])
     masks = predictions.get("masks", [])  # shape: [N, 1, H, W]
-
-    print('here??????????????????????')
-
     # Convert to CPU numpy
     if torch.is_tensor(boxes):
         boxes = boxes.cpu().numpy()
@@ -153,11 +150,9 @@ def output_fn(prediction_dict, accept):
     if torch.is_tensor(masks):
         masks = masks.cpu().numpy()
 
-    print('aaaaaaa??????????????????????')
     detection_threshold = 0.9
     idxs = np.where(scores >= detection_threshold)[0]
 
-    print('bbbbbbbbbbb??????????????????????')
     print(predictions)
     boxes = boxes[idxs].astype(int)
     scores = scores[idxs]
@@ -165,7 +160,6 @@ def output_fn(prediction_dict, accept):
     print(masks)
     masks = masks[idxs]
 
-    print('ccccccccccc??????????????????????')
 
     # Draw bounding boxes + label text
     for i, box in enumerate(boxes):
