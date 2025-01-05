@@ -1,11 +1,8 @@
 import os
 import torch
-import io
 import logging
 import numpy as np
 import cv2
-import base64
-from io import BytesIO
 import json
 from PIL import Image
 from torchvision import transforms
@@ -98,6 +95,8 @@ def predict_fn(data, model):
     logger.info("predict_fn_start")
     with torch.no_grad():
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            torch_device_string = "using cuda/gpu" if torch.cuda.is_available() else "using cpu"
+            logger.info(torch_device_string)
             model = model.eval().to(device)
             targets = None
             data = torch.as_tensor(data, device=device)

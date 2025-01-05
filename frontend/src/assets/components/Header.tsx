@@ -61,6 +61,13 @@ export const NavigationButton = ({
           >
             ResNet Image Classification
           </Link>
+          <Link
+            to="/image-classification-mask-resnet"
+            className="block px-4 py-2 text-gray-400 hover:bg-gray-700"
+            onClick={toggleDropdown}
+          >
+            RCNN Mask Semantic Classification
+          </Link>
         </div>
       )}
     </div>

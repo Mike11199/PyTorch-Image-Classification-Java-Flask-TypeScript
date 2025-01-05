@@ -41,6 +41,7 @@ export function createImageURLFromBlob(
 export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
   try {
     if (!pyTorchData) return;
+    console.log(pyTorchData)
     const { scores, classes, boxes, labels } = pyTorchData;
     if (!scores || !classes || !boxes || !labels) return;
 
@@ -54,6 +55,7 @@ export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
     };
 
     return modifiedBoundingBoxData;
+    
   } catch (error) {
     return null;
   }
@@ -64,6 +66,22 @@ export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
     const formData = new FormData();
     formData.append("image", imageBlob, "image.jpg");
     const response = await axios.post("/api-java-spring-boot/image-url-pytorch", formData);
+    const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
+    return parsedPyTorchData;
+  } catch (error: any) {
+    console.error("Error:", error.message);
+    if (error.response) {
+      console.error("Response Data:", error.response.data);
+    }
+  } finally {
+  }
+};
+
+export const fetchPyTorchAnalysisMask = async (imageBlob: Blob) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", imageBlob, "image.jpg");
+    const response = await axios.post("/api-java-spring-boot/image-url-pytorch-mask", formData);
     const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
     return parsedPyTorchData;
   } catch (error: any) {

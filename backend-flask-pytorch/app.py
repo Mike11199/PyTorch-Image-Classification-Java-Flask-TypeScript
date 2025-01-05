@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
-from inference import model_fn, input_fn, predict_fn, output_fn
+import inference as inf
+import inference_mask as inf_mask
 import json
 import os
 from io import BytesIO
@@ -20,7 +21,7 @@ def allowed_file(filename):
 
 model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'model_dir'))
 print(model_dir)
-model = model_fn(model_dir)
+model = inf.model_fn(model_dir)
 
 @app.route('/api-pytorch/image-url-pytorch', methods=['POST'])
 def predict():
@@ -37,12 +38,36 @@ def predict():
 
         if file and allowed_file(file.filename):
             image_data = file.read()
-            input_tensor = input_fn(image_data)
-            prediction = predict_fn(input_tensor, model)
-            response = output_fn(prediction, 'application/json')
+            input_tensor = inf.input_fn(image_data)
+            prediction = inf.predict_fn(input_tensor, model)
+            response = inf.output_fn(prediction, 'application/json')
             print(jsonify(json.loads(response)))
             return jsonify(json.loads(response)), 200
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api-pytorch/image-url-pytorch-mask', methods=['POST'])
+def predict_mask():
+    try:
+        print('API Request received.')
+
+        if 'image' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+
+        file = request.files['image']
+
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+
+        if file and allowed_file(file.filename):
+            image_data = file.read()
+            input_tensor = inf_mask.input_fn(image_data)
+            prediction = inf_mask.predict_fn(input_tensor, model)
+            response = inf_mask.output_fn(prediction, 'application/json')
+            print(jsonify(json.loads(response)))
+            return jsonify(json.loads(response)), 200
+    except Exception as e:
+        print("error: " + str(e))
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

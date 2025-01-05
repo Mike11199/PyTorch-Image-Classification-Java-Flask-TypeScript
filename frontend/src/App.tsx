@@ -4,6 +4,7 @@ import ImageClassificationPage from "./assets/components/ImageClassificationPage
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./assets/components/Header";
 import Footer from "./assets/components/Footer";
+import MaskRCNNPage from "./assets/components/maskrcnn";
 
 function App() {
   return (
@@ -16,6 +17,10 @@ function App() {
             <Route
               path="/image-classification-resnet"
               element={<ImageClassificationPage />}
+            />
+            <Route
+              path="/image-classification-mask-resnet"
+              element={<MaskRCNNPage />}
             />
           </Routes>
         </main>
