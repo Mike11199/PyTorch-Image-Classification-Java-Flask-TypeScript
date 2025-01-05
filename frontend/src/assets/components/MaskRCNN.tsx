@@ -28,22 +28,9 @@ const MaskRCNNPage = () => {
   const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
   const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
+  const [pyTorchMaskOpacity, setPyTorchMaskOpacity] = useState<number>(50);
   const [colorMapCounter, setColorMapCounter] = useState(0);
   const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
-
-  useEffect(() => {
-    console.log(pyTorchMasksArray);
-    console.log(
-      `Total number of 1's in masks_array: ${
-        pyTorchMasksArray.flat(2).filter((x) => x === 1).length
-      }`
-    );
-    console.log(
-      `Total number of 0's in masks_array: ${
-        pyTorchMasksArray.flat(2).filter((x) => x === 0).length
-      }`
-    );
-  }, [pyTorchMasksArray]);
 
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
@@ -167,16 +154,25 @@ const MaskRCNNPage = () => {
           />
         </div>
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
+        <div className=" md:w-2/12 flex justify-center text-white">
+            <PyTorchSlider
+              minValue={0}
+              maxValue={100}
+              setterValue={pyTorchMaskOpacity}
+              setterFunction={setPyTorchMaskOpacity}
+              sliderName={"Mask Opacity"}
+            />
+          </div>
           <div className=" md:w-2/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={0}
               maxValue={100}
               setterValue={pyTorchOpacity}
               setterFunction={setPyTorchOpacity}
-              sliderName={"Opacity"}
+              sliderName={"Box Opacity"}
             />
           </div>
-          <div className=" md:w-2/12 flex justify-center text-white">
+          <div className=" md:w-/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={1}
               maxValue={20}
@@ -203,7 +199,7 @@ const MaskRCNNPage = () => {
               sliderName={"Label X Offset"}
             />
           </div>
-          <div className=" md:w-3/12 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={-200}
               maxValue={200}
@@ -231,6 +227,7 @@ const MaskRCNNPage = () => {
               boundingBoxData={pyTorchResponseObj}
               colorMapCounter={colorMapCounter}
               pyTorchOpacity={pyTorchOpacity}
+              pyTorchMaskOpacity={pyTorchMaskOpacity}
               pyTorchMasksArray={pyTorchMasksArray}
             />
           </div>

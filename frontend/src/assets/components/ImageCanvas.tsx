@@ -13,7 +13,8 @@ interface ImageCanvasProps {
   pyTorchBoxYOffset: number;
   colorMapCounter: number;
   pyTorchOpacity: number;
-  pyTorchMasksArray: number[][][];
+  pyTorchMaskOpacity?: number;
+  pyTorchMasksArray?: number[][][];
 }
 
 const ImageCanvas = ({
@@ -26,6 +27,7 @@ const ImageCanvas = ({
   pyTorchBoxYOffset,
   colorMapCounter,
   pyTorchOpacity,
+  pyTorchMaskOpacity,
   pyTorchMasksArray
 }: ImageCanvasProps) => {
   const [classColorMap, setClassColorMap] = useState(
@@ -40,7 +42,7 @@ const ImageCanvas = ({
   // **Helper Function to Extract RGB Components**
   const extractRGB = (rgbString: string): string => {
     // Expected format: 'rgb(r, g, b)'
-    const matches = rgbString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    const matches = rgbString?.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
     if (matches) {
       const r = matches[1];
       const g = matches[2];
@@ -52,7 +54,7 @@ const ImageCanvas = ({
 
   // **Cache the Mask Image Using useMemo**
   const cachedMaskImage = useMemo(() => {
-    if (!pyTorchMasksArray || pyTorchMasksArray?.length === 0 || !image || !boundingBoxData) return null;
+    if (!pyTorchMasksArray || pyTorchMasksArray?.length === 0 || !image || !boundingBoxData || !pyTorchMaskOpacity) return null;
 
     // Create an off-screen canvas for mask rendering
     const maskCanvas = document.createElement('canvas');
@@ -65,7 +67,7 @@ const ImageCanvas = ({
     boundingBoxData?.boxes?.forEach((box, i) => {
       const className = boundingBoxData.classes[i];
       const classColor = classColorMap[className];
-      const alpha = pyTorchOpacity * 0.005; // Adjust opacity as needed
+      const alpha = pyTorchMaskOpacity * 0.01; // Adjust opacity as needed
 
       const mask = pyTorchMasksArray[i];
       if (!mask) return;
@@ -85,7 +87,7 @@ const ImageCanvas = ({
 
     // Convert the mask canvas to a data URL
     return maskCanvas.toDataURL();
-  }, [pyTorchMasksArray, boundingBoxData, classColorMap, pyTorchOpacity, image]);
+  }, [pyTorchMasksArray, boundingBoxData, classColorMap, image, pyTorchMaskOpacity]);
 
   // **Function to Draw Bounding Boxes and Overlay Masks**
   const drawBoundingBoxes = (
