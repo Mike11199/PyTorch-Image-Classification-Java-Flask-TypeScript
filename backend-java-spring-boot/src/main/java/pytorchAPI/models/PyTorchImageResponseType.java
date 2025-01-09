@@ -20,47 +20,26 @@ public class PyTorchImageResponseType {
     private List<Integer> labels;
 
     @JsonProperty("masks_array")
-    private List<List<List<Integer>>> masksArray; // Corrected Type
+    private List<List<List<Integer>>> masksArray;
 
     // Getters and Setters
-
     public List<Double> getScores() {
         return scores;
-    }
-
-    public void setScores(List<Double> scores) {
-        this.scores = scores;
     }
 
     public List<String> getClasses() {
         return classes;
     }
 
-    public void setClasses(List<String> classes) {
-        this.classes = classes;
-    }
-
     public List<List<Double>> getBoxes() {
         return boxes;
-    }
-
-    public void setBoxes(List<List<Double>> boxes) {
-        this.boxes = boxes;
     }
 
     public List<Integer> getLabels() {
         return labels;
     }
 
-    public void setLabels(List<Integer> labels) {
-        this.labels = labels;
-    }
-
     public List<List<List<Integer>>> getMasksArray() {
         return masksArray;
-    }
-
-    public void setMasksArray(List<List<List<Integer>>> masksArray) {
-        this.masksArray = masksArray;
     }
 }

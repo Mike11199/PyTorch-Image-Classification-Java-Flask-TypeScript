@@ -105,6 +105,14 @@ export function createClassColorMap(
   const classColorMap: any = {};
   for (let i = 0; i < boundingBoxData.boxes.length; i++) {
     const className = boundingBoxData?.classes[i];
+    // if (className == 'dog')
+    // {
+    //   classColorMap[className] = `rgb(255, 0, 0)`
+    // }
+    // if (className == 'cat')
+    //   {
+    //     classColorMap[className] =`rgb(128, 0, 128)`
+    //   }
     if (className && !classColorMap[className]) {
       classColorMap[className] = getRandomColor();
     }
