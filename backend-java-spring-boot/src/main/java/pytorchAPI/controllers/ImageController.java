@@ -42,10 +42,12 @@ public class ImageController {
             if (response == null) return getEmptyResponseError();
             printResponseBody(response);
             return ResponseEntity.ok(response);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "the Flask app encountered an error while processing the image.  Please try" +
+                    "a smaller image file size or try again later.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
@@ -64,7 +66,10 @@ public class ImageController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "the Flask app encountered an error while processing the image.  Please try" +
+                    "a smaller image file size or try again later.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
