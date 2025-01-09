@@ -1,5 +1,7 @@
 package pytorchAPI.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,7 @@ import pytorchAPI.models.PyTorchImageResponseType;
 public class ImageController {
 
     private final ImageService imageService;
+    private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
 
     public ImageController(ImageService imageService) {
         this.imageService = imageService;
@@ -41,6 +44,7 @@ public class ImageController {
             return ResponseEntity.ok(response);
         }
         catch (Exception e) {
+            logger.error("An error occurred while processing the image.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
@@ -59,6 +63,7 @@ public class ImageController {
             printResponseBody(response);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("An error occurred while processing the image.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
