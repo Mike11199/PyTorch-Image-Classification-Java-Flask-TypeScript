@@ -30,14 +30,32 @@ const ImageClassificationPage = () => {
   const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
   const [colorMapCounter, setColorMapCounter] = useState(0);
 
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
-    setLoading(true);
-    const parsedPyTorchData = await fetchPyTorchAnalysis(imageBlob);
-    setPyTorchResponseObj(parsedPyTorchData ?? null);
-    setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
-    const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
-    setCanvasImage(imageURLFromBlob);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const parsedPyTorchData = await fetchPyTorchAnalysis(
+        imageBlob,
+        "/api-java-spring-boot/image-url-pytorch"
+      );
+      setPyTorchResponseObj(parsedPyTorchData ?? null);
+      setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
+      const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
+      setCanvasImage(imageURLFromBlob);
+      setLoading(false);
+    } catch (error: any) {
+      console.error("Error:", error?.message);
+      if (error?.response) {
+        console.error("Response Data:", error?.response?.data);
+      }
+      setPyTorchResponseObj(null);
+      setPyTorchResponseString("");
+      setLoading(false);
+      setIsError(true);
+      setErrorMessage(error?.response?.data);
+    }
   };
 
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
@@ -109,11 +127,15 @@ const ImageClassificationPage = () => {
           </h1>
           <div className="ml-2 md:ml-8">
             <li className="mb-4 md:mb-4">
-              The model and <strong className="text-red-700">inference.py</strong> script is provisioned on a Flask microservice running in
-              an EC2.  A Java Spring Boot API takes requests from the front end and sends an
-              image as multipart form-data to the model.  The Flask endpoint converts this data into
-              a NumPy array, and normalizes its pixel values for input into the PyTorch model.  Inference results from
-              the model are then returned as JSON to the front end to be plotted on the image.
+              The model and{" "}
+              <strong className="text-red-700">inference.py</strong> script is
+              provisioned on a Flask microservice running in an EC2. A Java
+              Spring Boot API takes requests from the front end and sends an
+              image as multipart form-data to the model. The Flask endpoint
+              converts this data into a NumPy array, and normalizes its pixel
+              values for input into the PyTorch model. Inference results from
+              the model are then returned as JSON to the front end to be plotted
+              on the image.
             </li>
           </div>
         </div>
@@ -147,7 +169,8 @@ const ImageClassificationPage = () => {
         />
         <div className="w-full flex justify-center items-center mt-6 ">
           <strong className="text-red-700 text-center mx-4">
-            Warning: this can take anywhere from 10 to 60 seconds while the model runs.
+            Warning: this can take anywhere from 10 to 60 seconds while the
+            model runs.
           </strong>
         </div>
         <div className="mt-32">

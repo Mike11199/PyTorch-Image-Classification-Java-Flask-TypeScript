@@ -62,37 +62,15 @@ export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
   }
 }
 
-export const fetchPyTorchAnalysis = async (imageBlob: Blob) => {
-  try {
+
+export const fetchPyTorchAnalysis = async (imageBlob: Blob, apiUrl: string) => {
     const formData = new FormData();
     formData.append("image", imageBlob, "image.jpg");
-    const response = await axios.post("/api-java-spring-boot/image-url-pytorch", formData);
+    const response = await axios.post(apiUrl, formData);
     const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
     return parsedPyTorchData;
-  } catch (error: any) {
-    console.error("Error:", error.message);
-    if (error.response) {
-      console.error("Response Data:", error.response.data);
-    }
-  } finally {
-  }
 };
 
-export const fetchPyTorchAnalysisMask = async (imageBlob: Blob) => {
-  try {
-    const formData = new FormData();
-    formData.append("image", imageBlob, "image.jpg");
-    const response = await axios.post("/api-java-spring-boot/image-url-pytorch-mask", formData);
-    const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
-    return parsedPyTorchData;
-  } catch (error: any) {
-    console.error("Error:", error.message);
-    if (error.response) {
-      console.error("Response Data:", error.response.data);
-    }
-  } finally {
-  }
-};
 
 export function createClassColorMap(
   boundingBoxData: PyTorchImageResponseType | null | undefined

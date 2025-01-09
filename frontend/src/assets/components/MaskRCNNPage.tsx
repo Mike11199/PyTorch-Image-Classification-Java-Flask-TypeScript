@@ -9,7 +9,7 @@ import {
 import JSONBox from "./JSONBox";
 import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
-import { fetchPyTorchAnalysisMask } from "./FunctionUtils";
+import { fetchPyTorchAnalysis } from "./FunctionUtils";
 import PyTorchSlider from "./PyTorchSlider";
 
 const MaskRCNNPage = () => {
@@ -32,12 +32,15 @@ const MaskRCNNPage = () => {
   const [colorMapCounter, setColorMapCounter] = useState(0);
   const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
 
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
 
     try {
-      const parsedPyTorchData = await fetchPyTorchAnalysisMask(imageBlob);
+      const parsedPyTorchData = await fetchPyTorchAnalysis(imageBlob, "/api-java-spring-boot/image-url-pytorch-mask");
 
       if (parsedPyTorchData) {
         const { masks_array, ...dataWithoutMasks } = parsedPyTorchData;
@@ -51,13 +54,13 @@ const MaskRCNNPage = () => {
       }
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
-    } catch (error) {
-      console.error("Error fetching PyTorch analysis:", error);
-      setPyTorchResponseObj(null);
-      setPyTorchResponseString("");
-      setPyTorchMasksArray([]);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+        console.error("Error fetching PyTorch analysis:", error);
+        setPyTorchResponseObj(null);
+        setPyTorchResponseString("");
+        setLoading(false);
+        setIsError(true);
+        setErrorMessage(error?.response?.data);
     }
   };
 
