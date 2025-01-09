@@ -45,8 +45,10 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "the Flask app encountered an error while processing the image.  please upload" +
-                    "a smaller image file size or try again later.");
+            errorResponse.put("error", "The Java API encountered an error reaching the Flask microservice. " +
+                    "The image likely was too large in size or resolution for the machine learning model to process. " +
+                    "Please upload a smaller image file size, use a less resource intensive model " +
+                    "(e.g - non mask-rcnn) or try again later.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
@@ -67,8 +69,10 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "the Flask app encountered an error while processing the image.  please upload" +
-                    "a smaller image file size or use a less resource intensive model (e.g - non mask rcnn).");
+            errorResponse.put("error", "The Java API encountered an error reaching the Flask microservice. " +
+                    "The image likely was too large in size or resolution for the machine learning model to process. " +
+                    "Please upload a smaller image file size, use a less resource intensive model " +
+                    "(e.g - non mask-rcnn) or try again later.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
