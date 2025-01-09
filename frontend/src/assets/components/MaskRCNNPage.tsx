@@ -35,13 +35,15 @@ const MaskRCNNPage = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
     setIsError(false);
 
     try {
-      const parsedPyTorchData = await fetchPyTorchAnalysis(imageBlob, "/api-java-spring-boot/image-url-pytorch-mask");
+      const parsedPyTorchData = await fetchPyTorchAnalysis(
+        imageBlob,
+        "/api-java-spring-boot/image-url-pytorch-mask"
+      );
 
       if (parsedPyTorchData) {
         const { masks_array, ...dataWithoutMasks } = parsedPyTorchData;
@@ -56,14 +58,14 @@ const MaskRCNNPage = () => {
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
     } catch (error: any) {
-        console.error("Error:", error?.response?.data);
-        setErrorMessage(error?.response?.data);
-        setIsError(true);
+      console.error("Error:", error?.response?.data);
+      setErrorMessage(error?.response?.data);
+      setIsError(true);
 
-        setPyTorchResponseObj(null);
-        setPyTorchResponseString("");
-        setLoading(false);
-
+      setPyTorchResponseObj(null);
+      setPyTorchResponseString("");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,7 +152,8 @@ const MaskRCNNPage = () => {
         />
         <div className="w-full flex justify-center items-center mt-6 ">
           <strong className="text-red-700 text-center mx-4">
-            Warning: this can take anywhere from 10 to 60 seconds while the model runs.
+            Warning: this can take anywhere from 10 to 60 seconds while the
+            model runs.
           </strong>
         </div>
         <div className="mt-32">
@@ -165,7 +168,7 @@ const MaskRCNNPage = () => {
           />
         </div>
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
-        <div className=" md:w-2/12 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white">
             <PyTorchSlider
               minValue={0}
               maxValue={100}
