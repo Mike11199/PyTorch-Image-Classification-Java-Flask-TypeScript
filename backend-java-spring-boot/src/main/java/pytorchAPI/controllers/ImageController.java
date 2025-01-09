@@ -45,7 +45,7 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "the Flask app encountered an error while processing the image.  Please try" +
+            errorResponse.put("error", "the Flask app encountered an error while processing the image.  please upload" +
                     "a smaller image file size or try again later.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
@@ -67,8 +67,8 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "the Flask app encountered an error while processing the image.  Please try" +
-                    "a smaller image file size or try again later.");
+            errorResponse.put("error", "the Flask app encountered an error while processing the image.  please upload" +
+                    "a smaller image file size or use a less resource intensive model (e.g - non mask rcnn).");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
