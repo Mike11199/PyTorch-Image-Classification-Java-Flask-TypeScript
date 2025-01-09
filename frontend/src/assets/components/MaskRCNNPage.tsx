@@ -38,6 +38,7 @@ const MaskRCNNPage = () => {
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     setLoading(true);
+    setIsError(false);
 
     try {
       const parsedPyTorchData = await fetchPyTorchAnalysis(imageBlob, "/api-java-spring-boot/image-url-pytorch-mask");
@@ -55,12 +56,14 @@ const MaskRCNNPage = () => {
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
     } catch (error: any) {
-        console.error("Error fetching PyTorch analysis:", error);
+        console.error("Error:", error?.response?.data);
+        setErrorMessage(error?.response?.data);
+        setIsError(true);
+
         setPyTorchResponseObj(null);
         setPyTorchResponseString("");
         setLoading(false);
-        setIsError(true);
-        setErrorMessage(error?.response?.data);
+
     }
   };
 
@@ -237,6 +240,8 @@ const MaskRCNNPage = () => {
               pyTorchOpacity={pyTorchOpacity}
               pyTorchMaskOpacity={pyTorchMaskOpacity}
               pyTorchMasksArray={pyTorchMasksArray}
+              isError={isError}
+              errorMessage={errorMessage}
             />
           </div>
         </div>

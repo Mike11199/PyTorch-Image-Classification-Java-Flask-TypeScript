@@ -36,6 +36,7 @@ const ImageClassificationPage = () => {
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     try {
       setLoading(true);
+      setIsError(false);
       const parsedPyTorchData = await fetchPyTorchAnalysis(
         imageBlob,
         "/api-java-spring-boot/image-url-pytorch"
@@ -46,15 +47,14 @@ const ImageClassificationPage = () => {
       setCanvasImage(imageURLFromBlob);
       setLoading(false);
     } catch (error: any) {
-      console.error("Error:", error?.message);
-      if (error?.response) {
-        console.error("Response Data:", error?.response?.data);
-      }
+      console.error("Error:", error?.response?.data);
+      setErrorMessage(error?.response?.data);
+      setIsError(true);
+
       setPyTorchResponseObj(null);
       setPyTorchResponseString("");
       setLoading(false);
-      setIsError(true);
-      setErrorMessage(error?.response?.data);
+
     }
   };
 
@@ -249,6 +249,8 @@ const ImageClassificationPage = () => {
               boundingBoxData={pyTorchResponseObj}
               colorMapCounter={colorMapCounter}
               pyTorchOpacity={pyTorchOpacity}
+              isError={isError}
+              errorMessage={errorMessage}
             />
           </div>
         </div>

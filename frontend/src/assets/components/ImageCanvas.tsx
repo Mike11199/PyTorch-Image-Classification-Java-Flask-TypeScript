@@ -15,6 +15,8 @@ interface ImageCanvasProps {
   pyTorchOpacity: number;
   pyTorchMaskOpacity?: number;
   pyTorchMasksArray?: number[][][];
+  isError?: boolean;
+  errorMessage?: any;
 }
 
 const ImageCanvas = ({
@@ -28,7 +30,9 @@ const ImageCanvas = ({
   colorMapCounter,
   pyTorchOpacity,
   pyTorchMaskOpacity,
-  pyTorchMasksArray
+  pyTorchMasksArray,
+  isError,
+  errorMessage
 }: ImageCanvasProps) => {
   const [classColorMap, setClassColorMap] = useState(
     createClassColorMap(boundingBoxData)
@@ -238,6 +242,11 @@ const ImageCanvas = ({
             className="object-contain h-full w-full"
             id="boundingBoxCanvas"
           ></canvas>
+        )}
+        {isError && (
+          <div className="w-full flex justify-center text-red-500 font-bold">
+            {errorMessage?.error ?? "An error occurred while processing the image."}
+        </div>
         )}
       </div>
     </>
