@@ -237,14 +237,14 @@ const ImageCanvas = ({
             <LineWave height="100" width="100" color="green" />
           </div>
         )}
-        {!loading && (
+        {!loading && !isError && (
           <canvas
             className="object-contain h-full w-full"
             id="boundingBoxCanvas"
           ></canvas>
         )}
         {isError && (
-          <div className="w-full flex justify-center text-red-500 font-bold">
+          <div className="w-full flex justify-center text-red-500 font-bold mt-6">
             {errorMessage?.error ?? "An error occurred while processing the image."}
         </div>
         )}
