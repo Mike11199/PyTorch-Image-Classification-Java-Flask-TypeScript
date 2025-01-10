@@ -245,7 +245,7 @@ const ImageCanvas = ({
         )}
         {isError && (
           <div className="w-full flex justify-center text-red-500 font-bold mt-6 mx-12">
-            {errorMessage?.error ?? "An error occurred while processing the image."}
+            {errorMessage?.error ?? "An error occurred while reaching the Java API.  Please try again later."}
         </div>
         )}
       </div>
