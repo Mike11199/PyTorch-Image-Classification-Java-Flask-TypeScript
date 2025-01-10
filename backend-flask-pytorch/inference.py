@@ -7,31 +7,19 @@ import json
 from PIL import Image
 from torchvision import transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
+from coco_labels import coco_names
 
 DEFAULT_MODEL_FILENAME = "fasterrcnn_resnet50_fpn.pth"
 
+# set up logger as global variable
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-coco_names = [
-    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
-    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
-    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
-    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
-    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
-
 
 class ModelLoadError(Exception):
     pass
+
 
 def model_fn(load_weights_from_checkpoint: bool):
     """
@@ -54,6 +42,7 @@ def model_fn(load_weights_from_checkpoint: bool):
         return model
     except RuntimeError as e:
         raise ModelLoadError(f"Failed to load model. Error: {e}")
+
 
 def input_fn(input_data):
     """
@@ -88,6 +77,7 @@ def input_fn(input_data):
 
     logger.info("input_fn_end")
     return normalized_np
+
 
 def predict_fn(data, model):
     """
@@ -190,7 +180,7 @@ def get_fasterrcnn_model_path ():
     Returns string of where the model is saved.
     """
     model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'model_dir'))
-    model_path = os.path.join(model_dir, "fasterrcnn_resnet50_fpn.pth")
+    model_path = os.path.join(model_dir, DEFAULT_MODEL_FILENAME)
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model file not found: {model_path}")

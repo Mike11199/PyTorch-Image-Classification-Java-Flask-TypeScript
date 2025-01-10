@@ -6,32 +6,24 @@ import cv2
 import json
 from PIL import Image
 from torchvision import transforms
-from torchvision.models.detection import maskrcnn_resnet50_fpn_v2
+from torchvision.models.detection import (
+    maskrcnn_resnet50_fpn_v2,
+    MaskRCNN_ResNet50_FPN_V2_Weights
+)
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
+from coco_labels import coco_names
 
+# set up logger as global variable
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-coco_names = [
-    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
-    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
-    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
-    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
-    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
 
 class ModelLoadError(Exception):
     pass
+
 
 def overlay_mask_manual(
     image_bgr: np.ndarray,
@@ -64,12 +56,14 @@ def overlay_mask_manual(
     return image_bgr
 
 
-def model_fn(model_dir):
+def model_fn():
     """
     Loads a Mask R-CNN model with pretrained COCO weights (ignoring any local .pth).
     """
     try:
-        model = maskrcnn_resnet50_fpn_v2(pretrained=True)
+        weights = MaskRCNN_ResNet50_FPN_V2_Weights.DEFAULT
+        model = maskrcnn_resnet50_fpn_v2(weights=weights)
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
         logger.info("Loaded Mask R-CNN model with default pretrained (COCO) weights.")
@@ -185,8 +179,6 @@ def output_fn(prediction_dict, accept):
         mask = masks[i, 0]  # shape: [H, W]
         mask_binary = (mask > 0.5).astype(int)  # 0 or 1
 
-        # Optionally, resize mask to match image size if needed
-        # mask_binary = cv2.resize(mask_binary, (original_image.shape[1], original_image.shape[0]), interpolation=cv2.INTER_NEAREST)
 
         # Convert mask to list for JSON serialization
         mask_list = mask_binary.tolist()
@@ -197,12 +189,13 @@ def output_fn(prediction_dict, accept):
     # cv2.imwrite(debug_save_path, original_image)
     # logger.info(f"Annotated image saved to {debug_save_path}")
 
-    # Convert the annotated image to Base64
-    _, buffer = cv2.imencode(".jpg", original_image)
-    image_bytes = buffer.tobytes()
-    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
     pred_classes = [coco_names[l] if l < len(coco_names) else f"ID_{l}" for l in labels]
+
+    logger.info(scores.tolist())
+    logger.info(boxes)
+    logger.info(labels)
+    logger.info(pred_classes)
 
     response_data = {
         "scores": scores.tolist(),
