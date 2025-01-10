@@ -23,11 +23,11 @@ public class ImageService {
     }
 
     /**
-     * Sends image to the specified endpoint and retrieves the response.
+     * Sends image to the specified endpoint and retrieves the response outputted by a ML model.
      *
      * @param imageFile The image file to upload.
      * @param flaskUrl  The Flask API URL to send the image to.
-     * @return PyTorchImageResponseType - The response from the Flask API with bounding boxes.
+     * @return PyTorchImageResponseType - The response from the Flask API with bounding boxes (and optional masks).
      */
     public PyTorchImageResponseType sendImageToFlaskModel(MultipartFile imageFile, String flaskUrl)
     {

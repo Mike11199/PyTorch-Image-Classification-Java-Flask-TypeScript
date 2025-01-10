@@ -24,11 +24,22 @@ public class ImageController {
     private final ImageService imageService;
     private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
 
+    public static final String MODEL_ERROR_MESSAGE = "The Java API encountered an error reaching the Flask " +
+            "microservice.  The image likely was too large in size or resolution for the machine learning model " +
+            "to process.  Please upload a smaller image file size, use a less resource intensive model " +
+            "(e.g - non mask-rcnn), or try again later.";
+
     public ImageController(ImageService imageService) {
         this.imageService = imageService;
     }
 
-    // POST endpoint for image file upload
+    /**
+     * Sends an image to a Flask microservice which invokes a fast-rcnn model.  This returns bounding boxes of
+     * detected objects in the image.  It does not return a mask.
+     *
+     * @param imageFile An image blob/file received from the front end as part of a multipart form request.  The UI
+     *                  sends this as FormData with the key of "image".
+     */
     @PostMapping("/image-url-pytorch")
     public ResponseEntity<Object> getFastRCNNModelResultsForImage(
             @RequestParam("image") MultipartFile imageFile) {
@@ -45,14 +56,18 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "The Java API encountered an error reaching the Flask microservice. " +
-                    "The image likely was too large in size or resolution for the machine learning model to process. " +
-                    "Please upload a smaller image file size, use a less resource intensive model " +
-                    "(e.g - non mask-rcnn) or try again later.");
+            errorResponse.put("error", MODEL_ERROR_MESSAGE);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
+    /**
+     * Sends an image to a Flask microservice which invokes a mask-rcnn model.  This returns bounding boxes of
+     * detected objects in the image, as well as a mask (3-dimensional binary array).
+     *
+     * @param imageFile An image blob/file received from the front end as part of a multipart form request.  The UI
+     *                  sends this as FormData with the key of "image".
+     */
     @PostMapping("/image-url-pytorch-mask")
     public ResponseEntity<Object> getMaskRCNNModelResultsForImage(
             @RequestParam("image") MultipartFile imageFile) {
@@ -69,10 +84,7 @@ public class ImageController {
         } catch (Exception e) {
             logger.error("An error occurred while processing the image.", e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "The Java API encountered an error reaching the Flask microservice. " +
-                    "The image likely was too large in size or resolution for the machine learning model to process. " +
-                    "Please upload a smaller image file size, use a less resource intensive model " +
-                    "(e.g - non mask-rcnn) or try again later.");
+            errorResponse.put("error", MODEL_ERROR_MESSAGE);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
