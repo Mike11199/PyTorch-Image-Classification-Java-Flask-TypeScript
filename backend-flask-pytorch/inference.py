@@ -6,9 +6,7 @@ import cv2
 import json
 from PIL import Image
 from torchvision import transforms
-from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2
-import matplotlib.pyplot as plt
-
+from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
 
 DEFAULT_MODEL_FILENAME = "fasterrcnn_resnet50_fpn.pth"
 
@@ -35,36 +33,43 @@ coco_names = [
 class ModelLoadError(Exception):
     pass
 
-def model_fn(model_dir):
+def model_fn(load_weights_from_checkpoint: bool):
     """
-    Loads a regular PyTorch model checkpoint for Faster R-CNN.
-    Args:
-        model_dir: a directory where the model is saved.
-    Returns:
-        A PyTorch model.
-    """
-    model_path = os.path.join(model_dir, "fasterrcnn_resnet50_fpn.pth")
+    Loads a PyTorch model for Faster R-CNN.  Optionally loads checkpoint values from 
+    a .pth file into the model.
 
-    # Check if the model file exists
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found: {model_path}")
+    Args:
+        load_weights_from_checkpoint: whether to load checkpoint values
+        from a .pth file to the model.
+
+    Returns:
+        A pytorch model.
+    """
+    weights = FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT
 
     try:
-        model = fasterrcnn_resnet50_fpn_v2(pretrained=True)
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=False)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
-
-        print("Michael - Model loaded successfully!")
+        model = fasterrcnn_resnet50_fpn_v2(weights=weights)
+        if load_weights_from_checkpoint:
+            load_model_with_checkpoint_values(model)
         return model
     except RuntimeError as e:
-        raise ModelLoadError(f"Failed to load model from {model_path}. Error: {e}")
+        raise ModelLoadError(f"Failed to load model. Error: {e}")
 
 def input_fn(input_data):
     """
+    Deserializes and preprocess incoming image data for model inference.
+
+    This function takes raw binary image data from a request payload, decodes it,
+    converts it to a PIL image, applies necessary transformations, and returns a
+    normalized NumPy array suitable for model prediction.
+
     Args:
-        input_data: the request payload serialized (binary image data)
+        input_data (bytes): The request payload containing serialized binary image data.
+
+    Returns:
+        numpy.ndarray: A normalized image array with shape (C, H, W), where
+                       C is the number of channels (e.g., 3 for RGB),
+                       H is the height, and W is the width of the image.
     """
     logger.info("input_fn_start")
     image_array = np.frombuffer(input_data, np.uint8)
@@ -85,12 +90,15 @@ def input_fn(input_data):
     return normalized_np
 
 def predict_fn(data, model):
-    """A default predict_fn for PyTorch. Calls a model on data deserialized in input_fn.
+    """
+    A default predict_fn for PyTorch. Calls a model on data deserialized in input_fn.
     Runs prediction on GPU if cuda is available.
+
     Args:
         data: input data (torch.Tensor) for prediction deserialized by input_fn
         model: PyTorch model loaded in memory by model_fn
-    Returns: a prediction
+    Returns:
+        a prediction object
     """
     logger.info("predict_fn_start")
     with torch.no_grad():
@@ -106,12 +114,15 @@ def predict_fn(data, model):
     return output
 
 
-def output_fn(prediction, accept):
-    """A default output_fn for PyTorch. Serializes predictions from predict_fn to JSON, CSV or NPY format.
+def output_fn(prediction):
+    """
+    A default output_fn for PyTorch. Serializes predictions from predict_fn to JSON.
+
     Args:
         prediction: a prediction result from predict_fn
-        accept: type which the output data needs to be serialized
-    Returns: output data serialized
+
+    Returns:
+        a JSON object with scores, bounding boxes, labels, and classes
     """
     logger.info("output_fn_start")
 
@@ -150,5 +161,38 @@ def output_fn(prediction, accept):
     return response_json
 
 
+def load_model_with_checkpoint_values(model):
+    """
+    Loads model weights from a checkpoint file.
+
+    Args:
+        model (torch.nn.Module): The model to load weights into.
+
+    Returns:
+        torch.nn.Module: The model with loaded weights.
+    """
+    model_path = get_fasterrcnn_model_path()
+
+    try:
+        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
+        model.load_state_dict(state_dict, strict=False)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+        print("Model loaded successfully from checkpoint!")
+    except RuntimeError as e:
+        raise RuntimeError(f"Failed to load model from {model_path}. Error: {e}")
+
+    return model
 
 
+def get_fasterrcnn_model_path ():
+    """
+    Returns string of where the model is saved.
+    """
+    model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'model_dir'))
+    model_path = os.path.join(model_dir, "fasterrcnn_resnet50_fpn.pth")
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file not found: {model_path}")
+
+    return model_path

@@ -1,27 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from PIL import Image
+
 import inference as inf
 import inference_mask as inf_mask
 import json
-import os
-from io import BytesIO
-import base64
-
 
 app = Flask(__name__)
 CORS(app)
 
-# Allowed extensions (if you want to restrict the file types)
+# Allowed extensions
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # Helper function to check allowed file types
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'model_dir'))
-print(model_dir)
-model = inf.model_fn(model_dir)
 
 @app.route('/api-pytorch/image-url-pytorch', methods=['POST'])
 def predict():
@@ -38,9 +30,10 @@ def predict():
 
         if file and allowed_file(file.filename):
             image_data = file.read()
+            fast_rcnn_model = inf.model_fn(load_weights_from_checkpoint=False)
             input_tensor = inf.input_fn(image_data)
-            prediction = inf.predict_fn(input_tensor, model)
-            response = inf.output_fn(prediction, 'application/json')
+            prediction = inf.predict_fn(input_tensor, fast_rcnn_model)
+            response = inf.output_fn(prediction)
             print(jsonify(json.loads(response)))
             return jsonify(json.loads(response)), 200
     except Exception as e:
@@ -65,7 +58,6 @@ def predict_mask():
             mask_model = inf_mask.model_fn(".")
             prediction = inf_mask.predict_fn(input_tensor, mask_model)
             response = inf_mask.output_fn(prediction, 'application/json')
-            print(jsonify(json.loads(response)))
             return jsonify(json.loads(response)), 200
     except Exception as e:
         print("error: " + str(e))

@@ -1,1 +1,0 @@
-web: tsx backend/server.tsx
