@@ -2,6 +2,12 @@
   - https://machine-learning-projects.com/  - EC2 (TypeScript/ Java Spring Boot/ Flask) - NEW
   - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ - Heroku/ AWS SageMaker Endpoint - OLD
 
+![mask_rcnn_front_page](https://github.com/user-attachments/assets/94f6d43a-4b39-40b6-9887-7660cfc0cb3b)
+
+<br />
+
+![mask_rcnn_traffic](https://github.com/user-attachments/assets/b102cd8a-0103-4964-bf78-c34589f510db)
+
 # Stack/Technologies
   - Java Spring Boot
   - AWS EC2
