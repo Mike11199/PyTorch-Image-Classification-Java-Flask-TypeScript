@@ -57,7 +57,7 @@ def predict_mask():
             mask_rcnn_model = inf_mask.model_fn()
             input_tensor = inf_mask.input_fn(image_data)
             prediction = inf_mask.predict_fn(input_tensor, mask_rcnn_model)
-            response = inf_mask.output_fn(prediction, 'application/json')
+            response = inf_mask.output_fn(prediction)
             return jsonify(json.loads(response)), 200
     except Exception as e:
         print("error: " + str(e))
