@@ -6,7 +6,10 @@ import cv2
 import json
 from PIL import Image
 from torchvision import transforms
-from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
+from torchvision.models.detection import (
+    fasterrcnn_resnet50_fpn_v2,
+    FasterRCNN_ResNet50_FPN_V2_Weights,
+)
 from coco_labels import coco_names
 
 DEFAULT_MODEL_FILENAME = "fasterrcnn_resnet50_fpn.pth"
@@ -23,7 +26,7 @@ class ModelLoadError(Exception):
 
 def model_fn(load_weights_from_checkpoint: bool):
     """
-    Loads a PyTorch model for Faster R-CNN.  Optionally loads checkpoint values from 
+    Loads a PyTorch model for Faster R-CNN.  Optionally loads checkpoint values from
     a .pth file into the model.
 
     Args:
@@ -92,13 +95,15 @@ def predict_fn(data, model):
     """
     logger.info("predict_fn_start")
     with torch.no_grad():
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            torch_device_string = "using cuda/gpu" if torch.cuda.is_available() else "using cpu"
-            logger.info(torch_device_string)
-            model = model.eval().to(device)
-            targets = None
-            data = torch.as_tensor(data, device=device)
-            output = model([data], targets)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        torch_device_string = (
+            "using cuda/gpu" if torch.cuda.is_available() else "using cpu"
+        )
+        logger.info(torch_device_string)
+        model = model.eval().to(device)
+        targets = None
+        data = torch.as_tensor(data, device=device)
+        output = model([data], targets)
 
     logger.info("predict_fn_end")
     return output
@@ -116,7 +121,7 @@ def output_fn(prediction):
     """
     logger.info("output_fn_start")
 
-    output_data =prediction[0]
+    output_data = prediction[0]
 
     boxes = output_data.get("boxes", [])
     pred_scores = np.array(output_data.get("scores", []))
@@ -126,7 +131,7 @@ def output_fn(prediction):
 
     detection_threshold = 0.9
     boxes = pred_bboxes[pred_scores >= detection_threshold].astype(np.int32)
-    labels = np.array(output_data.get("labels", [])[:len(boxes)])
+    labels = np.array(output_data.get("labels", [])[: len(boxes)])
     pred_classes = [coco_names[i] for i in labels]
 
     logger.info(pred_scores)
@@ -140,7 +145,7 @@ def output_fn(prediction):
         "scores": pred_scores.tolist(),
         "boxes": boxes.tolist(),
         "labels": labels.tolist(),
-        "classes": pred_classes
+        "classes": pred_classes,
     }
 
     logger.info(response_data)
@@ -175,11 +180,13 @@ def load_model_with_checkpoint_values(model):
     return model
 
 
-def get_fasterrcnn_model_path ():
+def get_fasterrcnn_model_path():
     """
     Returns string of where the model is saved.
     """
-    model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'model_dir'))
+    model_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "model_dir")
+    )
     model_path = os.path.join(model_dir, DEFAULT_MODEL_FILENAME)
 
     if not os.path.exists(model_path):

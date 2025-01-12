@@ -11,7 +11,7 @@ from torchvision import transforms
 from typing import Optional, Any, Dict, Tuple, List
 from torchvision.models.detection import (
     maskrcnn_resnet50_fpn_v2,
-    MaskRCNN_ResNet50_FPN_V2_Weights
+    MaskRCNN_ResNet50_FPN_V2_Weights,
 )
 from torchvision.models.detection.mask_rcnn import MaskRCNN
 
@@ -40,7 +40,9 @@ def model_fn() -> MaskRCNN:
         logger.info("Loaded Mask R-CNN model with default pretrained (COCO) weights.")
         return model
     except RuntimeError as e:
-        raise ModelLoadError(f"Failed to load the pretrained Mask R-CNN model. Error: {e}")
+        raise ModelLoadError(
+            f"Failed to load the pretrained Mask R-CNN model. Error: {e}"
+        )
 
 
 def input_fn(input_data: bytes) -> Dict[str, np.ndarray]:
@@ -61,22 +63,28 @@ def input_fn(input_data: bytes) -> Dict[str, np.ndarray]:
     logger.info("input_fn_start")
 
     # Convert raw image bytes from uploaded image into a 1d numpy array of type uint8
-    image_1d_np_array: np.ndarray  = np.frombuffer(buffer=input_data, dtype=np.uint8)
+    image_1d_np_array: np.ndarray = np.frombuffer(buffer=input_data, dtype=np.uint8)
 
     # Decode the image using OpenCV (BGR) into a 3d numpy array
-    image_cv2_3d_np_array: np.ndarray = decode_array_to_cv2_image(image_1d_np_array=image_1d_np_array)
+    image_cv2_3d_np_array: np.ndarray = decode_array_to_cv2_image(
+        image_1d_np_array=image_1d_np_array
+    )
 
     # Convert the image to a PIL (Python Imaging Library) Image (RGB) for torchvision transforms
-    image_pil = Image.fromarray(cv2.cvtColor(src=image_cv2_3d_np_array, code=cv2.COLOR_BGR2RGB))
+    image_pil = Image.fromarray(
+        cv2.cvtColor(src=image_cv2_3d_np_array, code=cv2.COLOR_BGR2RGB)
+    )
 
     # Converts PIL image to a normalized pytorch tensor using transforms for the model
-    normalized_image_tensor: torch.Tensor = get_pytorch_tensor_from_pil_image(image_pil=image_pil)
+    normalized_image_tensor: torch.Tensor = get_pytorch_tensor_from_pil_image(
+        image_pil=image_pil
+    )
 
     logger.info("input_fn_end")
 
     return {
         "tensor": normalized_image_tensor.numpy(),
-        "original_image": image_cv2_3d_np_array
+        "original_image": image_cv2_3d_np_array,
     }
 
 
@@ -139,7 +147,9 @@ def decode_array_to_cv2_image(image_1d_np_array: np.ndarray) -> np.ndarray:
                 [ [B1, G1, R1], [B2, G2, R2], [B3, G3, R3] ],
                 [ [B4, G4, R4], [B5, G5, R5], [B6, G6, R6] ] ]
     """
-    image_cv2: Optional[np.ndarray] = cv2.imdecode(buf=image_1d_np_array, flags=cv2.IMREAD_COLOR)
+    image_cv2: Optional[np.ndarray] = cv2.imdecode(
+        buf=image_1d_np_array, flags=cv2.IMREAD_COLOR
+    )
     if image_cv2 is None:
         raise ValueError("Failed to decode image from input bytes.")
 
@@ -183,10 +193,7 @@ def predict_fn(data: Dict[str, np.ndarray], model: MaskRCNN) -> Dict[str, Any]:
     logger.info("predict_fn_end")
 
     # Return both the output and the original_image
-    return {
-        "predictions": output,
-        "original_image": data["original_image"]
-    }
+    return {"predictions": output, "original_image": data["original_image"]}
 
 
 def output_fn(prediction_dict: Dict[str, Any]) -> str:
@@ -196,13 +203,17 @@ def output_fn(prediction_dict: Dict[str, Any]) -> str:
     Predictions are filtered for only those above a certain accuracy.
     """
     logger.info("output_fn_start")
-    original_image, boxes, scores, labels, masks = process_predictions(prediction_dict=prediction_dict)
+    original_image, boxes, scores, labels, masks = process_predictions(
+        prediction_dict=prediction_dict
+    )
 
     # array of a mask per object, each mask a binary array
     normalized_masks_array = create_normalized_mask_arrays(boxes, masks)
 
     # get each class name from label integers, e.g 18, from coco_names array or generic id_# if missing
-    pred_classes_names = [coco_names[l] if l < len(coco_names) else f"ID_{l}" for l in labels]
+    pred_classes_names = [
+        coco_names[l] if l < len(coco_names) else f"ID_{l}" for l in labels
+    ]
 
     logger.info("scores: " + str(scores))
     logger.info("boxes: " + str(boxes))
@@ -213,11 +224,11 @@ def output_fn(prediction_dict: Dict[str, Any]) -> str:
     # save_original_image_locally_with_mask(original_image, boxes, scores, labels, masks)
 
     response_data = {
-        "scores": scores.tolist(),             # [0.9984003]
-        "boxes": boxes.tolist(),               # [[ 229   23 1192  791]]
-        "labels": labels.tolist(),             # [18]
-        "classes": pred_classes_names,         # ['dog']
-        "masks_array": normalized_masks_array  # Array of 2D binary mask arrays for each detection
+        "scores": scores.tolist(),  # [0.9984003]
+        "boxes": boxes.tolist(),  # [[ 229   23 1192  791]]
+        "labels": labels.tolist(),  # [18]
+        "classes": pred_classes_names,  # ['dog']
+        "masks_array": normalized_masks_array,  # Array of 2D binary mask arrays for each detection
     }
 
     response_json = json.dumps(response_data)
@@ -225,7 +236,9 @@ def output_fn(prediction_dict: Dict[str, Any]) -> str:
     return response_json
 
 
-def create_normalized_mask_arrays(boxes: np.ndarray, masks: np.ndarray) -> List[List[List[int]]]:
+def create_normalized_mask_arrays(
+    boxes: np.ndarray, masks: np.ndarray
+) -> List[List[List[int]]]:
     """
     Converts mask predictions to binary arrays.
 
@@ -246,7 +259,9 @@ def create_normalized_mask_arrays(boxes: np.ndarray, masks: np.ndarray) -> List[
     return masks_array
 
 
-def process_predictions(prediction_dict: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def process_predictions(
+    prediction_dict: Dict[str, Any]
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Takes prediction results for a single image and converts them to CPU NumPy arrays if needed.
 
@@ -299,14 +314,31 @@ def process_predictions(prediction_dict: Dict[str, Any]) -> Tuple[np.ndarray, np
     if torch.is_tensor(masks):
         masks = masks.detach().cpu().numpy()
 
-    filtered_boxes, filtered_scores, filtered_labels, filtered_masks = filter_detections(
-        boxes=boxes, scores=scores, labels=labels, masks=masks, detection_threshold=0.9
+    filtered_boxes, filtered_scores, filtered_labels, filtered_masks = (
+        filter_detections(
+            boxes=boxes,
+            scores=scores,
+            labels=labels,
+            masks=masks,
+            detection_threshold=0.9,
+        )
     )
 
-    return original_image, filtered_boxes, filtered_scores, filtered_labels, filtered_masks
+    return (
+        original_image,
+        filtered_boxes,
+        filtered_scores,
+        filtered_labels,
+        filtered_masks,
+    )
 
 
-def filter_detections( boxes: np.ndarray, scores: np.ndarray, labels: np.ndarray, masks: np.ndarray, detection_threshold: float = 0.9
+def filter_detections(
+    boxes: np.ndarray,
+    scores: np.ndarray,
+    labels: np.ndarray,
+    masks: np.ndarray,
+    detection_threshold: float = 0.9,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Filters detections based on a score threshold.  For example, only return bounding boxes, and masks
@@ -324,7 +356,13 @@ def filter_detections( boxes: np.ndarray, scores: np.ndarray, labels: np.ndarray
     return filtered_boxes, filtered_scores, filtered_labels, filtered_masks
 
 
-def save_original_image_locally_with_mask(original_image: np.ndarray, boxes: np.ndarray, scores: np.ndarray, labels: np.ndarray, masks: np.ndarray) -> None:
+def save_original_image_locally_with_mask(
+    original_image: np.ndarray,
+    boxes: np.ndarray,
+    scores: np.ndarray,
+    labels: np.ndarray,
+    masks: np.ndarray,
+) -> None:
     """
     Saves the image with masks and bounding boxes locally to the same directory where
     this file exists. To test a model locally or for debugging.
@@ -340,11 +378,22 @@ def save_original_image_locally_with_mask(original_image: np.ndarray, boxes: np.
         color = tuple(np.random.randint(0, 256) for _ in range(3))  # Random RGB color
 
         # Draw bounding box and class label with accuracy score
-        cv2.rectangle(original_image, (box[0], box[1]), (box[2], box[3]), color=color, thickness=2)
-        cv2.putText(original_image, f"{class_name}: {score_val:.4f}", (box[0] + 5, box[1] + 15),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness=1)
+        cv2.rectangle(
+            original_image, (box[0], box[1]), (box[2], box[3]), color=color, thickness=2
+        )
+        cv2.putText(
+            original_image,
+            f"{class_name}: {score_val:.4f}",
+            (box[0] + 5, box[1] + 15),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            color,
+            thickness=1,
+        )
 
-        original_image = overlay_mask_manual(image_bgr=original_image, mask_binary=mask, color_bgr=color, alpha=0.5)
+        original_image = overlay_mask_manual(
+            image_bgr=original_image, mask_binary=mask, color_bgr=color, alpha=0.5
+        )
 
     # save image locally
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -355,12 +404,17 @@ def save_original_image_locally_with_mask(original_image: np.ndarray, boxes: np.
     logger.info(f"Annotated image saved to {debug_save_path}")
 
 
-def overlay_mask_manual(image_bgr: np.ndarray, mask_binary: np.ndarray, color_bgr: Tuple[int, int, int], alpha: float = 0.5) -> np.ndarray:
+def overlay_mask_manual(
+    image_bgr: np.ndarray,
+    mask_binary: np.ndarray,
+    color_bgr: Tuple[int, int, int],
+    alpha: float = 0.5,
+) -> np.ndarray:
     """Takes an image and mask as numpy arrays and overlays the mask on to the image.  Returns combined numpy array"""
     mask = np.squeeze(mask_binary)
-    mask_3ch = mask[..., None].astype('float32')
-    overlay = np.full(image_bgr.shape, color_bgr, dtype='float32')
-    img_float = image_bgr.astype('float32')
+    mask_3ch = mask[..., None].astype("float32")
+    overlay = np.full(image_bgr.shape, color_bgr, dtype="float32")
+    img_float = image_bgr.astype("float32")
     blended = (1 - mask_3ch * alpha) * img_float + (mask_3ch * alpha) * overlay
     blended = np.clip(blended, 0, 255).astype(image_bgr.dtype)
     return blended

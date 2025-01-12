@@ -9,23 +9,25 @@ app = Flask(__name__)
 CORS(app)
 
 # Allowed extensions
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+
 
 # Helper function to check allowed file types
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/api-pytorch/image-url-pytorch', methods=['POST'])
+
+@app.route("/api-pytorch/image-url-pytorch", methods=["POST"])
 def predict():
     try:
-        print('API Request received.')
+        print("API Request received.")
 
-        if 'image' not in request.files:
+        if "image" not in request.files:
             return jsonify({"error": "No file part"}), 400
 
-        file = request.files['image']
+        file = request.files["image"]
 
-        if file.filename == '':
+        if file.filename == "":
             return jsonify({"error": "No selected file"}), 400
 
         if file and allowed_file(file.filename):
@@ -39,17 +41,18 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api-pytorch/image-url-pytorch-mask', methods=['POST'])
+
+@app.route("/api-pytorch/image-url-pytorch-mask", methods=["POST"])
 def predict_mask():
     try:
-        print('API Request received.')
+        print("API Request received.")
 
-        if 'image' not in request.files:
+        if "image" not in request.files:
             return jsonify({"error": "No file part"}), 400
 
-        file = request.files['image']
+        file = request.files["image"]
 
-        if file.filename == '':
+        if file.filename == "":
             return jsonify({"error": "No selected file"}), 400
 
         if file and allowed_file(file.filename):
@@ -63,6 +66,6 @@ def predict_mask():
         print("error: " + str(e))
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
 
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
