@@ -68,11 +68,11 @@ const DropZone = ({
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p className="text-white mt-12">Drop file(s) here ...</p>
+          <p className="text-white mt-12 text-center">Drop file(s) here ...</p>
         ) : loading ? (
-          <p className="text-white mt-12">Processing image...</p>
+          <p className="text-white mt-12 text-center">Processing image...</p>
         ) : (
-          <p className="text-white mt-12">
+          <p className="text-white mt-12 text-center">
             Drag and drop file(s) here, or click to select files
           </p>
         )}

@@ -173,7 +173,7 @@ const ImageClassificationPage = () => {
             model runs.
           </strong>
         </div>
-        <div className="mt-32">
+        <div className="mb-12 md:mt-32 mt-16">
           <Button
             color={"bg-purple-900"}
             hoverColor={"hover:bg-purple-800"}

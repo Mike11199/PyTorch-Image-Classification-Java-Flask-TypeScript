@@ -55,7 +55,7 @@ const PyTorchSlider = ({
   setterValue,
   setterFunction,
   minValue,
-  maxValue
+  maxValue,
 }: PyTorchSliderProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setterFunction(newValue as number);
@@ -77,20 +77,43 @@ const PyTorchSlider = ({
 
   return (
     <Box sx={{ width: 250 }}>
-      <Typography
-        id="input-slider"
-        gutterBottom
-        style={{ color: "white", borderBottomColor: "white" }}
-      >
-        {sliderName}
-      </Typography>
+      <div className="flex gap-5 justify-between">
+        <Typography
+          id="input-slider"
+          style={{
+            color: "white",
+            borderBottomColor: "white",
+            textAlign: "right",
+          }}
+        >
+          {sliderName}
+        </Typography>
+        <Input
+          style={{
+            color: "white",
+            borderBottomColor: "white",
+            width: "55px",
+          }}
+          value={setterValue}
+          size="small"
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          inputProps={{
+            style: { textAlign: "right" },
+            step: 1,
+            min: minValue,
+            max: maxValue,
+            type: "number",
+            "aria-labelledby": "input-slider",
+          }}
+        />
+      </div>
       <Grid
         container
         spacing={2}
         alignItems="center"
         style={{ color: "white", borderBottomColor: "white" }}
       >
-        <Grid item></Grid>
         <Grid item xs>
           <CustomSlider
             color="secondary"
@@ -101,26 +124,10 @@ const PyTorchSlider = ({
             max={maxValue}
           />
         </Grid>
-        <Grid item style={{ color: "white", borderBottomColor: "white" }}>
-          <Input
-            style={{
-              color: "white",
-              borderBottomColor: "white",
-              width: "55px",
-            }}
-            value={setterValue}
-            size="small"
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            inputProps={{
-              step: 1,
-              min: {minValue},
-              max: {maxValue},
-              type: "number",
-              "aria-labelledby": "input-slider",
-            }}
-          />
-        </Grid>
+        <Grid
+          item
+          style={{ color: "white", borderBottomColor: "white" }}
+        ></Grid>
       </Grid>
     </Box>
   );

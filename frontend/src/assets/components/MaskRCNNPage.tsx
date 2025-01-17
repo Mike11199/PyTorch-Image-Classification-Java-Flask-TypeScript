@@ -156,7 +156,7 @@ const MaskRCNNPage = () => {
             model runs.
           </strong>
         </div>
-        <div className="mt-32">
+        <div className="mb-12 md:mt-32 mt-16">
           <Button
             color={"bg-purple-900"}
             hoverColor={"hover:bg-purple-800"}
@@ -168,7 +168,7 @@ const MaskRCNNPage = () => {
           />
         </div>
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
-          <div className=" md:w-2/12 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={0}
               maxValue={100}
@@ -177,7 +177,7 @@ const MaskRCNNPage = () => {
               sliderName={"Mask Opacity"}
             />
           </div>
-          <div className=" md:w-2/12 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={0}
               maxValue={100}
@@ -186,7 +186,7 @@ const MaskRCNNPage = () => {
               sliderName={"Box Opacity"}
             />
           </div>
-          <div className=" md:w-/12 flex justify-center text-white">
+          <div className=" md:w-/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={1}
               maxValue={20}
@@ -195,7 +195,7 @@ const MaskRCNNPage = () => {
               sliderName={"Box Line Width"}
             />
           </div>
-          <div className="md:w-2/12 flex justify-center text-white">
+          <div className="md:w-2/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={1}
               maxValue={65}
@@ -204,7 +204,7 @@ const MaskRCNNPage = () => {
               sliderName={"Label Font Size"}
             />
           </div>
-          <div className=" md:w-3/12 flex justify-center text-white">
+          <div className=" md:w-3/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={-200}
               maxValue={200}
@@ -213,7 +213,7 @@ const MaskRCNNPage = () => {
               sliderName={"Label X Offset"}
             />
           </div>
-          <div className=" md:w-2/12 flex justify-center text-white">
+          <div className=" md:w-2/12 flex justify-center text-white text-center md:text-left">
             <PyTorchSlider
               minValue={-200}
               maxValue={200}
