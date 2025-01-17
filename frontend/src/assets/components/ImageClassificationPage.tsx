@@ -14,7 +14,7 @@ import PyTorchSlider from "./PyTorchSlider";
 
 const ImageClassificationPage = () => {
   const [inputValue, setInputValue] = useState(
-    "https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg"
+    "https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100366/labrador_retriever_xi8k9z.jpg"
   );
   const [pyTorchResponseObj, setPyTorchResponseObj] =
     useState<PyTorchImageResponseType | null>(null);
