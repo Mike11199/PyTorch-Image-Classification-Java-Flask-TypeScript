@@ -1,7 +1,7 @@
-import { LineWave } from "react-loader-spinner";
 import { useEffect, useState, useMemo } from "react";
 import { PyTorchImageResponseType } from "./types";
 import { createClassColorMap } from "./FunctionUtils";
+import NeuralNetworkSpinner from "./NeuralNetworkSpinner";
 
 interface ImageCanvasProps {
   loading: boolean;
@@ -171,7 +171,7 @@ const ImageCanvas = ({
     >
       {loading && (
         <div className="w-full flex justify-center">
-          <LineWave height="100" width="100" color="green" />
+         < NeuralNetworkSpinner />
         </div>
       )}
       {!loading && !isError && (

@@ -1,5 +1,5 @@
 import React from "react";
-import { LineWave } from "react-loader-spinner";
+import { MutatingDots } from "react-loader-spinner";
 
 interface JSONBoxProps {
   loading: boolean;
@@ -89,7 +89,7 @@ const JSONBox: React.FC<JSONBoxProps> = ({
     >
       {loading ? (
         <div className="w-full flex justify-center">
-          <LineWave height="100" width="100" color="green" />
+          <MutatingDots height="100" width="100" color="purple" secondaryColor="#a10f0f" />
         </div>
       ) : (
         !isJSONError &&
