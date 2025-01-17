@@ -231,8 +231,8 @@ const ImageClassificationPage = () => {
             />
           </div>
         </div>
-        <div className="flex flex-col md:flex-row mt-4 mx-4 md:mx-44 h-[50rem]">
-          <div className="w-full md:w-2/12 h-[25rem] md:h-full md:mb-0 mb-8 md:mr-8">
+        <div className="flex flex-col md:flex-row gap-8 mt-4 mx-4 md:mx-44 h-[50rem]">
+          <div className="w-full md:w-2/12 h-[25rem] md:h-full order-last md:order-first">
             <JSONBox
               loading={loading}
               pyTorchImageResponseString={pyTorchResponseString}
