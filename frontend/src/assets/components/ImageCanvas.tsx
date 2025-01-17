@@ -34,7 +34,6 @@ const ImageCanvas = ({
   isError,
   errorMessage,
 }: ImageCanvasProps) => {
-  // Memoized classColorMap for performance
   const classColorMap = useMemo(
     () => createClassColorMap(boundingBoxData),
     [boundingBoxData, colorMapCounter]
@@ -161,6 +160,7 @@ const ImageCanvas = ({
     pyTorchBoxXOffset,
     pyTorchBoxYOffset,
     pyTorchOpacity,
+    classColorMap,
   ]);
 
   return (
