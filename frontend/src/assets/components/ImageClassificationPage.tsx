@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DropZone from "./Dropzone";
 import Button from "./Button";
 import ImageCanvas from "./ImageCanvas";
@@ -29,9 +29,57 @@ const ImageClassificationPage = () => {
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
   const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
   const [colorMapCounter, setColorMapCounter] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [activeSlider, setActiveSlider] = useState<string>("Opacity");
 
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const slidersConfig = [
+    {
+      name: "Opacity",
+      min: 0,
+      max: 100,
+      value: pyTorchOpacity,
+      setter: setPyTorchOpacity,
+    },
+    {
+      name: "Box Line Width",
+      min: 1,
+      max: 20,
+      value: pyTorchBoxLineWidth,
+      setter: setPyTorchBoxLineWidth,
+    },
+    {
+      name: "Label Font Size",
+      min: 1,
+      max: 65,
+      value: pyTorchBoxFontSize,
+      setter: setPyTorchBoxFontSize,
+    },
+    {
+      name: "Label X Offset",
+      min: -200,
+      max: 200,
+      value: pyTorchBoxXOffset,
+      setter: setPyTorchBoxXOffset,
+    },
+    {
+      name: "Label Y Offset",
+      min: -200,
+      max: 200,
+      value: pyTorchBoxYOffset,
+      setter: setPyTorchBoxYOffset,
+    },
+  ];
+
+  const selectedSlider = slidersConfig.find((slider) => slider.name === activeSlider);
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     try {
@@ -54,7 +102,6 @@ const ImageClassificationPage = () => {
       setPyTorchResponseObj(null);
       setPyTorchResponseString("");
       setLoading(false);
-
     }
   };
 
@@ -78,8 +125,10 @@ const ImageClassificationPage = () => {
   return (
     <>
       <div className="flex-1 flex-col bg-slate-700 pt-12 pb-12">
+        {/* Description and Info */}
         <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
-          <h1 className="font-bold mb-4 md:mb-4">App Description</h1>
+
+        <h1 className="font-bold mb-4 md:mb-4">App Description</h1>
           <div className="ml-2 md:ml-8">
             <li className="mb-4 md:mb-6">
               Use buttons below to send a request to a pre-trained PyTorch{" "}
@@ -140,19 +189,28 @@ const ImageClassificationPage = () => {
           </div>
         </div>
 
+        {/* DropZone */}
         <DropZone
           setterUploadedImages={setUploadedImages}
           uploadedImages={uploadedImages}
           loading={loading}
         />
 
-        <div className="mt-8 mb-16">
+        {/* Buttons */}
+        <div className="mt-8 flex gap-4 flex-col">
           <Button
-            color={"bg-red-700"}
-            hoverColor={"hover:bg-red-600"}
+            color={"bg-red-900"}
+            hoverColor={"hover:bg-red-800"}
             buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
             loading={loading}
             buttonText={"Submit Image File"}
+          />
+          <Button
+            color={"bg-red-900"}
+            hoverColor={"hover:bg-red-800"}
+            buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
+            loading={loading}
+            buttonText={"Submit Image URL"}
           />
         </div>
 
@@ -160,23 +218,19 @@ const ImageClassificationPage = () => {
           urlInputValue={inputValue}
           setterURLInputValue={setInputValue}
         />
-        <Button
-          color={"bg-red-700"}
-          hoverColor={"hover:bg-red-600"}
-          buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
-          loading={loading}
-          buttonText={"Submit Image URL"}
-        />
+
+        {/* Warning */}
         <div className="w-full flex justify-center items-center mt-6 ">
           <strong className="text-red-700 text-center mx-4">
-            Warning: this can take anywhere from 10 to 60 seconds while the
-            model runs.
+            Warning: this can take anywhere from 10 to 60 seconds while the model runs.
           </strong>
         </div>
-        <div className="mb-12 md:mt-32 mt-16">
+
+        {/* Regenerate Colors */}
+        <div className="mt-16">
           <Button
-            color={"bg-purple-900"}
-            hoverColor={"hover:bg-purple-800"}
+            color={"bg-gray-900"}
+            hoverColor={"hover:bg-gray-800"}
             buttonOnClick={() =>
               setColorMapCounter((prevCounter) => prevCounter + 1)
             }
@@ -184,53 +238,55 @@ const ImageClassificationPage = () => {
             buttonText={"Regenerate Colors"}
           />
         </div>
+
+        {/* Sliders */}
         <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
-          <div className=" md:w-2/12 flex justify-center text-white">
-            <PyTorchSlider
-              minValue={0}
-              maxValue={100}
-              setterValue={pyTorchOpacity}
-              setterFunction={setPyTorchOpacity}
-              sliderName={"Opacity"}
-            />
-          </div>
-          <div className=" md:w-2/12 flex justify-center text-white">
-            <PyTorchSlider
-              minValue={1}
-              maxValue={20}
-              setterValue={pyTorchBoxLineWidth}
-              setterFunction={setPyTorchBoxLineWidth}
-              sliderName={"Box Line Width"}
-            />
-          </div>
-          <div className="md:w-2/12 flex justify-center text-white">
-            <PyTorchSlider
-              minValue={1}
-              maxValue={65}
-              setterValue={pyTorchBoxFontSize}
-              setterFunction={setPyTorchBoxFontSize}
-              sliderName={"Label Font Size"}
-            />
-          </div>
-          <div className=" md:w-3/12 flex justify-center text-white">
-            <PyTorchSlider
-              minValue={-200}
-              maxValue={200}
-              setterValue={pyTorchBoxXOffset}
-              setterFunction={setPyTorchBoxXOffset}
-              sliderName={"Label X Offset"}
-            />
-          </div>
-          <div className=" md:w-3/12 flex justify-center text-white">
-            <PyTorchSlider
-              minValue={-200}
-              maxValue={200}
-              setterValue={pyTorchBoxYOffset}
-              setterFunction={setPyTorchBoxYOffset}
-              sliderName={"Label Y Offset"}
-            />
-          </div>
+          {isMobile ? (
+            <div className="w-full flex flex-col items-center">
+              {/* Dropdown */}
+              <select
+                value={activeSlider}
+                onChange={(e) => setActiveSlider(e.target.value)}
+                className="mb-4 p-2 bg-gray-900 text-white rounded w-60 text-center font-bold text-sm transition-transform duration-300 ease-linear"
+              >
+                {slidersConfig.map((slider) => (
+                  <option key={slider.name} value={slider.name}>
+                    {slider.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Single Slider */}
+              {selectedSlider && (
+                <PyTorchSlider
+                  minValue={selectedSlider.min}
+                  maxValue={selectedSlider.max}
+                  setterValue={selectedSlider.value}
+                  setterFunction={selectedSlider.setter}
+                  sliderName={selectedSlider.name}
+                />
+              )}
+            </div>
+          ) : (
+            // Desktop: Show all sliders
+            slidersConfig.map((slider) => (
+              <div
+                key={slider.name}
+                className="md:w-2/12 flex justify-center text-white"
+              >
+                <PyTorchSlider
+                  minValue={slider.min}
+                  maxValue={slider.max}
+                  setterValue={slider.value}
+                  setterFunction={slider.setter}
+                  sliderName={slider.name}
+                />
+              </div>
+            ))
+          )}
         </div>
+
+        {/* JSONBox and ImageCanvas */}
         <div className="flex flex-col md:flex-row gap-8 mt-4 mx-4 md:mx-44 h-[50rem]">
           <div className="w-full md:w-2/12 h-[25rem] md:h-full order-last md:order-first">
             <JSONBox
