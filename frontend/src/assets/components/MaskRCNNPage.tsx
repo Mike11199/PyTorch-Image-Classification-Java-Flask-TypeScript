@@ -221,7 +221,6 @@ const MaskRCNNPage = () => {
             buttonOnClick={() =>
               setColorMapCounter((prevCounter) => prevCounter + 1)
             }
-            loading={loading}
             buttonText={"Regenerate Colors"}
           />
         </div>

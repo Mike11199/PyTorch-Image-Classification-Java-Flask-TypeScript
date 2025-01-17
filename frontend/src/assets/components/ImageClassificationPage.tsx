@@ -234,7 +234,6 @@ const ImageClassificationPage = () => {
             buttonOnClick={() =>
               setColorMapCounter((prevCounter) => prevCounter + 1)
             }
-            loading={loading}
             buttonText={"Regenerate Colors"}
           />
         </div>

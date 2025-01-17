@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 interface ButtonProps {
   buttonOnClick: () => Promise<void> | void;
-  loading: boolean;
+  loading?: boolean;
   buttonText: string;
   color: string;
   hoverColor: string;
@@ -11,7 +11,7 @@ interface ButtonProps {
 
 const Button = ({
   buttonOnClick,
-  loading,
+  loading=false,
   buttonText,
   color,
   hoverColor,
