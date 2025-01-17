@@ -13,22 +13,22 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           id="image_url_options"
           name="image_url_options"
         >
-          <option value="https://images.saymedia-content.com/.image/t_share/MjAxMjg4MjkxNjI5MTQ3Njc1/labrador-retriever-guide.jpg">
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100366/labrador_retriever_xi8k9z.jpg">
             Labrador
           </option>
           <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831056/winter_road_aiqpqk.jpg">
             Winter Road
           </option>
-          <option value="https://upload.wikimedia.org/wikipedia/commons/b/bc/Elephant.jpg">
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100677/Elephant_aoojxl.jpg">
             Elephant
           </option>
           <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831905/new_york_crosswalk_hsyblv.jpg">
             New York Traffic
           </option>
-          <option value="https://i.guim.co.uk/img/media/00cbd8cdb8ef7ff8e89fcd835f1cd0fa6adce5f6/8_0_2544_1527/master/2544.jpg?width=1200&quality=85&auto=format&fit=max&s=24e5c33c75542aba0cce59b3fe05b79a">
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100598/cats_and_dogs_original_bjnbbj.webp">
             Cats and Dogs
           </option>
-          <option value="https://images.unsplash.com/photo-1602940659805-770d1b3b9911?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100516/city_crosswalk_k83x4d.jpg">
             City Crosswalk
           </option>
           <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823336/nat_geo_collage_aufbyo.png">
