@@ -22,3 +22,20 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #6d0303;
 }
+
+/* Monokai theme colors */
+.json-key {
+  color: #F92672;
+}
+.json-string {
+  color: #FD971F;
+}
+.json-number {
+  color: #A6E22E;
+}
+.json-boolean {
+  color: #A6E22E;
+}
+.json-punctuation {
+  color: #66D9EF;
+}
