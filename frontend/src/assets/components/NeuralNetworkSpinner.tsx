@@ -30,7 +30,7 @@ const NeuralNetworkSpinner = () => {
   const layers = isDesktop ? desktopLayers : mobileLayers;
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: "5%" }}>
+    <div className="flex justify-center mt-8 sm:mt-0">
       <svg width={isDesktop ? "600" : "400"} height={isDesktop ? "400" : "200"}>
         {/* Connections */}
         {layers.map((layer, layerIndex) =>
