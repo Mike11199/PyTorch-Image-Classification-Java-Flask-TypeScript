@@ -166,8 +166,8 @@ const ImageCanvas = ({
   return (
     <div
       id="boundingBoxCanvasDiv"
-      className="h-full flex"
-      style={{ backgroundColor: "#272822" }}
+      className="h-full flex rounded-md shadow-lg shadow-black"
+      style={{ backgroundColor: "#000000" }}
     >
       {loading && (
         <div className="w-full flex justify-center">
