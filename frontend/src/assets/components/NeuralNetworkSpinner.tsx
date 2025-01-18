@@ -30,7 +30,7 @@ export function Node({ cx, cy, layer, phase, isDesktop }: NodeProps) {
         newValue = 0.5 + 0.5 * Math.sin(elapsed + phase + 1);
       }
       setValue(newValue);
-    }, 100);
+    }, 5);
     return () => clearInterval(intervalId);
   }, [layer, phase]);
 
@@ -113,7 +113,6 @@ const NeuralNetworkSpinner = () => {
 
   const layers = isDesktop ? desktopLayers : mobileLayers;
 
-  // Pre-calculate random properties for the connection lines.
   const lineRandomizations = useMemo(() => {
     const randomProps: any[] = [];
     layers.forEach((layer, layerIndex) => {
@@ -122,10 +121,7 @@ const NeuralNetworkSpinner = () => {
           layers[layerIndex + 1].forEach((_, nextNodeIndex) => {
             randomProps.push({
               key: `${layerIndex}-${nodeIndex}-${nextNodeIndex}`,
-              // Random stroke width between 1.5 and 3 pixels
               strokeWidth: Math.random() * 1.5 + 1.5,
-              // Random delay between 0 and 1.5 seconds for firing animation
-              delay: Math.random() * 1.5,
             });
           });
         });
@@ -176,9 +172,9 @@ const NeuralNetworkSpinner = () => {
                       opacity: [0, 1, 0],
                     }}
                     transition={{
-                      duration: 0.5,
+                      duration: Math.random() * 0.5,
                       repeat: Infinity,
-                      delay: delay,
+                      delay: Math.random() * 0.25
                     }}
                   />
                 );

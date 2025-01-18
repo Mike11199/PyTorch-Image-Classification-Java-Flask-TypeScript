@@ -1,5 +1,6 @@
 import React from "react";
 import { MutatingDots } from "react-loader-spinner";
+import BinaryMatrix from "./BinaryMatrix";
 
 interface JSONBoxProps {
   loading: boolean;
@@ -88,9 +89,7 @@ const JSONBox: React.FC<JSONBoxProps> = ({
       }}
     >
       {loading ? (
-        <div className="w-full flex justify-center">
-          <MutatingDots height="100" width="100" color="purple" secondaryColor="#a10f0f" />
-        </div>
+          <BinaryMatrix />
       ) : (
         !isJSONError &&
         <pre

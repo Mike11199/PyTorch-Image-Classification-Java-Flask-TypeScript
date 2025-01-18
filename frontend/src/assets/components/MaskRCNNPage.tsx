@@ -173,7 +173,7 @@ const MaskRCNNPage = () => {
           </div>
           <div className="w-full flex justify-center">
             <img
-              className="my-8 flex w-[70rem] rounded-lg shadow-2xl"
+              className="my-4 flex w-[40rem] rounded-lg shadow-2xl"
               alt="faster-r-cnn-pipeline"
               src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1736038071/instance_segmentation_qafce9.png"
             ></img>
