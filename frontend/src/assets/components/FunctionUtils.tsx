@@ -1,5 +1,7 @@
 import { PyTorchImageResponseType } from "./types";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { useState } from "react";
 
 export async function convertImageUrlToImage(
   imageUrl: string
@@ -97,3 +99,66 @@ export function createClassColorMap(
   }
   return classColorMap;
 }
+
+
+function CloseButton() {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => toast.dismiss()}
+      style={{
+        marginLeft: "auto",
+        backgroundColor: hovered ? "#a11e1e" : "#bb2323",
+        color: "#fff",
+        borderRadius: "4px",
+        padding: "4px 8px",
+        cursor: "pointer",
+        fontWeight: "bold"
+      }}
+    >
+      ✕
+    </button>
+  );
+}
+export const showWarningToast = () => {
+  toast.dismiss();
+  toast(
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ marginRight: 8 }}>⚠️</span>
+      <span style={{ flex: 1, textAlign: "center" }}>
+        Please wait. This can take 10-30 seconds.
+      </span>
+      <CloseButton />
+    </div>,
+    {
+      style: {
+        padding: "16px",
+        backgroundColor: "#2c2c2c",
+        color: "#fff",
+        borderRadius: "8px"
+      },
+      duration: 1500
+    }
+  );
+};
+
+export const showErrorToast = (msg: string) => {
+  toast.dismiss();
+  toast.error(
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ flex: 1, textAlign: "center" }}>{msg}</span>
+      <CloseButton />
+    </div>,
+    {
+      style: {
+        backgroundColor: "#2c2c2c",
+        color: "#fff",
+        borderRadius: "8px"
+      },
+      duration: 1500
+    }
+  );
+};

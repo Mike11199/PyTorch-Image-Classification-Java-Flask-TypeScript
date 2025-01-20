@@ -11,6 +11,9 @@ import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
 import { fetchPyTorchAnalysis } from "./FunctionUtils";
 import PyTorchSlider from "./PyTorchSlider";
+import { Toaster } from "react-hot-toast";
+import { showWarningToast, showErrorToast } from "./FunctionUtils";
+
 
 const ImageClassificationPage = () => {
   const [inputValue, setInputValue] = useState(
@@ -83,6 +86,7 @@ const ImageClassificationPage = () => {
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     try {
+      // showWarningToast();
       setLoading(true);
       setIsError(false);
       const parsedPyTorchData = await fetchPyTorchAnalysis(
@@ -108,7 +112,7 @@ const ImageClassificationPage = () => {
   const fetchPyTorchAnalysisUsingImageURL = async (imageUrl: string) => {
     const imageBlob = await convertImageUrlToImage(imageUrl);
     if (!imageBlob) {
-      alert("Please enter a valid image URL before submitting.");
+      showErrorToast("Please enter a valid image URL before submitting.");
       return;
     }
     await pyTorchResultsFromImageBlob(imageBlob);
@@ -116,7 +120,7 @@ const ImageClassificationPage = () => {
 
   const fetchPyTorchAnalysisUsingUploadedImage = async () => {
     if (uploadedImages.length === 0) {
-      alert("Please upload an image before submitting.");
+      showErrorToast("Please upload an image before submitting.");
       return;
     }
     await pyTorchResultsFromImageBlob(uploadedImages[0]);
@@ -124,6 +128,7 @@ const ImageClassificationPage = () => {
 
   return (
     <>
+      <Toaster />
       <div className="flex-1 flex-col bg-slate-700 pt-12 pb-12">
         {/* Description and Info */}
         <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
@@ -220,11 +225,11 @@ const ImageClassificationPage = () => {
         />
 
         {/* Warning */}
-        <div className="w-full flex justify-center items-center mt-6 ">
+        {/* <div className="w-full flex justify-center items-center mt-6 ">
           <strong className="text-red-700 text-center mx-4">
             Warning: this can take anywhere from 10 to 60 seconds while the model runs.
           </strong>
-        </div>
+        </div> */}
 
         {/* Regenerate Colors */}
         <div className="mt-16">
