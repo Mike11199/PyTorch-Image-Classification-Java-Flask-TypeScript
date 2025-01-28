@@ -1,7 +1,25 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export const Header = () => {
+  const location = useLocation();
+
+  let currentPageTitle;
+  switch (location.pathname) {
+    case "/":
+      currentPageTitle = "Home Page";
+      break;
+    case "/image-classification-resnet":
+      currentPageTitle = "Fast R-CNN Image Classification";
+      break;
+    case "/image-classification-mask-resnet":
+      currentPageTitle = "R-CNN Mask Segmentation";
+      break;
+    default:
+      currentPageTitle = "Fast R-CNN Image Classification";
+      break;
+  }
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -10,11 +28,11 @@ export const Header = () => {
 
   return (
     <div className="p-4 bg-black flex flex-col items-center sm:flex-row sm:justify-between relative">
-
       <div className="order-2 sm:order-1 sm:ml-4 mt-4 sm:mt-0">
         <NavigationButton
           toggleDropdown={toggleDropdown}
           isDropdownOpen={isDropdownOpen}
+          currentPageTitle={currentPageTitle}
         />
       </div>
 
@@ -30,43 +48,43 @@ export default Header;
 export const NavigationButton = ({
   toggleDropdown,
   isDropdownOpen,
+  currentPageTitle,
 }: {
   toggleDropdown: () => void;
   isDropdownOpen: boolean;
+  currentPageTitle: string;
 }) => {
   return (
-    <div className="relative z-20">
+    <div className="relative z-20 w-full">
       <button
-        className="text-gray-400 bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 active:scale-[0.98]"
+        className="text-gray-400 bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 active:scale-[0.98] w-72 "
         onClick={toggleDropdown}
       >
-        Navigation
+        {currentPageTitle}
       </button>
 
       {isDropdownOpen && (
-        <div
-          className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-48 bg-gray-800 shadow-lg rounded-lg py-2 z-20"
-        >
+        <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 bg-gray-800 shadow-lg rounded-lg py-2 z-20 w-68">
           <Link
             to="/"
-            className="block px-4 py-2 text-gray-400 hover:bg-gray-700"
+            className="block px-4 py-2 text-gray-400 hover:bg-gray-700 text-center"
             onClick={toggleDropdown}
           >
-            Home
+            Home Page
           </Link>
           <Link
             to="/image-classification-resnet"
-            className="block px-4 py-2 text-gray-400 hover:bg-gray-700"
+            className="block px-4 py-2 text-gray-400 hover:bg-gray-700 text-center"
             onClick={toggleDropdown}
           >
-            ResNet Image Classification
+            Fast R-CNN Image Classification
           </Link>
           <Link
             to="/image-classification-mask-resnet"
-            className="block px-4 py-2 text-gray-400 hover:bg-gray-700"
+            className="block px-4 py-2 text-gray-400 hover:bg-gray-700 text-center"
             onClick={toggleDropdown}
           >
-            RCNN Mask Semantic Classification
+            R-CNN Mask Segmentation
           </Link>
         </div>
       )}
@@ -80,7 +98,7 @@ export const Title = () => {
       <img className="w-8 h-8" src="./pytorch_logo.png" alt="Logo" />
       <h1
         className="ml-2 font-semibold text-gray-50 cursor-pointer active:scale-[0.98]"
-        onClick={() => (window.location.href = '/')}
+        onClick={() => (window.location.href = "/")}
       >
         PyTorch Image Classification App
       </h1>
