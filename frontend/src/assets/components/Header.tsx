@@ -57,14 +57,14 @@ export const NavigationButton = ({
   return (
     <div className="relative z-20 w-full">
       <button
-        className="text-gray-400 bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 active:scale-[0.98] w-72 "
+        className="text-gray-400 bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 active:scale-[0.98]"
         onClick={toggleDropdown}
       >
         {currentPageTitle}
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 bg-gray-800 shadow-lg rounded-lg py-2 z-20 w-68">
+        <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2  bg-gray-800 shadow-lg rounded-lg py-2 z-20">
           <Link
             to="/"
             className="block px-4 py-2 text-gray-400 hover:bg-gray-700 text-center"
