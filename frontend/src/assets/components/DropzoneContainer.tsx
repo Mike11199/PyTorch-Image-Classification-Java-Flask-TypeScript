@@ -24,7 +24,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
   setColorMapCounter,
 }) => {
   return (
-    <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0">
+    <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0">
       <DropZone
         setterUploadedImages={setUploadedImages}
         uploadedImages={uploadedImages}
@@ -41,20 +41,20 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
           hoverColor="hover:bg-[#114d7e]"
           buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
           loading={loading}
-          buttonText="Submit Image URL"
+          buttonText="Submit Image URL 🌐"
         />
         <Button
           color="bg-[#0c2c46]"
           hoverColor="hover:bg-[#114d7e]"
           buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
           loading={loading}
-          buttonText="Submit Image File"
+          buttonText="Submit Image File 📷"
         />
         <Button
-          color="bg-[#0c2c46]"
-          hoverColor="hover:bg-[#114d7e]"
+          color="bg-[#000000]"
+          hoverColor="hover:bg-[#111111]"
           buttonOnClick={() => setColorMapCounter((prev) => prev + 1)}
-          buttonText="Regenerate Colors"
+          buttonText="Regenerate Colors 🎨"
         />
       </div>
     </div>

@@ -21,9 +21,10 @@ const Button = ({
     `font-semibold`,
     `py-2`,
     `w-full`,
-    ` shadow-black shadow-md`,
+    `shadow-black shadow-md`,
     `px-2`,
     `text-sm`,
+    `text-center`,
     `active:scale-95`,
     `transition-transform duration-300 ease-linear`,
     color,
@@ -37,9 +38,8 @@ const Button = ({
           className={buttonStyle}
           disabled={loading}
         >
-          <div className="flex ">
-            <div className=" w-11/12">{buttonText}</div>
-            <div className="w-1/12">
+          <div className="flex  w-12/12 justify-center align-middle">
+            <div className="">{buttonText}</div>
               {loading && (
                 <ColorRing
                   height="20"
@@ -53,7 +53,6 @@ const Button = ({
                   ]}
                 />
               )}
-            </div>
           </div>
         </button>
       </div>

@@ -148,14 +148,14 @@ const ImageClassificationPage = () => {
         </div>
 
         {/* Sliders */}
-        <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 p-6 md:p-2 rounded-xl justify-around">
+        <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl justify-around">
           {isMobile ? (
             <div className="w-full flex flex-col items-center">
               {/* Dropdown */}
               <select
                 value={activeSlider}
                 onChange={(e) => setActiveSlider(e.target.value)}
-                className="mb-4 p-2 bg-gray-900 text-white rounded w-60 text-center font-bold text-sm transition-transform duration-300 ease-linear"
+                className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black"
               >
                 {slidersConfig.map((slider) => (
                   <option key={slider.name} value={slider.name}>
@@ -227,7 +227,7 @@ export default ImageClassificationPage;
 
 const ImageClassificationPageDescription = () => {
   return (
-    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12 rounded-xl w-full md:w-[60%] ">
+    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl w-full md:w-[60%] ">
       <h1 className="font-bold mb-4 md:mb-4 text-orange-600">
         App Description
       </h1>

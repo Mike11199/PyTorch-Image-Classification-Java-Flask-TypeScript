@@ -1,19 +1,16 @@
-import { useEffect, useState } from "react";
-import DropZone from "./Dropzone";
-import Button from "./Button";
+import { useState, useEffect } from "react";
 import ImageCanvas from "./ImageCanvas";
 import {
   createImageURLFromBlob,
   convertImageUrlToImage,
 } from "./FunctionUtils";
 import JSONBox from "./JSONBox";
-import ImageURL from "./ImageURL";
 import { PyTorchImageResponseType } from "./types";
 import { fetchPyTorchAnalysis } from "./FunctionUtils";
 import PyTorchSlider from "./PyTorchSlider";
 import { Toaster } from "react-hot-toast";
-import { showWarningToast, showErrorToast } from "./FunctionUtils";
-
+import { showErrorToast } from "./FunctionUtils";
+import { DropzoneContainer } from "./DropzoneContainer";
 
 const MaskRCNNPage = () => {
   const [inputValue, setInputValue] = useState(
@@ -42,7 +39,6 @@ const MaskRCNNPage = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
 
   const slidersConfig = [
     {
@@ -89,8 +85,9 @@ const MaskRCNNPage = () => {
     },
   ];
 
-  const selectedSlider = slidersConfig.find((slider) => slider.name === activeSlider);
-
+  const selectedSlider = slidersConfig.find(
+    (slider) => slider.name === activeSlider
+  );
 
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -150,96 +147,43 @@ const MaskRCNNPage = () => {
   return (
     <>
       <Toaster />
-      <div className="flex-1 flex-col bg-[linear-gradient(#263447_0%,#1e2938_10%,#1e2938_90%,#263447_100%)] pt-12 pb-12">
-        <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
-          <h1 className="font-bold mb-4 md:mb-4">App Description</h1>
-          <div className="ml-2 md:ml-8">
-            <li className="mb-4 md:mb-6">
-              Use buttons below to send a request to a pre-trained PyTorch{" "}
-              <strong className="text-red-700">maskrcnn_resnet50_fpn_v2</strong>{" "}
-              computer vision model called by a custom{" "}
-              <strong className="text-red-700">inference.py</strong> script.
-            </li>
-          </div>
-          <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14">
-            Model Description
-          </h1>
-          <div className="ml-2 md:ml-8">
-            <li className="mb-4 md:mb-6">
-              Mask R-CNN is an Instance Segmentation model. It identifies and
-              generates a pixel-wide mask for each individual object in an
-              image, clearly defining each object's boundaries. This is made
-              possible by an extra "mask head" branch which uses Region of
-              Interest Align (ROIAlign) pooling to extract features. It also
-              incorporates object detection, outputting a bounding box in
-              addition to the mask. This is unlike semantic segmentation, which
-              does not distinguish between individual objects.
-            </li>
-          </div>
-          <div className="w-full flex justify-center">
-            <img
-              className="my-4 flex w-[40rem] rounded-lg shadow-2xl"
-              alt="faster-r-cnn-pipeline"
-              src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1736038071/instance_segmentation_qafce9.png"
-            ></img>
-          </div>
-        </div>
-
-        <DropZone
-          setterUploadedImages={setUploadedImages}
-          uploadedImages={uploadedImages}
-          loading={loading}
-        />
-
-        <div className="mt-8 flex gap-4 flex-col">
-          <Button
-            color={"bg-red-900"}
-            hoverColor={"hover:bg-red-800"}
-            buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
-            loading={loading}
-            buttonText={"Submit Image File"}
-          />
-        <Button
-          color={"bg-red-900"}
-          hoverColor={"hover:bg-red-800"}
-          buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
-          loading={loading}
-          buttonText={"Submit Image URL"}
-        />
-        </div>
-
-        <ImageURL
-          urlInputValue={inputValue}
-          setterURLInputValue={setInputValue}
-        />
-        {/* Warning */}
-        {/* 
-        <div className="w-full flex justify-center items-center mt-6 ">
-          <strong className="text-red-700 text-center mx-4">
-            Warning: this can take anywhere from 10 to 60 seconds while the
-            model runs.
-          </strong>
-        </div> */}
-        <div className="mt-16">
-          <Button
-            color={"bg-gray-900"}
-            hoverColor={"hover:bg-gray-800"}
-            buttonOnClick={() =>
-              setColorMapCounter((prevCounter) => prevCounter + 1)
+      <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-12">
+        <div className="flex gap-12 w-full flex-col md:flex-row md:mt-0 mt-6">
+          <ImageClassificationPageDescription />
+          <DropzoneContainer
+            fetchPyTorchAnalysisUsingUploadedImage={
+              fetchPyTorchAnalysisUsingUploadedImage
             }
-            buttonText={"Regenerate Colors"}
+            fetchPyTorchAnalysisUsingImageURL={
+              fetchPyTorchAnalysisUsingImageURL
+            }
+            loading={loading}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            uploadedImages={uploadedImages}
+            setUploadedImages={setUploadedImages}
+            setColorMapCounter={setColorMapCounter}
           />
         </div>
-        <div className="mt-4 flex flex-col justify-center md:flex-row md:mx-44">
+
+        {/* Sliders */}
+        <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl">
           {isMobile ? (
             <div className="w-full flex flex-col items-center">
+              {/* Dropdown */}
               <select
                 value={activeSlider}
                 onChange={(e) => setActiveSlider(e.target.value)}
-                className="mb-4 p-2 bg-gray-900 text-white rounded w-60 text-center font-bold text-sm transition-transform duration-300 ease-linear"
+                //   color="bg-[#0c2c46]"
+                // hoverColor="hover:bg-[#114d7e]"
+                className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black"
               >
                 {slidersConfig.map((slider) => (
-                  <option key={slider.name} value={slider.name}>
+                  <option
+                    key={slider.name}
+                    value={slider.name}
+                    className="bg-[#07131b] text-gray-200"
+                  >
                     {slider.name}
                   </option>
                 ))}
@@ -261,7 +205,7 @@ const MaskRCNNPage = () => {
             slidersConfig.map((slider) => (
               <div
                 key={slider.name}
-                className="md:w-2/12 flex justify-center text-white text-center md:text-left"
+                className="md:w-2/12 flex justify-center text-white"
               >
                 <PyTorchSlider
                   minValue={slider.min}
@@ -274,7 +218,9 @@ const MaskRCNNPage = () => {
             ))
           )}
         </div>
-        <div className="flex flex-col md:flex-row gap-8 mt-4 mx-4 md:mx-44 h-[50rem]">
+
+        {/* JSONBox and ImageCanvas */}
+        <div className="flex flex-col md:flex-row gap-8 mt-4 h-[50rem]">
           <div className="w-full md:w-2/12 h-[25rem] md:h-full order-last md:order-first">
             <JSONBox
               loading={loading}
@@ -305,3 +251,43 @@ const MaskRCNNPage = () => {
 };
 
 export default MaskRCNNPage;
+
+const ImageClassificationPageDescription = () => {
+  return (
+    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12  md:rounded-xl w-full md:w-[60%]">
+      <h1 className="font-bold mb-4 md:mb-4 text-orange-600">
+        App Description
+      </h1>
+      <div className="ml-2 md:ml-8">
+        <li className="mb-4 md:mb-6">
+          Use buttons below to send a request to a pre-trained PyTorch{" "}
+          <strong className="text-red-700">maskrcnn_resnet50_fpn_v2</strong>{" "}
+          computer vision model called by a custom{" "}
+          <strong className="text-red-700">inference.py</strong> script.
+        </li>
+      </div>
+      <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14 text-orange-600">
+        Model Description
+      </h1>
+      <div className="ml-2 md:ml-8">
+        <li className="mb-4 md:mb-6">
+          Mask R-CNN is an Instance Segmentation model. It identifies and
+          generates a pixel-wide mask for each individual object in an image,
+          clearly defining each object's boundaries. This is made possible by an
+          extra "mask head" branch which uses Region of Interest Align
+          (ROIAlign) pooling to extract features. It also incorporates object
+          detection, outputting a bounding box in addition to the mask. This is
+          unlike semantic segmentation, which does not distinguish between
+          individual objects.
+        </li>
+      </div>
+      <div className="w-full flex justify-center">
+        <img
+          className="my-4 flex w-[40rem] rounded-lg shadow-2xl"
+          alt="faster-r-cnn-pipeline"
+          src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1736038071/instance_segmentation_qafce9.png"
+        />
+      </div>
+    </div>
+  );
+};

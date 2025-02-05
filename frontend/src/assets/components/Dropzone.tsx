@@ -65,7 +65,7 @@ const DropZone = ({
       <div
         className="flex flex-col gap-12 items-center justify-center border-2  border-dashed rounded-lg
         cursor-pointer dark:hover:bg-bray-800 dark:bg-gray-800 hover:bg-gray-700  border-gray-600
-        hover:border-gray-500 h-full"
+        hover:border-gray-500 h-full p-4"
         {...getRootProps({ style })}
       >
         <input {...getInputProps()} />
