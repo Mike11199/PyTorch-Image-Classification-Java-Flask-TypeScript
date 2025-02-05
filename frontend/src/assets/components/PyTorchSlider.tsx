@@ -8,14 +8,14 @@ import MuiInput from "@mui/material/Input";
 
 const Input = styled(MuiInput)`
   width: 42px;
-  color: white !important;
+  color: #dfdede !important;
   &::before,
   &::after {
     border-bottom: 0px solid white !important;
   }
 
   &:hover {
-    color: white !important;
+    color: #dfdede !important;
     &::before,
     &::after {
       border-bottom: 0px solid white !important;
@@ -29,8 +29,7 @@ const CustomSlider = styled(Slider)({
   },
 
   "& .MuiSlider-thumb": {
-    color: "#271817",
-    boxShadow: "0 0 0 0px rgba(255, 0, 0, 0.3) !important",
+    color: "#000000",
 
     "&:hover, &:focus, &:active": {
       boxShadow: "0 0 15px 10px rgba(255, 0, 0, 0.2) !important",
@@ -38,7 +37,7 @@ const CustomSlider = styled(Slider)({
   },
 
   "& .MuiSlider-rail": {
-    color: "#000000",
+    color: "#304970",
   },
 });
 
@@ -76,13 +75,12 @@ const PyTorchSlider = ({
   };
 
   return (
-    <Box sx={{ width: 250 }}>
+    <Box sx={{ width: 200 }}>
       <div className="flex gap-5 justify-between">
         <Typography
           id="input-slider"
           style={{
-            color: "white",
-            borderBottomColor: "white",
+            color: "#dfdede",
             textAlign: "right",
           }}
         >
@@ -90,8 +88,7 @@ const PyTorchSlider = ({
         </Typography>
         <Input
           style={{
-            color: "white",
-            borderBottomColor: "white",
+            color: "#dfdede",
             width: "55px",
           }}
           value={setterValue}

@@ -17,13 +17,13 @@ const Button = ({
   hoverColor,
 }: ButtonProps) => {
   const buttonStyle = clsx(
-    `text-white`,
-    `font-bold`,
+    `text-gray-200`,
+    `font-semibold`,
     `py-2`,
-    `px-4`,
-    `rounded`,
+    `w-full`,
+    ` shadow-black shadow-md`,
+    `px-2`,
     `text-sm`,
-    `w-60`,
     `active:scale-95`,
     `transition-transform duration-300 ease-linear`,
     color,
@@ -31,13 +31,13 @@ const Button = ({
   );
   return (
     <>
-      <div className="flex justify-center gap-14">
+      <div className="flex justify-center gap-14 w-full">
         <button
           onClick={() => buttonOnClick()}
           className={buttonStyle}
           disabled={loading}
         >
-          <div className="flex">
+          <div className="flex ">
             <div className=" w-11/12">{buttonText}</div>
             <div className="w-1/12">
               {loading && (

@@ -12,10 +12,7 @@ import { Toaster } from "react-hot-toast";
 import { showErrorToast } from "./FunctionUtils";
 import { DropzoneContainer } from "./DropzoneContainer";
 
-
-
-
-const ImageClassificationPage = () => {
+const MaskRCNNPageNew = () => {
   const [inputValue, setInputValue] = useState(
     "https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100366/labrador_retriever_xi8k9z.jpg"
   );
@@ -31,12 +28,11 @@ const ImageClassificationPage = () => {
   const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
   const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
   const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
+  const [pyTorchMaskOpacity, setPyTorchMaskOpacity] = useState<number>(50);
   const [colorMapCounter, setColorMapCounter] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [activeSlider, setActiveSlider] = useState<string>("Opacity");
-
-  const [isError, setIsError] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 365);
+  const [activeSlider, setActiveSlider] = useState<string>("Mask Opacity");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -44,9 +40,17 @@ const ImageClassificationPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+
   const slidersConfig = [
     {
-      name: "Opacity",
+      name: "Mask Opacity",
+      min: 0,
+      max: 100,
+      value: pyTorchMaskOpacity,
+      setter: setPyTorchMaskOpacity,
+    },
+    {
+      name: "Box Opacity",
       min: 0,
       max: 100,
       value: pyTorchOpacity,
@@ -84,20 +88,33 @@ const ImageClassificationPage = () => {
 
   const selectedSlider = slidersConfig.find((slider) => slider.name === activeSlider);
 
+
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
+    // showWarningToast();
+    setLoading(true);
+    setIsError(false);
+
     try {
-      // showWarningToast();
-      setLoading(true);
-      setIsError(false);
       const parsedPyTorchData = await fetchPyTorchAnalysis(
         imageBlob,
-        "/api-java-spring-boot/image-url-pytorch"
+        "/api-java-spring-boot/image-url-pytorch-mask"
       );
-      setPyTorchResponseObj(parsedPyTorchData ?? null);
-      setPyTorchResponseString(JSON.stringify(parsedPyTorchData, null, 2));
+
+      if (parsedPyTorchData) {
+        const { masks_array, ...dataWithoutMasks } = parsedPyTorchData;
+        setPyTorchMasksArray(masks_array || []);
+        setPyTorchResponseObj(dataWithoutMasks);
+        setPyTorchResponseString(JSON.stringify(dataWithoutMasks, null, 2));
+      } else {
+        setPyTorchResponseObj(null);
+        setPyTorchResponseString("");
+        setPyTorchMasksArray([]);
+      }
       const imageURLFromBlob = await createImageURLFromBlob(imageBlob);
       setCanvasImage(imageURLFromBlob);
-      setLoading(false);
     } catch (error: any) {
       console.error("Error:", error?.response?.data);
       setErrorMessage(error?.response?.data);
@@ -105,6 +122,7 @@ const ImageClassificationPage = () => {
 
       setPyTorchResponseObj(null);
       setPyTorchResponseString("");
+    } finally {
       setLoading(false);
     }
   };
@@ -130,24 +148,26 @@ const ImageClassificationPage = () => {
     <>
       <Toaster />
       <div className="flex-1 flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] p-12">
-
-      <div className="flex gap-12 w-full">
-        <ImageClassificationPageDescription />
-        <DropzoneContainer
-          fetchPyTorchAnalysisUsingUploadedImage={fetchPyTorchAnalysisUsingUploadedImage}
-          fetchPyTorchAnalysisUsingImageURL={fetchPyTorchAnalysisUsingImageURL}
-          loading={loading}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          uploadedImages={uploadedImages}
-          setUploadedImages={setUploadedImages}
-          setColorMapCounter={setColorMapCounter}
-        />
+        <div className="flex gap-12 w-full">
+          <ImageClassificationPageDescription />
+          <DropzoneContainer
+            fetchPyTorchAnalysisUsingUploadedImage={
+              fetchPyTorchAnalysisUsingUploadedImage
+            }
+            fetchPyTorchAnalysisUsingImageURL={
+              fetchPyTorchAnalysisUsingImageURL
+            }
+            loading={loading}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            uploadedImages={uploadedImages}
+            setUploadedImages={setUploadedImages}
+            setColorMapCounter={setColorMapCounter}
+          />
         </div>
 
-
         {/* Sliders */}
-        <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 p-2 rounded-xl justify-around">
+        <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-2 rounded-xl">
           {isMobile ? (
             <div className="w-full flex flex-col items-center">
               {/* Dropdown */}
@@ -202,7 +222,7 @@ const ImageClassificationPage = () => {
             />
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
-            <ImageCanvas
+          <ImageCanvas
               pyTorchBoxXOffset={pyTorchBoxXOffset}
               pyTorchBoxYOffset={pyTorchBoxYOffset}
               pyTorchBoxFontSize={pyTorchBoxFontSize}
@@ -212,6 +232,8 @@ const ImageClassificationPage = () => {
               boundingBoxData={pyTorchResponseObj}
               colorMapCounter={colorMapCounter}
               pyTorchOpacity={pyTorchOpacity}
+              pyTorchMaskOpacity={pyTorchMaskOpacity}
+              pyTorchMasksArray={pyTorchMasksArray}
               isError={isError}
               errorMessage={errorMessage}
             />
@@ -222,74 +244,44 @@ const ImageClassificationPage = () => {
   );
 };
 
-export default ImageClassificationPage;
-
-
+export default MaskRCNNPageNew;
 
 const ImageClassificationPageDescription = () => {
-
-return (
-<div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-12 rounded-xl w-[60%]">
-
-  <h1 className="font-bold mb-4 md:mb-4 text-orange-600">App Description</h1>
-  <div className="ml-2 md:ml-8">
-    <li className="mb-4 md:mb-6">
-      Use buttons below to send a request to a pre-trained PyTorch{" "}
-      <strong className="text-red-700">
-        fasterrcnn_resnet50_fpn_v2
-      </strong>{" "}
-      computer vision model called by a custom{" "}
-      <strong className="text-red-700">inference.py</strong> script.
-    </li>
-  </div>
-  <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14 text-orange-600">
-    Model Description
-  </h1>
-  <div className="ml-2 md:ml-8">
-    <li className="mb-4 md:mb-6">
-      Faster R-CNN is an acronym for a Region-based CNN (Convolutional
-      Neural Network). It utilizes a ResNet-50 (50 layer Residual
-      Network) as the CNN backbone. The backbone incorporates a FPN
-      (Feature Pyramid Network) for feature extraction from each image.
-      A RPN (Region Proposal Network) slides a small CNN over the
-      feature map to generate region proposals, which represent
-      potential objects of interest.
-    </li>
-  </div>
-  <div className="w-full flex justify-center">
-    <img
-      className="my-8 flex w-[50rem] rounded-lg shadow-2xl"
-      alt="faster-r-cnn-pipeline"
-      src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703965451/faster_rcnn_o7riso.png"
-    ></img>
-  </div>
-  <div className="ml-2 md:ml-8">
-    <li className="mb-4 md:mb-6">
-      Region of Interest (ROI) pooling is then applied to these regions
-      to generate fixed-size feature maps. These feature maps are passed
-      to two separate branches in the network, the box head, responsible
-      for generate bounding box coordinates, and a class head, used to
-      predict class labels of objects. After this process, class
-      labels/scores and bounding boxes for detected objects are returned
-      from the model.
-    </li>
-  </div>
-  <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14 text-orange-600">
-    Model Deployment
-  </h1>
-  <div className="ml-2 md:ml-8">
-    <li className="mb-4 md:mb-4">
-      The model and{" "}
-      <strong className="text-red-700">inference.py</strong> script is
-      provisioned on a Flask microservice running in an EC2. A Java
-      Spring Boot API takes requests from the front end and sends an
-      image as multipart form-data to the model. The Flask endpoint
-      converts this data into a NumPy array, and normalizes its pixel
-      values for input into the PyTorch model. Inference results from
-      the model are then returned as JSON to the front end to be plotted
-      on the image.
-    </li>
-  </div>
-</div>
-)
-}
+  return (
+    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-12 rounded-xl w-[60%]">
+      <h1 className="font-bold mb-4 md:mb-4 text-orange-600">
+        App Description
+      </h1>
+      <div className="ml-2 md:ml-8">
+        <li className="mb-4 md:mb-6">
+          Use buttons below to send a request to a pre-trained PyTorch{" "}
+          <strong className="text-red-700">maskrcnn_resnet50_fpn_v2</strong>{" "}
+          computer vision model called by a custom{" "}
+          <strong className="text-red-700">inference.py</strong> script.
+        </li>
+      </div>
+      <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14 text-orange-600">
+        Model Description
+      </h1>
+      <div className="ml-2 md:ml-8">
+        <li className="mb-4 md:mb-6">
+          Mask R-CNN is an Instance Segmentation model. It identifies and
+          generates a pixel-wide mask for each individual object in an image,
+          clearly defining each object's boundaries. This is made possible by an
+          extra "mask head" branch which uses Region of Interest Align
+          (ROIAlign) pooling to extract features. It also incorporates object
+          detection, outputting a bounding box in addition to the mask. This is
+          unlike semantic segmentation, which does not distinguish between
+          individual objects.
+        </li>
+      </div>
+      <div className="w-full flex justify-center">
+        <img
+          className="my-4 flex w-[40rem] rounded-lg shadow-2xl"
+          alt="faster-r-cnn-pipeline"
+          src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1736038071/instance_segmentation_qafce9.png"
+        />
+      </div>
+    </div>
+  );
+};

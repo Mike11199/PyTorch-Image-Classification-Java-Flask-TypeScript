@@ -150,7 +150,7 @@ const MaskRCNNPage = () => {
   return (
     <>
       <Toaster />
-      <div className="flex-1 flex-col bg-slate-700 pt-12 pb-12">
+      <div className="flex-1 flex-col bg-[linear-gradient(#263447_0%,#1e2938_10%,#1e2938_90%,#263447_100%)] pt-12 pb-12">
         <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
           <h1 className="font-bold mb-4 md:mb-4">App Description</h1>
           <div className="ml-2 md:ml-8">

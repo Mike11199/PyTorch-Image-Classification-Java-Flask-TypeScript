@@ -3,7 +3,7 @@ import videoSrc from "../ml_video.mp4";
 const HomePage = () => {
   return (
     <>
-      <div className="flex-1 flex-col bg-slate-700 pt-12 pb-12">
+      <div className="flex-1 flex-col bg-[linear-gradient(#263447_0%,#1e2938_10%,#1e2938_90%,#263447_100%)] pt-12 pb-12">
         <div className="text-sm text-white text-left mx-4 md:mx-44 mt-2 mb-16">
           <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14">Description</h1>
           <div className="ml-2 md:ml-8">
@@ -13,7 +13,7 @@ const HomePage = () => {
             </li>
             <div className="w-full flex justify-center mt-12">
               <video
-                className="rounded-lg drop-shadow-lg"
+                className="rounded-lg drop-shadow-2xl shadow-black"
                 width="640"
                 height="360"
                 autoPlay

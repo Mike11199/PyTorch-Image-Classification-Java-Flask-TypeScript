@@ -61,18 +61,20 @@ const DropZone = ({
   };
 
   return (
-    <div className="mx-4 md:mx-44">
+    <div className="h-[70%]">
       <div
-        className="flex flex-col gap-12 items-center justify-center w-full min-h-60  border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+        className="flex flex-col gap-12 items-center justify-center border-2  border-dashed rounded-lg
+        cursor-pointer dark:hover:bg-bray-800 dark:bg-gray-800 hover:bg-gray-700  border-gray-600
+        hover:border-gray-500 h-full"
         {...getRootProps({ style })}
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p className="text-white mt-12 text-center">Drop file(s) here ...</p>
+          <p className="text-gray-200 mt-12 text-center">Drop file(s) here ...</p>
         ) : loading ? (
-          <p className="text-white mt-12 text-center">Processing image...</p>
+          <p className="text-gray-200 mt-12 text-center">Processing image...</p>
         ) : (
-          <p className="text-white mt-12 text-center">
+          <p className="text-gray-200 mt-12 text-center">
             Drag and drop file(s) here, or click to select files
           </p>
         )}
