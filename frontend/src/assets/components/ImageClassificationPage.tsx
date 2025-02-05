@@ -150,7 +150,7 @@ const ImageClassificationPage = () => {
         {/* Sliders */}
         <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl justify-around">
           {isMobile ? (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full flex flex-col items-center pt-2">
               {/* Dropdown */}
               <select
                 value={activeSlider}
@@ -180,7 +180,7 @@ const ImageClassificationPage = () => {
             slidersConfig.map((slider) => (
               <div
                 key={slider.name}
-                className="md:w-2/12 flex justify-center text-white"
+                className="md:w-2/12 flex justify-center text-white mt-4"
               >
                 <PyTorchSlider
                   minValue={slider.min}

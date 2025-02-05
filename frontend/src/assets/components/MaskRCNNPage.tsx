@@ -169,7 +169,7 @@ const MaskRCNNPage = () => {
         {/* Sliders */}
         <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl">
           {isMobile ? (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full flex flex-col items-center pt-2">
               {/* Dropdown */}
               <select
                 value={activeSlider}
@@ -205,7 +205,7 @@ const MaskRCNNPage = () => {
             slidersConfig.map((slider) => (
               <div
                 key={slider.name}
-                className="md:w-2/12 flex justify-center text-white"
+                className="md:w-2/12 flex justify-center text-white mt-4"
               >
                 <PyTorchSlider
                   minValue={slider.min}
