@@ -40,7 +40,6 @@ const MaskRCNNPageNew = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
   const slidersConfig = [
     {
       name: "Mask Opacity",
@@ -86,8 +85,9 @@ const MaskRCNNPageNew = () => {
     },
   ];
 
-  const selectedSlider = slidersConfig.find((slider) => slider.name === activeSlider);
-
+  const selectedSlider = slidersConfig.find(
+    (slider) => slider.name === activeSlider
+  );
 
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -147,8 +147,8 @@ const MaskRCNNPageNew = () => {
   return (
     <>
       <Toaster />
-      <div className="flex-1 flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] p-12">
-        <div className="flex gap-12 w-full">
+      <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-12">
+        <div className="flex gap-12 w-full flex-col md:flex-row md:mt-0 mt-6">
           <ImageClassificationPageDescription />
           <DropzoneContainer
             fetchPyTorchAnalysisUsingUploadedImage={
@@ -167,17 +167,23 @@ const MaskRCNNPageNew = () => {
         </div>
 
         {/* Sliders */}
-        <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-2 rounded-xl">
+        <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-6 md:p-2 rounded-xl">
           {isMobile ? (
             <div className="w-full flex flex-col items-center">
               {/* Dropdown */}
               <select
                 value={activeSlider}
                 onChange={(e) => setActiveSlider(e.target.value)}
-                className="mb-4 p-2 bg-gray-900 text-white rounded w-60 text-center font-bold text-sm transition-transform duration-300 ease-linear"
+                //   color="bg-[#0c2c46]"
+                // hoverColor="hover:bg-[#114d7e]"
+                className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black"
               >
                 {slidersConfig.map((slider) => (
-                  <option key={slider.name} value={slider.name}>
+                  <option
+                    key={slider.name}
+                    value={slider.name}
+                    className="bg-[#07131b] text-gray-200"
+                  >
                     {slider.name}
                   </option>
                 ))}
@@ -222,7 +228,7 @@ const MaskRCNNPageNew = () => {
             />
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
-          <ImageCanvas
+            <ImageCanvas
               pyTorchBoxXOffset={pyTorchBoxXOffset}
               pyTorchBoxYOffset={pyTorchBoxYOffset}
               pyTorchBoxFontSize={pyTorchBoxFontSize}
@@ -248,7 +254,7 @@ export default MaskRCNNPageNew;
 
 const ImageClassificationPageDescription = () => {
   return (
-    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-12 rounded-xl w-[60%]">
+    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12  rounded-xl w-full md:w-[60%]">
       <h1 className="font-bold mb-4 md:mb-4 text-orange-600">
         App Description
       </h1>

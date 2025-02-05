@@ -24,7 +24,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
   setColorMapCounter,
 }) => {
   return (
-    <div className="flex flex-col bg-black bg-opacity-60 p-12 rounded-xl justify-between w-[40%]">
+    <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0">
       <DropZone
         setterUploadedImages={setUploadedImages}
         uploadedImages={uploadedImages}
@@ -35,7 +35,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
         setterURLInputValue={setInputValue}
       />
       {/* Buttons */}
-      <div className="flex gap-4 justify-between w-full">
+      <div className="flex gap-4 justify-between w-full flex-col md:flex-row">
         <Button
           color="bg-[#0c2c46]"
           hoverColor="hover:bg-[#114d7e]"
