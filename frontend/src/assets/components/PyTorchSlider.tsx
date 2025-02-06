@@ -1,8 +1,5 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
 import Slider from "@mui/material/Slider";
 import MuiInput from "@mui/material/Input";
 
@@ -25,7 +22,7 @@ const Input = styled(MuiInput)`
 
 const CustomSlider = styled(Slider)({
   "& .MuiSlider-track": {
-    color: "#ba0000",
+    color: "#750a0a",
   },
 
   "& .MuiSlider-thumb": {
@@ -75,58 +72,32 @@ const PyTorchSlider = ({
   };
 
   return (
-    <Box sx={{ width: 200 }}>
-      <div className="flex gap-5 justify-between">
-        <Typography
-          id="input-slider"
-          style={{
-            color: "#dfdede",
-            textAlign: "right",
-          }}
-        >
-          {sliderName}
-        </Typography>
+    <div className="flex-col w-full">
+      <div className="flex justify-between ">
+        <span className="">{sliderName}</span>
         <Input
-          style={{
-            color: "#dfdede",
-            width: "55px",
-          }}
           value={setterValue}
           size="small"
           onChange={handleInputChange}
           onBlur={handleBlur}
           inputProps={{
-            style: { textAlign: "right" },
+            style: { textAlign: "center" },
             step: 1,
             min: minValue,
             max: maxValue,
             type: "number",
-            "aria-labelledby": "input-slider",
           }}
         />
       </div>
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        style={{ color: "white", borderBottomColor: "white" }}
-      >
-        <Grid item xs>
-          <CustomSlider
-            color="secondary"
-            value={setterValue}
-            onChange={handleSliderChange}
-            aria-labelledby="input-slider"
-            min={minValue}
-            max={maxValue}
-          />
-        </Grid>
-        <Grid
-          item
-          style={{ color: "white", borderBottomColor: "white" }}
-        ></Grid>
-      </Grid>
-    </Box>
+      <CustomSlider
+        color="secondary"
+        value={setterValue}
+        onChange={handleSliderChange}
+        aria-labelledby="input-slider"
+        min={minValue}
+        max={maxValue}
+      />
+    </div>
   );
 };
 

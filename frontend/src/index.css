@@ -25,17 +25,23 @@
 
 /* Monokai theme colors */
 .json-key {
-  color: #F92672;
+  color: #f92672;
 }
 .json-string {
-  color: #FD971F;
+  color: #fd971f;
 }
 .json-number {
-  color: #A6E22E;
+  color: #a6e22e;
 }
 .json-boolean {
-  color: #A6E22E;
+  color: #a6e22e;
 }
 .json-punctuation {
-  color: #66D9EF;
+  color: #66d9ef;
+}
+
+/* MUI Input button dark mode (sliders number spinner) */
+.MuiInputBase-input[type="number"]::-webkit-inner-spin-button,
+.MuiInputBase-input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(100%);
 }

@@ -9,12 +9,13 @@ export type SliderConfig = {
   setter: React.Dispatch<SetStateAction<number>>;
 };
 
-export const SlidersContainer = ({slidersConfig}: {slidersConfig: SliderConfig[]}) => {
-
+export const SlidersContainer = ({
+  slidersConfig,
+}: {
+  slidersConfig: SliderConfig[];
+}) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [activeSlider, setActiveSlider] = useState<string>("Opacity");
-
-  console.log(slidersConfig)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -27,7 +28,7 @@ export const SlidersContainer = ({slidersConfig}: {slidersConfig: SliderConfig[]
   );
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl justify-around">
+    <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 md:rounded-xl gap-16 pl-12 pr-12 pb-2 pt-4">
       {isMobile ? (
         <div className="w-full flex flex-col items-center pt-2">
           {/* Mobile: Show slider dropdown */}
@@ -45,13 +46,15 @@ export const SlidersContainer = ({slidersConfig}: {slidersConfig: SliderConfig[]
 
           {/* Mobile: Show single selected single slider */}
           {selectedSlider && (
-            <PyTorchSlider
-              minValue={selectedSlider.min}
-              maxValue={selectedSlider.max}
-              setterValue={selectedSlider.value}
-              setterFunction={selectedSlider.setter}
-              sliderName={selectedSlider.name}
-            />
+            <div className=" text-gray-200 w-full">
+              <PyTorchSlider
+                minValue={selectedSlider.min}
+                maxValue={selectedSlider.max}
+                setterValue={selectedSlider.value}
+                setterFunction={selectedSlider.setter}
+                sliderName={selectedSlider.name}
+              />
+            </div>
           )}
         </div>
       ) : (
@@ -59,7 +62,7 @@ export const SlidersContainer = ({slidersConfig}: {slidersConfig: SliderConfig[]
         slidersConfig.map((slider) => (
           <div
             key={slider.name}
-            className="md:w-2/12 flex justify-center text-gray-200 mt-4"
+            className="w-full flex justify-center text-gray-200"
           >
             <PyTorchSlider
               minValue={slider.min}
