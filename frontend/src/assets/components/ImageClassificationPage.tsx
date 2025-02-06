@@ -34,7 +34,7 @@ const ImageClassificationPage = () => {
 
   const slidersConfig: SliderConfig[] = [
     {
-      name: "Opacity",
+      name: "Box Opacity",
       min: 0,
       max: 100,
       value: pyTorchOpacity,

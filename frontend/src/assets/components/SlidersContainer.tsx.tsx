@@ -24,7 +24,7 @@ export const SlidersContainer = ({
   }, []);
 
   const selectedSlider = slidersConfig?.find(
-    (slider: SliderConfig) => slider.name === activeSlider
+    (slider: SliderConfig) => slider.name.includes(activeSlider)
   );
 
   return (
