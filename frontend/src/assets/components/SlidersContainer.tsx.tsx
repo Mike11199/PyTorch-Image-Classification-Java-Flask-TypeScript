@@ -39,7 +39,7 @@ export const SlidersContainer = ({
           >
             {slidersConfig.map((slider: SliderConfig) => (
               <option key={slider.name} value={slider.name}>
-                {slider.name}
+                {slider.name + " ( " + slider?.value + " )"}
               </option>
             ))}
           </select>
@@ -53,6 +53,7 @@ export const SlidersContainer = ({
                 setterValue={selectedSlider.value}
                 setterFunction={selectedSlider.setter}
                 sliderName={selectedSlider.name}
+                hideLabels={true}
               />
             </div>
           )}

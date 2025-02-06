@@ -44,6 +44,7 @@ interface PyTorchSliderProps {
   sliderName: string;
   setterValue: number;
   setterFunction: React.Dispatch<React.SetStateAction<number>>;
+  hideLabels?: boolean;
 }
 
 const PyTorchSlider = ({
@@ -52,6 +53,7 @@ const PyTorchSlider = ({
   setterFunction,
   minValue,
   maxValue,
+  hideLabels=false,
 }: PyTorchSliderProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setterFunction(newValue as number);
@@ -73,6 +75,7 @@ const PyTorchSlider = ({
 
   return (
     <div className="flex-col w-full">
+      {!hideLabels &&
       <div className="flex justify-between ">
         <span className="">{sliderName}</span>
         <Input
@@ -89,6 +92,7 @@ const PyTorchSlider = ({
           }}
         />
       </div>
+      }
       <CustomSlider
         color="secondary"
         value={setterValue}
