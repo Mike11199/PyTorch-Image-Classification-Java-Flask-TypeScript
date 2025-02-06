@@ -138,7 +138,7 @@ const MaskRCNNPage = () => {
     <>
       <Toaster />
       <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-12">
-        <div className="flex gap-12 w-full flex-col md:flex-row md:mt-0 mt-6">
+        <div className="flex gap-4 w-full flex-col md:flex-row md:mt-0 mt-6">
           <ImageClassificationPageDescription />
           <DropzoneContainer
             fetchPyTorchAnalysisUsingUploadedImage={
