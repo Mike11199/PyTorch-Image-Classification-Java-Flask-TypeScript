@@ -112,11 +112,12 @@ function CloseButton() {
       style={{
         marginLeft: "auto",
         backgroundColor: hovered ? "#a11e1e" : "#bb2323",
-        color: "#fff",
-        borderRadius: "4px",
-        padding: "4px 8px",
+        color: "#c0bcbc",
+        borderRadius: "2px",
+        padding: "2px 6px",
         cursor: "pointer",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        boxShadow: "1px 1px 5px 0px #000000"
       }}
     >
       ✕
@@ -147,16 +148,18 @@ export const showWarningToast = () => {
 
 export const showErrorToast = (msg: string) => {
   toast.dismiss();
-  toast.error(
-    <div style={{ display: "flex", alignItems: "center" }}>
+  toast(
+    <div style={{ display: "flex", alignItems: "center", fontSize: "1rem", gap: "1rem"}}>
+      <span style={{ marginRight: 8 }}>⚠️</span>
       <span style={{ flex: 1, textAlign: "center" }}>{msg}</span>
       <CloseButton />
     </div>,
     {
       style: {
-        backgroundColor: "#2c2c2c",
-        color: "#fff",
-        borderRadius: "8px"
+        background: "linear-gradient( #131212, #131212)",
+        color: "#f0f0f0",
+        borderRadius: "8px",
+        boxShadow: "5px 5px 15px 0px #000000"
       },
       duration: 1500
     }
