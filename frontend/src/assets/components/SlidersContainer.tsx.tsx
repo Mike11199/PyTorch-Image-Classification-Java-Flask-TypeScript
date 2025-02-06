@@ -35,7 +35,7 @@ export const SlidersContainer = ({
           <select
             value={activeSlider}
             onChange={(e) => setActiveSlider(e.target.value)}
-            className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black"
+            className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black outline-none"
           >
             {slidersConfig.map((slider: SliderConfig) => (
               <option key={slider.name} value={slider.name}>
