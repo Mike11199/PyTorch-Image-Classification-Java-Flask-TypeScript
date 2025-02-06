@@ -137,7 +137,7 @@ const MaskRCNNPage = () => {
   return (
     <>
       <Toaster />
-      <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-12">
+      <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-8">
         <div className="flex gap-4 w-full flex-col md:flex-row md:mt-0 mt-6">
           <ImageClassificationPageDescription />
           <DropzoneContainer
@@ -159,7 +159,7 @@ const MaskRCNNPage = () => {
         <SlidersContainer {...{ slidersConfig }} />
 
         {/* JSONBox and ImageCanvas */}
-        <div className="flex flex-col md:flex-row gap-8 mt-4 h-[50rem]">
+        <div className="flex flex-col md:flex-row gap-4 mt-4 h-[50rem]">
           <div className="w-full md:w-2/12 h-[25rem] md:h-full order-last md:order-first">
             <JSONBox
               loading={loading}
@@ -193,7 +193,7 @@ export default MaskRCNNPage;
 
 const ImageClassificationPageDescription = () => {
   return (
-    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12  md:rounded-xl w-full md:w-[60%]">
+    <div className="text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12  md:rounded-xl w-full md:w-[60%] shadow-md shadow-black">
       <h1 className="font-bold mb-4 md:mb-4 text-orange-600">
         App Description
       </h1>

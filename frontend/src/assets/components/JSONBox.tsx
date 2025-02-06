@@ -1,5 +1,4 @@
 import React from "react";
-import { MutatingDots } from "react-loader-spinner";
 import BinaryMatrix from "./BinaryMatrix";
 
 interface JSONBoxProps {
@@ -82,7 +81,7 @@ const JSONBox: React.FC<JSONBoxProps> = ({
 
   return (
     <div
-      className={`text-left pl-4 h-full shadow-lg shadow-black md:rounded-md ${!loading ? "overflow-auto" : ""} `}
+      className={`text-left pl-4 h-full shadow-md shadow-black md:rounded-md ${!loading ? "overflow-auto" : ""} `}
       style={{
         backgroundColor: "#000000",
         padding: "1rem",

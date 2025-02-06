@@ -24,7 +24,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
   setColorMapCounter,
 }) => {
   return (
-    <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0">
+    <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0 shadow-md shadow-black">
       <DropZone
         setterUploadedImages={setUploadedImages}
         uploadedImages={uploadedImages}
