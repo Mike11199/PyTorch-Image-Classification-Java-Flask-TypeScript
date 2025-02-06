@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ImageCanvas from "./ImageCanvas";
 import {
   createImageURLFromBlob,
@@ -7,10 +7,10 @@ import {
 import JSONBox from "./JSONBox";
 import { PyTorchImageResponseType } from "./types";
 import { fetchPyTorchAnalysis } from "./FunctionUtils";
-import PyTorchSlider from "./PyTorchSlider";
 import { Toaster } from "react-hot-toast";
 import { showErrorToast } from "./FunctionUtils";
 import { DropzoneContainer } from "./DropzoneContainer";
+import SlidersContainer from "./SlidersContainer.tsx";
 
 const MaskRCNNPage = () => {
   const [inputValue, setInputValue] = useState(
@@ -31,14 +31,8 @@ const MaskRCNNPage = () => {
   const [pyTorchMaskOpacity, setPyTorchMaskOpacity] = useState<number>(50);
   const [colorMapCounter, setColorMapCounter] = useState(0);
   const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 365);
-  const [activeSlider, setActiveSlider] = useState<string>("Mask Opacity");
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const slidersConfig = [
     {
@@ -85,12 +79,8 @@ const MaskRCNNPage = () => {
     },
   ];
 
-  const selectedSlider = slidersConfig.find(
-    (slider) => slider.name === activeSlider
-  );
 
-  const [isError, setIsError] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     // showWarningToast();
@@ -166,58 +156,7 @@ const MaskRCNNPage = () => {
           />
         </div>
 
-        {/* Sliders */}
-        <div className="mt-4 flex flex-col justify-around md:flex-row bg-black bg-opacity-60 p-6 md:p-2 md:rounded-xl">
-          {isMobile ? (
-            <div className="w-full flex flex-col items-center pt-2">
-              {/* Dropdown */}
-              <select
-                value={activeSlider}
-                onChange={(e) => setActiveSlider(e.target.value)}
-                //   color="bg-[#0c2c46]"
-                // hoverColor="hover:bg-[#114d7e]"
-                className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black"
-              >
-                {slidersConfig.map((slider) => (
-                  <option
-                    key={slider.name}
-                    value={slider.name}
-                    className="bg-[#07131b] text-gray-200"
-                  >
-                    {slider.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Single Slider */}
-              {selectedSlider && (
-                <PyTorchSlider
-                  minValue={selectedSlider.min}
-                  maxValue={selectedSlider.max}
-                  setterValue={selectedSlider.value}
-                  setterFunction={selectedSlider.setter}
-                  sliderName={selectedSlider.name}
-                />
-              )}
-            </div>
-          ) : (
-            // Desktop: Show all sliders
-            slidersConfig.map((slider) => (
-              <div
-                key={slider.name}
-                className="md:w-2/12 flex justify-center text-white mt-4"
-              >
-                <PyTorchSlider
-                  minValue={slider.min}
-                  maxValue={slider.max}
-                  setterValue={slider.value}
-                  setterFunction={slider.setter}
-                  sliderName={slider.name}
-                />
-              </div>
-            ))
-          )}
-        </div>
+        <SlidersContainer {...{ slidersConfig }} />
 
         {/* JSONBox and ImageCanvas */}
         <div className="flex flex-col md:flex-row gap-8 mt-4 h-[50rem]">
