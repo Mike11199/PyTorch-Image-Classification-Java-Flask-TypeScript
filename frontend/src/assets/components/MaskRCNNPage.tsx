@@ -79,9 +79,6 @@ const MaskRCNNPage = () => {
     },
   ];
 
-
-
-
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     // showWarningToast();
     setLoading(true);
@@ -204,7 +201,7 @@ const ImageClassificationPageDescription = () => {
           computer vision model called by a custom{" "}
           <strong className="text-red-700">inference.py</strong> script.
         </li>
-      </div>
+      </div>{" "}
       <h1 className="font-bold mb-4 md:mb-4 mt-14 md:mt-14 text-orange-600">
         Model Description
       </h1>
@@ -212,12 +209,14 @@ const ImageClassificationPageDescription = () => {
         <li className="mb-4 md:mb-6">
           Mask R-CNN is an Instance Segmentation model. It identifies and
           generates a pixel-wide mask for each individual object in an image,
-          clearly defining each object's boundaries. This is made possible by an
-          extra "mask head" branch which uses Region of Interest Align
-          (ROIAlign) pooling to extract features. It also incorporates object
-          detection, outputting a bounding box in addition to the mask. This is
-          unlike semantic segmentation, which does not distinguish between
-          individual objects.
+          clearly defining each object's boundaries.
+        </li>
+        <li className="mb-4 md:mb-6">
+          This is made possible by an extra "mask head" branch which uses Region
+          of Interest Align (ROIAlign) pooling to extract features. It also
+          incorporates object detection, outputting a bounding box in addition
+          to the mask. This is unlike semantic segmentation, which does not
+          distinguish between individual objects.
         </li>
       </div>
       <div className="w-full flex justify-center">

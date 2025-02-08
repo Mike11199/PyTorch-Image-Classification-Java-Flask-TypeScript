@@ -43,7 +43,7 @@ export function createImageURLFromBlob(
 export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
   try {
     if (!pyTorchData) return;
-    
+
     const { scores, classes, boxes, labels } = pyTorchData;
     if (!scores || !classes || !boxes || !labels) return;
 
@@ -54,25 +54,22 @@ export function trimPytorchDataObject(pyTorchData: PyTorchImageResponseType) {
       classes: classes.slice(0, maxLength),
       boxes: boxes.slice(0, maxLength),
       labels: labels.slice(0, maxLength),
-      masks_array: pyTorchData?.masks_array
+      masks_array: pyTorchData?.masks_array,
     };
 
     return modifiedBoundingBoxData;
-
   } catch (error) {
     return null;
   }
 }
 
-
 export const fetchPyTorchAnalysis = async (imageBlob: Blob, apiUrl: string) => {
-    const formData = new FormData();
-    formData.append("image", imageBlob, "image.jpg");
-    const response = await axios.post(apiUrl, formData);
-    const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
-    return parsedPyTorchData;
+  const formData = new FormData();
+  formData.append("image", imageBlob, "image.jpg");
+  const response = await axios.post(apiUrl, formData);
+  const parsedPyTorchData = trimPytorchDataObject(response?.data) ?? null;
+  return parsedPyTorchData;
 };
-
 
 export function createClassColorMap(
   boundingBoxData: PyTorchImageResponseType | null | undefined
@@ -85,21 +82,18 @@ export function createClassColorMap(
   const classColorMap: any = {};
   for (let i = 0; i < boundingBoxData.boxes.length; i++) {
     const className = boundingBoxData?.classes[i];
-    // if (className == 'dog')
-    // {
-    //   classColorMap[className] = `rgb(255, 0, 0)`
+    // if (className == "dog") {
+    //   classColorMap[className] = `rgb(161, 8, 8)`;
     // }
-    // if (className == 'cat')
-    //   {
-    //     classColorMap[className] =`rgb(128, 0, 128)`
-    //   }
+    // if (className == "cat") {
+    //   classColorMap[className] = `rgb(100, 3, 100)`;
+    // }
     if (className && !classColorMap[className]) {
       classColorMap[className] = getRandomColor();
     }
   }
   return classColorMap;
 }
-
 
 function CloseButton() {
   const [hovered, setHovered] = useState(false);
@@ -117,7 +111,7 @@ function CloseButton() {
         padding: "2px 6px",
         cursor: "pointer",
         fontWeight: "bold",
-        boxShadow: "1px 1px 5px 0px #000000"
+        boxShadow: "1px 1px 5px 0px #000000",
       }}
     >
       ✕
@@ -139,9 +133,9 @@ export const showWarningToast = () => {
         padding: "16px",
         backgroundColor: "#2c2c2c",
         color: "#fff",
-        borderRadius: "8px"
+        borderRadius: "8px",
       },
-      duration: 1500
+      duration: 1500,
     }
   );
 };
@@ -149,7 +143,14 @@ export const showWarningToast = () => {
 export const showErrorToast = (msg: string) => {
   toast.dismiss();
   toast(
-    <div style={{ display: "flex", alignItems: "center", fontSize: "1rem", gap: "1rem"}}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        fontSize: "1rem",
+        gap: "1rem",
+      }}
+    >
       <span style={{ marginRight: 8 }}>⚠️</span>
       <span style={{ flex: 1, textAlign: "center" }}>{msg}</span>
       <CloseButton />
@@ -159,9 +160,9 @@ export const showErrorToast = (msg: string) => {
         background: "linear-gradient( #131212, #131212)",
         color: "#f0f0f0",
         borderRadius: "8px",
-        boxShadow: "5px 5px 15px 0px #000000"
+        boxShadow: "5px 5px 15px 0px #000000",
       },
-      duration: 1500
+      duration: 1500,
     }
   );
 };
