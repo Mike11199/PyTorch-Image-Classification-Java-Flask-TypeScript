@@ -88,6 +88,21 @@ export function createClassColorMap(
     // if (className == "cat") {
     //   classColorMap[className] = `rgb(100, 3, 100)`;
     // }
+    // if (className == "car") {
+    //   classColorMap[className] = `rgb(18, 79, 145)`;
+    // }
+    // if (className == "truck") {
+    //   classColorMap[className] = `rgb(64, 58, 173)`;
+    // }
+    // if (className == "person") {
+    //   classColorMap[className] = `rgb(170, 19, 19)`;
+    // }
+    // if (className == "traffic light") {
+    //   classColorMap[className] = `rgb(166, 66, 23)`;
+    // }
+    // if (className == "bicycle") {
+    //   classColorMap[className] = `rgb(15, 82, 13)`;
+    // }
     if (className && !classColorMap[className]) {
       classColorMap[className] = getRandomColor();
     }
