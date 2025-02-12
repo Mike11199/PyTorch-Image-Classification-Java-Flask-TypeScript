@@ -1,6 +1,5 @@
 # Deployments
   - https://machine-learning-projects.com/  - EC2 (TypeScript/ Java Spring Boot/ Flask) - NEW
-  - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ - Heroku/ AWS SageMaker Endpoint - OLD
 
 <br />
 
