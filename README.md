@@ -1,12 +1,20 @@
 # Deployments
   - https://machine-learning-projects.com/  - EC2 (TypeScript/ Java Spring Boot/ Flask) - NEW
-  - https://pytorch-image-model-aws-app-727fe8e23222.herokuapp.com/ - Heroku/ AWS SageMaker Endpoint - OLD
-
-![mask_rcnn_front_page](https://github.com/user-attachments/assets/94f6d43a-4b39-40b6-9887-7660cfc0cb3b)
 
 <br />
 
-![mask_rcnn_traffic](https://github.com/user-attachments/assets/b102cd8a-0103-4964-bf78-c34589f510db)
+
+![mask_rcnn_cats_and_dogs](https://github.com/user-attachments/assets/b6710505-8026-44fc-a5d3-c06e1a7e3abf)
+
+<br />
+
+![traffic_new_2](https://github.com/user-attachments/assets/256b72a9-111c-4f4a-bd90-de72ac2dc843)
+
+<br />
+
+![Neural Network Loading Spinner](https://github.com/user-attachments/assets/9ed0a3e3-00f5-4a86-a052-55ee9119377b)
+
+<br />
 
 # Stack/Technologies
   - Java Spring Boot
@@ -35,7 +43,13 @@
 ![image](https://github.com/user-attachments/assets/a4b823e0-6bf8-4e37-b228-bfc1980449aa)
 ![image](https://github.com/user-attachments/assets/829c1688-adbc-4587-b18a-dc9c7c073d44)
 
-# Website Screenshots
+# Old Website Screenshots
+
+![mask_rcnn_front_page](https://github.com/user-attachments/assets/94f6d43a-4b39-40b6-9887-7660cfc0cb3b)
+
+<br />
+
+![mask_rcnn_traffic](https://github.com/user-attachments/assets/b102cd8a-0103-4964-bf78-c34589f510db)
 
 <br />
 
