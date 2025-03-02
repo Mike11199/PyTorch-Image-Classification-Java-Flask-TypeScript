@@ -1,6 +1,7 @@
 import Button from "./Button";
 import DropZone from "./Dropzone";
 import ImageURL from "./ImageURL";
+import ReactGA from "react-ga4";
 
 interface DropzoneContainerProps {
   fetchPyTorchAnalysisUsingUploadedImage: () => Promise<void>;
@@ -39,14 +40,28 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
         <Button
           color="bg-[#0c2c46]"
           hoverColor="hover:bg-[#114d7e]"
-          buttonOnClick={() => fetchPyTorchAnalysisUsingImageURL(inputValue)}
+          buttonOnClick={() => {
+            ReactGA.event({
+              category: "Image Analysis",
+              action: "Submit Image URL Button Clicked",
+              label: "Submit Image URL 🌐",
+            });
+            fetchPyTorchAnalysisUsingImageURL(inputValue);
+          }}
           loading={loading}
           buttonText="Submit Image URL 🌐"
         />
         <Button
           color="bg-[#0c2c46]"
           hoverColor="hover:bg-[#114d7e]"
-          buttonOnClick={fetchPyTorchAnalysisUsingUploadedImage}
+          buttonOnClick={() => {
+            ReactGA.event({
+              category: "Image Analysis",
+              action: "Submit Image File Button Clicked",
+              label: "Submit Image File 📷",
+            });
+            fetchPyTorchAnalysisUsingUploadedImage();
+          }}
           loading={loading}
           buttonText="Submit Image File 📷"
         />
