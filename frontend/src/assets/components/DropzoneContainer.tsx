@@ -2,6 +2,7 @@ import Button from "./Button";
 import DropZone from "./Dropzone";
 import ImageURL from "./ImageURL";
 import ReactGA from "react-ga4";
+import { useLocation } from "react-router-dom";
 
 interface DropzoneContainerProps {
   fetchPyTorchAnalysisUsingUploadedImage: () => Promise<void>;
@@ -24,6 +25,9 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
   setUploadedImages,
   setColorMapCounter,
 }) => {
+  const location = useLocation();
+  const currentPage = location.pathname;
+
   return (
     <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-12 md:gap-0 shadow-md shadow-black">
       <DropZone
@@ -44,7 +48,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
             ReactGA.event({
               category: "Image Analysis",
               action: "Submit Image URL Button Clicked",
-              label: "Submit Image URL 🌐",
+              label: `Submit Image URL 🌐 - ${currentPage}`,
             });
             fetchPyTorchAnalysisUsingImageURL(inputValue);
           }}
@@ -58,7 +62,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
             ReactGA.event({
               category: "Image Analysis",
               action: "Submit Image File Button Clicked",
-              label: "Submit Image File 📷",
+              label: `Submit Image File 📷 - ${currentPage}`,
             });
             fetchPyTorchAnalysisUsingUploadedImage();
           }}
