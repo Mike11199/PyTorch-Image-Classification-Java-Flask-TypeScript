@@ -28,7 +28,11 @@ const Button = ({
     `active:scale-95`,
     `transition-transform duration-300 ease-linear`,
     color,
-    hoverColor
+    hoverColor,
+    {
+      "cursor-not-allowed opacity-50": loading,
+      "cursor-pointer": !loading,
+    }
   );
   return (
     <>

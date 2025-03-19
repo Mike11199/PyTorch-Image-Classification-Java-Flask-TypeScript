@@ -74,6 +74,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
           hoverColor="hover:bg-[#111111]"
           buttonOnClick={() => setColorMapCounter((prev) => prev + 1)}
           buttonText="Regenerate Colors 🎨"
+          loading={loading}
         />
       </div>
     </div>
