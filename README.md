@@ -28,14 +28,14 @@
 - Personal project involving a Java Spring Boot API, Flask microservice, and TypeScript front end.
 - The Java API sends requests to a Flask service hosting a PyTorch fasterrcnn_resnet50_fpn_v2 computer vision model.  This is deployed on an EC2 instance with its own Route 53 domain.
 - This was originally deployed on Heroku as a TypeScript/Express.js application, using Amazon API Gateway to expose a lambda to send requests to a SageMaker endpoint.  I have refactored the project as this endpoint was costing roughly $50 a month.
-- Can accept both an image URL or an uploaded image from one's computer.  It sends binary data to the lambda/ PyTorch Model etiher way.
+- Can accept both an image URL or an uploaded image from one's computer.  It sends binary data to the lambda/ PyTorch Model either way.
 
 
 
 # Back End Repo - AWS Endpoint/Model/etc
   - https://github.com/Mike11199/PyTorch-Image-Classification/
 
-# Video
+# Video - Old (2023)
   - https://www.youtube.com/watch?v=abtdBPFu_yM
 
 

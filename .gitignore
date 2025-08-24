@@ -33,3 +33,6 @@ backend-java-spring-boot/src/main/resources/application.properties
 # Ignore Python cache files
 backend-flask-pytorch/__pycache__/
 backend-flask-pytorch/*.py[cod]
+
+.clinerules
+.clinerules/*
