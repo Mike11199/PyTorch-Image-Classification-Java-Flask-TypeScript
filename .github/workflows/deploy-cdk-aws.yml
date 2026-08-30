@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -74,7 +74,6 @@ jobs:
           echo "FLASK_IMAGE=flask-api-$BUILD_TAG" >> $GITHUB_ENV
           echo "JAVA_IMAGE=java-api-$BUILD_TAG" >> $GITHUB_ENV
           echo "REACT_IMAGE=react-front-end-$BUILD_TAG" >> $GITHUB_ENV
-          echo "NGINX_IMAGE=nginx-reverse-proxy-$BUILD_TAG" >> $GITHUB_ENV
 
       - name: Build Flask/PyTorch backend image
         run: |
@@ -92,22 +91,13 @@ jobs:
       - name: Push Java Spring Boot image to ECR
         run: docker push "$REGISTRY:$JAVA_IMAGE"
 
-      - name: Build React frontend image
+      - name: Build React frontend image (nginx with React baked in; same pattern as ski shop)
         run: |
           docker build --file frontend/Dockerfile \
             --tag "$REGISTRY:$REACT_IMAGE" .
 
       - name: Push React image to ECR
         run: docker push "$REGISTRY:$REACT_IMAGE"
-
-      - name: Build Nginx reverse proxy image
-        run: |
-          docker build --file cdk/assets/nginx/Dockerfile \
-            --tag "$REGISTRY:$NGINX_IMAGE" .
-
-      - name: Push Nginx image to ECR
-        run: docker push "$REGISTRY:$NGINX_IMAGE"
-
 
 
   cdk-deploy:
@@ -119,7 +109,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -134,122 +124,18 @@ jobs:
       - name: Install pinned CDK CLI
         run: npm install --global "aws-cdk@$CDK_CLI_VERSION"
 
-      - name: Clean up incompatible stack resources (auto-migration from EC2 Instance → ASG)
-        if: always()
-        run: |
-          HAS_BARE_EC2=$(aws cloudformation describe-stack-resources \
-            --stack-name PytorchClassificationStack \
-            --query 'StackResources[?ResourceType==`AWS::EC2::Instance`].LogicalResourceId' \
-            --output text 2>/dev/null || echo "")
-
-          if [ -n "$HAS_BARE_EC2" ]; then
-            echo "Detected bare EC2 Instance resource — destroying stack to migrate to ASG pattern."
-            cdk destroy PytorchClassificationStack --force --app="cdk synth" || true
-            sleep 10
-          else
-            echo "No incompatible resources found, proceeding with deploy."
-          fi
-
-      - name: Deploy production stack with image tags (no rollback for debugging)
+      - name: Deploy ECS stack with image tags
         working-directory: cdk
         run: |
           uv sync --frozen --group dev
 
-          # Use the same immutable SHA-based tags pushed by the build job.
           FLASK_TAG="flask-api-${{ github.sha }}"
           JAVA_TAG="java-api-${{ github.sha }}"
           REACT_TAG="react-front-end-${{ github.sha }}"
-          NGINX_TAG="nginx-reverse-proxy-${{ github.sha }}"
 
           cdk deploy PytorchClassificationStack \
             --require-approval never \
             --parameters ImageTagFlask="$FLASK_TAG" \
             --parameters ImageTagJava="$JAVA_TAG" \
             --parameters ImageTagReact="$REACT_TAG" \
-            --parameters ImageTagNginx="$NGINX_TAG" \
-            --context deploy-version="${{ github.run_number }}" || true
-
-          # Always upload the CloudFormation events log for post-mortem analysis.
-          aws cloudformation describe-stack-events --stack-name PytorchClassificationStack | jq -c '.StackEvents[]? | select(.Timestamp > now - 1800)' > /tmp/cf-events.jsonl || true
-
-      - name: Verify ALB target health
-        timeout-minutes: 12
-        run: |
-          TARGET_GROUP_ARN=$(aws elbv2 describe-target-groups \
-            --names pytorch-classification-cdk \
-            --query "TargetGroups[0].TargetGroupArn" \
-            --output text)
-
-          echo "Waiting for the ASG instance to pass ALB health checks..."
-          aws elbv2 wait target-in-service \
-            --target-group-arn "$TARGET_GROUP_ARN"
-
-          aws elbv2 describe-target-health \
-            --target-group-arn "$TARGET_GROUP_ARN" \
-            --query "TargetHealthDescriptions[].{Instance:Target.Id,State:TargetHealth.State,Reason:TargetHealth.Reason}" \
-            --output table
-
-      - name: Debug failed bootstrap (if deploy or health check failed)
-        if: failure()
-        run: |
-          echo "::group::CloudFormation stack state"
-          aws cloudformation describe-stacks --stack-name PytorchClassificationStack \
-            --query 'Stacks[0].[StackName,StackStatus]' --output table || echo "Stack missing or failed"
-          echo "::endgroup::"
-
-          # Find any EC2 instances launched by this stack (including terminated ones).
-          INSTANCE_IDS=$(aws ec2 describe-instances \
-            --filters Name=tag:aws:cloudformation:stack-name,Values=PytorchClassificationStack \
-            --query 'Reservations[].Instances[?State.Name!=`terminated`].InstanceId' \
-            --output text | tr '\t' '\n' || true)
-
-          if [ -z "$INSTANCE_IDS" ]; then
-            echo "No running instances found for this stack."
-            exit 0
-          fi
-
-          # Wait briefly for SSM agent to start.
-          sleep 20
-
-          for INSTANCE_ID in $INSTANCE_IDS; do
-            echo "::group::=== Instance $INSTANCE_ID ==="
-
-            # Pull bootstrap log (if exists).
-            CMD1_ID=$(aws ssm send-command \
-              --instance-ids "$INSTANCE_ID" \
-              --document-name "AWS-RunShellScript" \
-              --comment "Debug: fetch pytorch-bootstrap.log" \
-              --parameters commands='["cat /var/log/pytorch-bootstrap.log || echo \"Log not found\""]' \
-              --query 'Command.CommandId' --output text)
-
-            # Pull docker status.
-            CMD2_ID=$(aws ssm send-command \
-              --instance-ids "$INSTANCE_ID" \
-              --document-name "AWS-RunShellScript" \
-              --comment "Debug: docker ps + logs" \
-              --parameters commands='["docker ps -a || echo \"Docker not running\"", "docker compose -f /opt/pytorch/docker-compose.yml ps 2>&1 || echo \"Compose error\""]' \
-              --query 'Command.CommandId' --output text)
-
-            # Wait for results.
-            sleep 10
-
-            if [ -n "$CMD1_ID" ] && [ ${#CMD1_ID} -ge 36 ]; then
-              aws ssm get-command-invocation \
-                --command-id "$CMD1_ID" \
-                --instance-id "$INSTANCE_ID" \
-                --query 'StandardOutputContent' --no-cli-pager --output text || echo "Could not fetch bootstrap log"
-            else
-              echo "Failed to get command ID for bootstrap log: $CMD1_ID"
-            fi
-
-            if [ -n "$CMD2_ID" ] && [ ${#CMD2_ID} -ge 36 ]; then
-              aws ssm get-command-invocation \
-                --command-id "$CMD2_ID" \
-                --instance-id "$INSTANCE_ID" \
-                --query 'StandardOutputContent' --no-cli-pager --output text || echo "Could not fetch docker status"
-            else
-              echo "Failed to get command ID for docker status: $CMD2_ID"
-            fi
-
-            echo "::endgroup::"
-          done
+            --context deploy-version="${{ github.run_number }}"

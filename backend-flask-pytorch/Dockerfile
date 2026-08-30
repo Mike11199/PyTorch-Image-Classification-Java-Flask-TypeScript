@@ -4,7 +4,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libglib2.0-0 libsm6 libxrender1 libxext6 && \
+    apt-get install -y --no-install-recommends libglib2.0-0 libsm6 libxrender1 libxext6 libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY backend-flask-pytorch/requirements.txt .
