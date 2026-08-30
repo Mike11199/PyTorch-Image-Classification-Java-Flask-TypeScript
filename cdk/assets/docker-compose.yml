@@ -1,0 +1,34 @@
+services:
+  flask-backend:
+    image: "${REGISTRY}:${FLASK_TAG}"
+    restart: unless-stopped
+    networks:
+      - pytorch-network
+
+  java-backend:
+    image: "${REGISTRY}:${JAVA_TAG}"
+    restart: unless-stopped
+    networks:
+      - pytorch-network
+
+  react-frontend:
+    image: "${REGISTRY}:${REACT_TAG}"
+    restart: unless-stopped
+    networks:
+      - pytorch-network
+
+  reverse-proxy:
+    image: "${REGISTRY}:${NGINX_TAG}"
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - flask-backend
+      - java-backend
+      - react-frontend
+    networks:
+      - pytorch-network
+
+networks:
+  pytorch-network:
+    driver: bridge

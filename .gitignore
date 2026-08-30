@@ -30,9 +30,16 @@ backend-flask-pytorch/.venv/*
 backend-java-spring-boot/target/
 backend-java-spring-boot/src/main/resources/application.properties
 
-# Ignore Python cache files
+# Ignore Python cache files globally
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+
 backend-flask-pytorch/__pycache__/
 backend-flask-pytorch/*.py[cod]
+cdk/.venv/*
+cdk/cdk.out/
 
 .clinerules
 .clinerules/*

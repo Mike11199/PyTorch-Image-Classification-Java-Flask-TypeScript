@@ -1,0 +1,23 @@
+{
+  "app": "uv run app.py",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.py[ct]",
+      "**/__pycache__/**"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": false,
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": false,
+    "PytorchClassificationStack": {
+      "environment": "production"
+    }
+  },
+  "requireApproval": "any-change"
+}
