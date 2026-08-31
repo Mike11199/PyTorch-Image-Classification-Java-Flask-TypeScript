@@ -1,49 +1,85 @@
-# PyTorch Image Classification -- Production Deployment (CDK + ECS)
+# PyTorch Image Classification - CDK Deployment
 
-Single Spot t3.medium EC2 instance running the ECS agent, hosting all 3 containers via one ECS task. Uses Spot pricing (~$15 USD/month). Shares `consolidated-load-balancer` across multiple projects.
+Three containers run as one ECS task on a single Spot `t3.medium` EC2 instance. Estimated infrastructure cost is approximately 15 USD per month. The stack reuses the shared `consolidated-load-balancer`.
 
 ## Architecture
 
-- AutoScalingGroup: min=1, max=1 Spot t3.medium running ECS-optimized AMI (the actual server your containers run on). The ASG replaces interrupted/failed hosts but is not replaced for application releases.
-- ECS cluster: management layer that tracks what to deploy onto that EC2 instance; no extra cost beyond the instance itself
-- Task definition: declares 3 containers with CPU/memory limits and port mappings (AWS_VPC mode):
-    - Nginx reverse proxy (128 CPU, 200 MB memory) — serves React static files directly + proxies API requests to sibling containers via localhost (`/api-java-spring-boot/*` → Java:8080, `/api-flask-pytorch-models/*` → Flask:5000). Same pattern as ski shop: nginx config baked into the frontend Dockerfile.
-    - Flask/PyTorch backend (512 CPU, 1600 MB memory) — runs image classification models; pretrained weights are cached in the image during the Docker build
-    - Java Spring Boot backend (256 CPU, 700 MB memory) — orchestrates model calls from React; also calls Flask via localhost:5000 internally
-- ECS Service: ensures exactly 1 task is always running; restarts failed tasks automatically
-- TargetGroup + ALB listener rule priority=10: routes production host header to our target group via shared load balancer
+- ECS cluster: schedules and monitors the application task.
+- ECS service: maintains one task containing Nginx, Java Spring Boot, and Flask/PyTorch.
+- Auto Scaling Group: maintains exactly one ECS host (the ec2 we create not Fargate) with `min=1`, `desired=1`, and `max=1`.
+- Launch Template: starts an ECS-optimized Amazon Linux 2023 Spot instance.
+- Capacity provider: connects the Auto Scaling Group to the ECS cluster.
+- Shared ALB: sends `machine-learning-projects.com` traffic to `NginxContainer:80`.
 
-## EC2 vs Fargate (why you see two things in the console)
+### Container responsibilities
 
-This is **ECS on EC2**, not Fargate. Both use an "ECS cluster" as management layer, but:
+- Nginx: serves the React build and proxies requests to the backends over task-local `localhost` connections.
+- Java Spring Boot: handles `/api-java-spring-boot/*` and calls Flask on port 5000.
+- Flask/PyTorch: runs image classification on port 5000. Model weights are cached during the Docker build because the task has no runtime internet route.
 
-- **ECS on EC2:** You own a Spot t3.medium instance (~$15/mo). It appears in both consoles:
-  - ECS Console → Cluster exists with 1 container instance registered (your server)
-  - EC2 Console → The actual running Spot instance you can SSH into via SSM
-  
-- **Fargate:** AWS manages all infrastructure. Cluster exists but shows 0 container instances — no servers to see or manage anywhere.
+The target group uses `/health` on Nginx as a basic liveness check. It does not verify backend inference.
 
-Checking "Container instances" is how you tell which launch type a cluster uses. This project has both an ECS cluster AND one EC2 instance because that's the expected setup for ECS on EC2, not two separate deployments.
+## ECS, EC2, and the Auto Scaling Group
 
-## Spot pricing
+This is ECS on EC2, not Fargate.
 
-Uses AWS Spot instances (up to 90% cheaper than on-demand). Spot means unused EC2 capacity offered at discount. When demand is high, AWS can reclaim our instance with 2 min notice — ECS drains tasks from the dying instance and ASG launches a replacement automatically. For t3.medium in us-west-1 this happens rarely (~few times per month).
+- ECS replaces failed containers and deploys new task-definition revisions.
+- EC2 supplies the compute on which the task runs.
+- The Auto Scaling Group replaces the EC2 host after a Spot interruption or host failure.
+
+ECS on EC2 can use a manually managed instance, but ECS cannot replace a failed host by itself. Without the Auto Scaling Group, a Spot interruption would leave the service without capacity until an instance was created and registered manually.
+
+Normal application deployments replace the ECS task on the existing EC2 host. They do not replace the Launch Template, Auto Scaling Group, or EC2 instance.
+
+## Deployment and recovery behavior
+
+- Application update: ECS stops the old task and starts the new revision on the same host.
+- Deployment capacity: `minimumHealthyPercent=0` and `maximumPercent=100` because two complete tasks do not fit on one `t3.medium`. Brief deployment downtime is expected.
+- Task startup failure: the ECS deployment circuit breaker fails the deployment. An update can roll back to the previous task revision; a first stack creation rolls back the stack.
+- Spot interruption or host failure: the Auto Scaling Group launches a replacement host, which registers with ECS and receives the task.
+- Stack creation: the ECS service depends on the listener rule and Auto Scaling Group so task deployment does not begin before ALB routing and EC2 capacity exist.
+- Stack deletion: managed scaling and managed termination protection are disabled. CloudFormation can scale the Auto Scaling Group to zero and terminate the instance without manual intervention.
+- Host termination: CDK creates an ECS draining lifecycle hook using SNS and Lambda. These resources run only during host termination; they are not application services.
+
+## Load balancer cutover
+
+The stack creates a priority-10 rule for `machine-learning-projects.com`. An older priority-3 rule for the same host takes precedence until it is removed or changed manually.
 
 ## File responsibilities
 
-- `stack.py`: single ECS stack using an explicit LaunchTemplate + fixed one-instance AutoScalingGroup (the account disabled legacy LaunchConfigurations). Application releases create new ECS task-definition revisions without replacing the host. The ECS capacity provider registers the ASG with the cluster, but managed scaling and managed termination protection are disabled because fixed capacity is intentional and scale-in protection previously blocked clean stack deletion.
-- `tests/test_stack.py`: validates the three-container task, Nginx target binding, ALB security-group ingress, listener dependency, stop-first deployment settings, stable host logical IDs, and fixed ASG capacity. Runs in CI before every deploy.
-- `existing_resources.py`: hardcoded constants for shared infrastructure (VPC ID, subnets, ALB ARN/security groups, production host header). Centralized to avoid drift between stacks referencing same load balancer.
+- `stack.py`: ECS cluster, task definition, service, Launch Template, fixed Auto Scaling Group, capacity provider, target group, and listener rule.
+- `existing_resources.py`: IDs and ARNs for the existing VPC, subnets, shared ALB, listener, security group, and production host.
+- `tests/test_stack.py`: five deployment-critical tests covering task layout, ALB routing, security-group ingress, resource ordering, deployment settings, stable host identities, and deletion-safe ASG configuration.
+- `.github/workflows/deploy-cdk-aws.yml`: builds immutable container images, pushes them to ECR, runs tests, and deploys the CDK stack.
 
-## Previous approach (deprecated)
+## Previous approaches and deployment failures
 
-Before this rewrite: raw EC2 with CloudFormation Init (cfn-init) + cfn-signal + docker-compose on-host.
-- bootstrap.py (~140 lines) generated a massive base64-encoded UserData blob containing ~186 lines of shell commands
-- Instance booted, ran shell scripts to install Docker from scratch, authenticate to ECR, pull all 4 images (3GB), run docker-compose up, then signal CloudFormation success
-- If cfn-signal did not arrive within timeout (started at 5 min, had to bump to 30 min as images grew), CloudFormation destroyed your working stack thinking deploy failed -- even though instance was probably fine, just slow on cold boot
-- No container lifecycle management beyond docker-compose own restart policy; no integration with AWS health checks; ghost EC2 problem from inconsistent fingerprinting required manual SSH debugging
+### Bare EC2 bootstrap
 
-New ECS pattern uses the same t3.medium but:
-- Zero bootstrap scripts (ECS agent pre-installed in AMI, auto-registers on boot)
-- ECS service declaratively maintains desired_count=1 and replaces failed tasks automatically without cfn-signal gymnastics
-- Application updates replace the ECS task without replacing the EC2 host. Because one t3.medium cannot fit two complete tasks, ECS deliberately stops the old task before starting the new one (`minimumHealthyPercent=0`, `maximumPercent=100`); brief deployment downtime is expected.
+The original deployment used CloudFormation Init, shell scripts, and Docker Compose on a raw EC2 instance. Application changes forced instance replacement so bootstrap scripts would run again. Large image pulls and `cfn-signal` timeouts made deployments slow and fragile.
+
+ECS now handles application releases by replacing tasks. EC2 replacement is reserved for actual host changes or failures.
+
+### Versioned host resources
+
+The workflow previously passed a run number into versioned Launch Template and Auto Scaling Group construct IDs. Every application deployment changed CloudFormation logical IDs and replaced the host infrastructure. Fixed construct IDs now keep the host stable across application releases.
+
+### Container and routing failures
+
+- A complete Nginx configuration was copied into `/etc/nginx/conf.d/default.conf`, causing Nginx to exit because top-level directives were invalid there. It now replaces `/etc/nginx/nginx.conf`.
+- The ALB originally targeted Flask on port 5000 instead of Nginx on port 80.
+- The task security group originally had no ingress from the shared ALB.
+- The Nginx Java proxy stripped the Spring class-level route prefix.
+- PyTorch attempted to download model weights at runtime despite the task having no internet route. The weights are now cached in the image build.
+
+### Stack deletion hang
+
+ECS capacity-provider defaults enabled managed scaling, managed termination protection, and instance scale-in protection. During deletion, CloudFormation successfully set the Auto Scaling Group to `min=0`, `max=0`, and `desired=0`, but the protected instance remained and blocked deletion.
+
+Managed scaling and managed termination protection are now disabled. Synthesis verifies that new instances are not protected from scale-in.
+
+### Service created before EC2 capacity
+
+The deployment circuit breaker once failed the service while the instance profile was still being created. The ECS service depended on the listener rule but not on the Auto Scaling Group, so CloudFormation could create the service before any container instance existed.
+
+The service now explicitly depends on the Auto Scaling Group. The circuit breaker evaluates task health only after CloudFormation has created host capacity.
