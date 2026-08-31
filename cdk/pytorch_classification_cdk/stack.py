@@ -242,8 +242,7 @@ class PytorchClassificationStack(Stack):
                 instances_distribution=autoscaling.InstancesDistribution(
                     spot_allocation_strategy=autoscaling.SpotAllocationStrategy.CAPACITY_OPTIMIZED,
                     on_demand_base_capacity=0,
-                    on_demand_percentage_above_base_capacity=0,  # All Spot
-                    spot_max_price="0.04",
+                    on_demand_percentage_above_base_capacity=0,  # All Spot; no max_price cap (On-Demand price is the ceiling)
                 ),
                 launch_template=launch_template,
             ),
