@@ -97,6 +97,12 @@ def test_target_group_health_check_points_to_nginx():
     if isinstance(dependencies, str):
         dependencies = [dependencies]
     assert "PytorchListenerRule" in dependencies
+    asg_logical_id = next(
+        logical_id
+        for logical_id, resource in template["Resources"].items()
+        if resource["Type"] == "AWS::AutoScaling::AutoScalingGroup"
+    )
+    assert asg_logical_id in dependencies
 
 
 def test_listener_rule_routes_production_host():

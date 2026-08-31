@@ -261,5 +261,10 @@ class PytorchClassificationStack(Stack):
         )
         cluster.add_asg_capacity_provider(capacity_provider)
 
+        # Do not let the deployment circuit breaker evaluate the service before
+        # CloudFormation has created the fixed EC2 capacity for the cluster.
+        cfn_asg = pytorch_asg.node.default_child
+        cfn_service.add_resource_dependency(cfn_asg)
+
         Tags.of(pytorch_asg).add("DeployedBy", "GitHub-Actions-CDK")
         Tags.of(pytorch_asg).add("Project", "pytorch-image-classification")
