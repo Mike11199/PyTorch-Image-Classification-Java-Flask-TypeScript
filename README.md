@@ -1,7 +1,19 @@
-# Deployments
-  - https://machine-learning-projects.com/  - EC2 (TypeScript/ Java Spring Boot/ Flask) - NEW
+# Deployment
 
-<br />
+- https://machine-learning-projects.com/
+  - ECS on EC2 Spot (TypeScript, Java Spring Boot, Flask/PyTorch)
+
+## CDK Details
+- Deployment is automated by [GitHub Actions](.github/workflows/deploy-cdk-aws.yml) and [AWS CDK](cdk/README.md).
+- The workflow tests the CDK stack, builds three Docker images, pushes them to ECR, and deploys one ECS task containing Nginx/React, Java Spring Boot, and Flask/PyTorch.
+- This is ECS on an EC2, not Fargate with ECS.
+
+- The previous deployment required manually building and starting each service on the EC2 after git cloning, configuring Nginx, and restarting processes after updates.:
+- Kept deprecated commands for set up here
+  - [Java manual deployment notes](backend-java-spring-boot/README.md)
+  - [Flask manual deployment notes](backend-flask-pytorch/README.md)
+
+## Screenshots
 
 
 ![mask_rcnn_cats_and_dogs](https://github.com/user-attachments/assets/b6710505-8026-44fc-a5d3-c06e1a7e3abf)
@@ -18,7 +30,10 @@
 
 # Stack/Technologies
   - Java Spring Boot
-  - AWS EC2
+  - AWS ECS on EC2 Spot
+  - AWS CDK
+  - GitHub Actions
+  - Docker and Nginx
   - TypeScript
   - Flask
   - Pytorch (Python)
@@ -32,7 +47,7 @@
 
 
 
-# Back End Repo - AWS Endpoint/Model/etc
+# Deprecated Back End Repo - AWS SageMaker Endpoint/Model/etc
   - https://github.com/Mike11199/PyTorch-Image-Classification/
 
 # Video - Old (2023)
