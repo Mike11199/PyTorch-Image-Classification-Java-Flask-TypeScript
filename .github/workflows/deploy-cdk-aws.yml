@@ -137,5 +137,4 @@ jobs:
             --require-approval never \
             --parameters ImageTagFlask="$FLASK_TAG" \
             --parameters ImageTagJava="$JAVA_TAG" \
-            --parameters ImageTagReact="$REACT_TAG" \
-            --context deploy-version="${{ github.run_number }}"
+            --parameters ImageTagReact="$REACT_TAG"

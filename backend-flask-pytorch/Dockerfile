@@ -10,6 +10,11 @@ RUN apt-get update && \
 COPY backend-flask-pytorch/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Cache pretrained model weights during the image build; ECS task ENIs have no internet path.
+ENV TORCH_HOME=/opt/torch-cache
+COPY backend-flask-pytorch/prefetch_models.py .
+RUN python prefetch_models.py
+
 # Copy app code (includes model loading scripts)
 COPY backend-flask-pytorch/. .
 

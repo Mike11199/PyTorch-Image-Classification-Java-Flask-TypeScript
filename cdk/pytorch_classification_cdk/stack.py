@@ -59,7 +59,7 @@ class PytorchClassificationStack(Stack):
             self,
             "PytorchCluster",
             vpc=vpc,
-            container_insights=False,  # Not needed for single-task production workload
+            container_insights_v2=ecs.ContainerInsights.DISABLED,
         )
 
         # Task execution role: ECS agent uses this to pull images from ECR and write logs.
@@ -142,6 +142,22 @@ class PytorchClassificationStack(Stack):
             cluster=cluster,
             task_definition=task_definition,
             desired_count=1,
+            min_healthy_percent=0,
+            max_healthy_percent=100,
+            circuit_breaker=ecs.DeploymentCircuitBreaker(rollback=True),
+        )
+
+        # The task ENI accepts HTTP only from the shared ALB security group.
+        shared_alb_security_group = ec2.SecurityGroup.from_security_group_id(
+            self,
+            "SharedAlbSecurityGroup",
+            existing_resources.SHARED_ALB_SECURITY_GROUP_ID,
+            mutable=False,
+        )
+        service.connections.allow_from(
+            shared_alb_security_group,
+            ec2.Port.tcp(80),
+            "Allow shared ALB to reach Nginx",
         )
 
         # Target group attached to imported shared ALB; uses IP targets for ECS tasks.
@@ -152,7 +168,12 @@ class PytorchClassificationStack(Stack):
             port=80,
             protocol=elbv2.ApplicationProtocol.HTTP,
             target_type=elbv2.TargetType.IP,  # ECS tasks get ENIs with IPs
-            targets=[service],
+            targets=[
+                service.load_balancer_target(
+                    container_name="NginxContainer",
+                    container_port=80,
+                )
+            ],
             health_check=elbv2.HealthCheck(
                 path="/health",
                 interval=Duration.seconds(30),
@@ -163,7 +184,7 @@ class PytorchClassificationStack(Stack):
         )
 
         # Listener rule on shared ALB: production host header -> our target group.
-        elbv2.CfnListenerRule(
+        listener_rule = elbv2.CfnListenerRule(
             self,
             "PytorchListenerRule",
             listener_arn=existing_resources.SHARED_HTTPS_LISTENER_ARN,  # from existing_resources.py
@@ -182,6 +203,11 @@ class PytorchClassificationStack(Stack):
             ],
         )
 
+        # ECS rejects service creation when its target group has not yet been
+        # associated with a load balancer.
+        cfn_service = service.node.default_child
+        cfn_service.add_resource_dependency(listener_rule)
+
         # Instance role for ECS-optimized EC2 instances.
         instance_role = iam.Role(
             self,
@@ -196,11 +222,9 @@ class PytorchClassificationStack(Stack):
         )
 
         # LaunchTemplate with Spot pricing (account disabled LaunchConfiguration).
-        deploy_version = self.node.try_get_context("deploy-version") or "1"
-
         launch_template = ec2.LaunchTemplate(
             self,
-            f"EcsLaunchTemplate-v{deploy_version}",
+            "EcsLaunchTemplate",
             instance_type=ec2.InstanceType("t3.medium"),
             machine_image=ecs.EcsOptimizedImage.amazon_linux2023(),  # Pre-installed ECS agent (AL2023)
             role=instance_role,  # Instance profile with ECS + SSM permissions
@@ -209,7 +233,7 @@ class PytorchClassificationStack(Stack):
 
         pytorch_asg = autoscaling.AutoScalingGroup(
             self,
-            f"PytorchCapacity-v{deploy_version}",
+            "PytorchCapacity",
             vpc=vpc,
             min_capacity=1,
             max_capacity=1,
@@ -231,7 +255,9 @@ class PytorchClassificationStack(Stack):
             self,
             "PytorchAsgCapacityProvider",
             auto_scaling_group=pytorch_asg,
-            # This internally calls cluster.register_auto_scaling_group() which patches user_data.
+            enable_managed_scaling=False,
+            enable_managed_termination_protection=False,
+            # Registration still patches the ASG user data with the ECS cluster name.
         )
         cluster.add_asg_capacity_provider(capacity_provider)
 
