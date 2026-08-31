@@ -10,7 +10,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy application.properties for upload size limits (from README)
+# Runtime configuration under src/main/resources is packaged inside the JAR.
 COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 RUN addgroup -g 1001 spring && \
     adduser -u 1001 -G spring -s /bin/sh -D spring && \

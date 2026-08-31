@@ -71,6 +71,7 @@ The workflow previously passed a run number into versioned Launch Template and A
 - The task security group originally had no ingress from the shared ALB.
 - The Nginx Java proxy stripped the Spring class-level route prefix.
 - PyTorch attempted to download model weights at runtime despite the task having no internet route. The weights are now cached in the image build.
+- Spring upload limits existed only in an ignored local `application.properties`, so deployed containers used Spring's default multipart limit and returned 413. A tracked `application.yml` now packages the 100 MB limits in the Java image.
 
 ### Stack deletion hang
 

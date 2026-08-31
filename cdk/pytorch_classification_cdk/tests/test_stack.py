@@ -46,8 +46,16 @@ def test_task_definition_has_three_containers():
 
     project_root = Path(__file__).parents[3]
     nginx_config = (project_root / "frontend/nginx/default.conf").read_text()
+    assert "client_max_body_size 100M;" in nginx_config
     assert "rewrite ^/api-java-spring-boot/" not in nginx_config
     assert "proxy_pass http://127.0.0.1:8080;" in nginx_config
+
+    spring_config = (
+        project_root
+        / "backend-java-spring-boot/src/main/resources/application.yml"
+    ).read_text()
+    assert "max-file-size: 100MB" in spring_config
+    assert "max-request-size: 100MB" in spring_config
 
     flask_dockerfile = (project_root / "backend-flask-pytorch/Dockerfile").read_text()
     assert "ENV TORCH_HOME=/opt/torch-cache" in flask_dockerfile
