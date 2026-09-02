@@ -114,15 +114,46 @@ def test_target_group_health_check_points_to_nginx():
 
 
 def test_listener_rule_routes_production_host():
-    """Listener rule uses correct priority (10) and production host — wrong values cause traffic collision."""
+    """Listener rule uses the current production priority and host."""
     rules = resources_of_type(
         synth_template(), "AWS::ElasticLoadBalancingV2::ListenerRule"
     )
     assert len(rules) == 1
 
     r = rules[0]["Properties"]
-    assert r["Priority"] == 10
+    assert r["Priority"] == 3
     assert r["Conditions"][0]["HostHeaderConfig"]["Values"] == ["machine-learning-projects.com"]
+
+
+def test_owns_retained_root_alias_using_shared_outputs():
+    template = synth_template()
+    records = resources_of_type(template, "AWS::Route53::RecordSet")
+
+    assert len(records) == 1
+    alias = template["Resources"]["MachineLearningAliasRecord"]
+    assert alias["DeletionPolicy"] == "Retain"
+    assert alias["UpdateReplacePolicy"] == "Retain"
+    assert alias["Properties"] == {
+        "Name": "machine-learning-projects.com.",
+        "Type": "A",
+        "HostedZoneId": {"Fn::ImportValue": "SharedMachineLearningHostedZoneId"},
+        "AliasTarget": {
+            "DNSName": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "dualstack.",
+                        {"Fn::ImportValue": "SharedLoadBalancerDnsName"},
+                        ".",
+                    ],
+                ]
+            },
+            "HostedZoneId": {
+                "Fn::ImportValue": "SharedLoadBalancerCanonicalHostedZoneId"
+            },
+            "EvaluateTargetHealth": True,
+        },
+    }
 
 
 def test_asg_is_fixed_at_one_instance():

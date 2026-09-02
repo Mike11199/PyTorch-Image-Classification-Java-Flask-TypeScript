@@ -19,6 +19,8 @@ SHARED_ALB_ARN = "arn:aws:elasticloadbalancing:us-west-1:456461478565:loadbalanc
 SHARED_ALB_SECURITY_GROUP_ID = "sg-0190e299544ca1711"
 SHARED_HTTPS_LISTENER_ARN = "arn:aws:elasticloadbalancing:us-west-1:456461478565:listener/app/consolidated-load-balancer/cebd4e468e9c8526/119a0202f44da309"
 PRODUCTION_HOST = "machine-learning-projects.com"
+# Listener priorities: Alpine Peak 1, Portfolio 2, Machine Learning 3.
+LISTENER_RULE_PRIORITY = 3
 
 AVAILABILITY_ZONES = ("us-west-1b",)
 PUBLIC_SUBNET_IDS = (

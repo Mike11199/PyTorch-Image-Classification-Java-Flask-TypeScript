@@ -43,3 +43,6 @@ cdk/cdk.out/
 
 .clinerules
 .clinerules/*
+
+# Local migration plan
+/MIGRATION_README.md

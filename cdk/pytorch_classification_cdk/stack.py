@@ -16,6 +16,8 @@ Spot interruption is handled gracefully - AWS gives 2 min notice, ECS drains tas
 from constructs import Construct
 from aws_cdk import (
     Duration,
+    Fn,
+    RemovalPolicy,
     Stack,
     Tags,
     CfnParameter,
@@ -24,6 +26,7 @@ from aws_cdk import (
     aws_autoscaling as autoscaling,
     aws_elasticloadbalancingv2 as elbv2,
     aws_iam as iam,
+    aws_route53 as route53,
 )
 
 from . import existing_resources
@@ -44,6 +47,30 @@ class PytorchClassificationStack(Stack):
         self.param_image_tag_react = CfnParameter(
             self, "ImageTagReact", default="react-front-end-latest"
         )
+
+        alias_record = route53.CfnRecordSet(
+            self,
+            "MachineLearningAliasRecordResource",
+            hosted_zone_id=Fn.import_value("SharedMachineLearningHostedZoneId"),
+            name=f"{existing_resources.PRODUCTION_HOST}.",
+            type="A",
+            alias_target=route53.CfnRecordSet.AliasTargetProperty(
+                dns_name=Fn.join(
+                    "",
+                    [
+                        "dualstack.",
+                        Fn.import_value("SharedLoadBalancerDnsName"),
+                        ".",
+                    ],
+                ),
+                hosted_zone_id=Fn.import_value(
+                    "SharedLoadBalancerCanonicalHostedZoneId"
+                ),
+                evaluate_target_health=True,
+            ),
+        )
+        alias_record.override_logical_id("MachineLearningAliasRecord")
+        alias_record.apply_removal_policy(RemovalPolicy.RETAIN)
 
         # Import existing VPC (from existing_resources.py).
         vpc = ec2.Vpc.from_vpc_attributes(
@@ -188,7 +215,7 @@ class PytorchClassificationStack(Stack):
             self,
             "PytorchListenerRule",
             listener_arn=existing_resources.SHARED_HTTPS_LISTENER_ARN,  # from existing_resources.py
-            priority=10,
+            priority=existing_resources.LISTENER_RULE_PRIORITY,
             conditions=[
                 {
                     "field": "host-header",
