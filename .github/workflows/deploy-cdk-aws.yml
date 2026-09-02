@@ -134,6 +134,7 @@ jobs:
           REACT_TAG="react-front-end-${{ github.sha }}"
 
           cdk deploy PytorchClassificationStack \
+            --revert-drift \
             --require-approval never \
             --parameters ImageTagFlask="$FLASK_TAG" \
             --parameters ImageTagJava="$JAVA_TAG" \
