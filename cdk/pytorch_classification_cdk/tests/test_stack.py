@@ -1,6 +1,7 @@
 """Infrastructure regression tests for the ECS CDK stack."""
 
 import importlib.util
+import json
 from pathlib import Path
 
 from aws_cdk import App
@@ -29,7 +30,11 @@ def test_repository_stack_owns_retained_live_repository_and_exports_uri():
     stack = RepositoryStack(app, "TestPytorchRepositoryStack")
     template = app.synth().get_stack_by_name(stack.stack_name).template
 
-    assert template["Resources"]["PytorchRepository"] == {
+    repository = template["Resources"]["PytorchRepository"]
+    lifecycle_policy = json.loads(
+        repository["Properties"].pop("LifecyclePolicy")["LifecyclePolicyText"]
+    )
+    assert repository == {
         "Type": "AWS::ECR::Repository",
         "Properties": {
             "EmptyOnDelete": False,
@@ -44,6 +49,36 @@ def test_repository_stack_owns_retained_live_repository_and_exports_uri():
     assert template["Outputs"]["PytorchRepositoryUri"]["Export"] == {
         "Name": "PytorchRepositoryUri"
     }
+    assert lifecycle_policy["rules"] == [
+        {
+            "rulePriority": priority,
+            "description": description,
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": [prefix],
+                "countType": "imageCountMoreThan",
+                "countNumber": 3,
+            },
+            "action": {"type": "expire"},
+        }
+        for priority, description, prefix in (
+            (1, "Keep the three most recent Flask API images", "flask-api-"),
+            (2, "Keep the three most recent Java API images", "java-api-"),
+            (3, "Keep the three most recent frontend images", "react-front-end-"),
+        )
+    ] + [
+        {
+            "rulePriority": 4,
+            "description": "Expire untagged images after one day",
+            "selection": {
+                "tagStatus": "untagged",
+                "countType": "sinceImagePushed",
+                "countUnit": "days",
+                "countNumber": 1,
+            },
+            "action": {"type": "expire"},
+        }
+    ]
 
 
 def test_cdk_app_defines_repository_before_dependent_application_stack():

@@ -1,5 +1,7 @@
 """ECR repository infrastructure owned independently from the application."""
 
+import json
+
 from aws_cdk import CfnOutput, RemovalPolicy, Stack, aws_ecr as ecr
 from constructs import Construct
 
@@ -20,6 +22,55 @@ class RepositoryStack(Stack):
             ),
             encryption_configuration=ecr.CfnRepository.EncryptionConfigurationProperty(
                 encryption_type="AES256"
+            ),
+            lifecycle_policy=ecr.CfnRepository.LifecyclePolicyProperty(
+                lifecycle_policy_text=json.dumps(
+                    {
+                        "rules": [
+                            {
+                                "rulePriority": priority,
+                                "description": description,
+                                "selection": {
+                                    "tagStatus": "tagged",
+                                    "tagPrefixList": [prefix],
+                                    "countType": "imageCountMoreThan",
+                                    "countNumber": 3,
+                                },
+                                "action": {"type": "expire"},
+                            }
+                            for priority, description, prefix in (
+                                (
+                                    1,
+                                    "Keep the three most recent Flask API images",
+                                    "flask-api-",
+                                ),
+                                (
+                                    2,
+                                    "Keep the three most recent Java API images",
+                                    "java-api-",
+                                ),
+                                (
+                                    3,
+                                    "Keep the three most recent frontend images",
+                                    "react-front-end-",
+                                ),
+                            )
+                        ]
+                        + [
+                            {
+                                "rulePriority": 4,
+                                "description": "Expire untagged images after one day",
+                                "selection": {
+                                    "tagStatus": "untagged",
+                                    "countType": "sinceImagePushed",
+                                    "countUnit": "days",
+                                    "countNumber": 1,
+                                },
+                                "action": {"type": "expire"},
+                            }
+                        ]
+                    }
+                )
             ),
             empty_on_delete=False,
         )
