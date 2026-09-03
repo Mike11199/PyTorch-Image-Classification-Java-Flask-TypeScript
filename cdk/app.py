@@ -1,23 +1,26 @@
-"""Synthesize the PyTorch classification production stack locally.
+"""Synthesize the PyTorch classification infrastructure locally."""
 
-`cdk synth` creates only a CloudFormation template. It does not contact AWS,
-bootstrap CDK, deploy, change DNS, or alter live traffic.
-"""
+from aws_cdk import App
 
-from aws_cdk import App, Environment
-
-from pytorch_classification_cdk.existing_resources import AWS_ACCOUNT_ID, AWS_REGION
+from pytorch_classification_cdk.repository_stack import RepositoryStack
 from pytorch_classification_cdk.stack import PytorchClassificationStack
 
 
-def main() -> None:
+def build_app() -> App:
     app = App()
-    PytorchClassificationStack(
+    repository_stack = RepositoryStack(
+        app, "PytorchRepositoryStack", analytics_reporting=False
+    )
+    application_stack = PytorchClassificationStack(
         app,
         "PytorchClassificationStack",
-        env=Environment(account=AWS_ACCOUNT_ID, region=AWS_REGION),
     )
-    app.synth()
+    application_stack.add_stack_dependency(repository_stack)
+    return app
+
+
+def main() -> None:
+    build_app().synth()
 
 
 if __name__ == "__main__":

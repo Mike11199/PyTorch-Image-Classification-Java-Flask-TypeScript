@@ -1,5 +1,6 @@
 """Infrastructure regression tests for the ECS CDK stack."""
 
+import importlib.util
 from pathlib import Path
 
 from aws_cdk import App
@@ -19,6 +20,86 @@ def resources_of_type(template: dict, resource_type: str) -> list[dict]:
     return [
         r for r in template["Resources"].values() if r["Type"] == resource_type
     ]
+
+
+def test_repository_stack_owns_retained_live_repository_and_exports_uri():
+    from pytorch_classification_cdk.repository_stack import RepositoryStack
+
+    app = App()
+    stack = RepositoryStack(app, "TestPytorchRepositoryStack")
+    template = app.synth().get_stack_by_name(stack.stack_name).template
+
+    assert template["Resources"]["PytorchRepository"] == {
+        "Type": "AWS::ECR::Repository",
+        "Properties": {
+            "EmptyOnDelete": False,
+            "EncryptionConfiguration": {"EncryptionType": "AES256"},
+            "ImageScanningConfiguration": {"ScanOnPush": False},
+            "ImageTagMutability": "MUTABLE",
+            "RepositoryName": "pytorch-web",
+        },
+        "UpdateReplacePolicy": "Retain",
+        "DeletionPolicy": "Retain",
+    }
+    assert template["Outputs"]["PytorchRepositoryUri"]["Export"] == {
+        "Name": "PytorchRepositoryUri"
+    }
+
+
+def test_cdk_app_defines_repository_before_dependent_application_stack():
+    app_path = Path(__file__).parents[2] / "app.py"
+    spec = importlib.util.spec_from_file_location("pytorch_cdk_app", app_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    app = module.build_app()
+    assembly = app.synth()
+    repository_artifact = assembly.get_stack_by_name("PytorchRepositoryStack")
+    application_artifact = assembly.get_stack_by_name("PytorchClassificationStack")
+
+    assert repository_artifact.id in {
+        dependency.id for dependency in application_artifact.dependencies
+    }
+
+
+def test_account_specific_resource_ids_are_not_stored_in_source():
+    cdk_root = Path(__file__).parents[2]
+    source = "\n".join(
+        path.read_text()
+        for path in (
+            cdk_root / "app.py",
+            cdk_root / "pytorch_classification_cdk/existing_resources.py",
+        )
+    )
+    for forbidden in (
+        "456461478565",
+        "us-west-1",
+        "172.31.0.0/16",
+        "vpc-031a34e2307900372",
+        "subnet-0069d564c7d9784e5",
+        "sg-0190e299544ca1711",
+        "arn:aws:elasticloadbalancing",
+    ):
+        assert forbidden not in source
+
+
+def test_active_workflow_deploys_repository_before_building_application():
+    workflows = Path(__file__).parents[3] / ".github/workflows"
+    active = workflows / "deploy-cdk-aws.yml"
+    disabled = workflows / "deploy-cdk-aws.yml.disabled"
+    assert active.exists()
+    assert not disabled.exists()
+
+    workflow = active.read_text()
+    repository_deploy = workflow.index("cdk deploy PytorchRepositoryStack")
+    login = workflow.index("aws-actions/amazon-ecr-login")
+    build = workflow.index("docker build")
+    application_deploy = workflow.index("cdk deploy PytorchClassificationStack")
+
+    assert repository_deploy < login < build < application_deploy
+    assert "describe-repositories" not in workflow
+    assert "create-repository" not in workflow
 
 
 def test_ecs_service_runs_one_task():
@@ -94,7 +175,15 @@ def test_target_group_health_check_points_to_nginx():
     assert len(ingress) == 1
     assert ingress[0]["Properties"]["FromPort"] == 80
     assert ingress[0]["Properties"]["ToPort"] == 80
-    assert ingress[0]["Properties"]["SourceSecurityGroupId"] == "sg-0190e299544ca1711"
+    assert ingress[0]["Properties"]["SourceSecurityGroupId"] == {
+        "Fn::ImportValue": "SharedAlbSecurityGroupId"
+    }
+
+    service_security_groups = resources_of_type(template, "AWS::EC2::SecurityGroup")
+    assert len(service_security_groups) == 1
+    assert service_security_groups[0]["Properties"]["VpcId"] == {
+        "Fn::ImportValue": "SharedVpcId"
+    }
 
     service_resource = next(
         resource
@@ -123,6 +212,49 @@ def test_listener_rule_routes_production_host():
     r = rules[0]["Properties"]
     assert r["Priority"] == 3
     assert r["Conditions"][0]["HostHeaderConfig"]["Values"] == ["machine-learning-projects.com"]
+    assert r["ListenerArn"] == {"Fn::ImportValue": "SharedHttpsListenerArn"}
+    listener_rule = synth_template()["Resources"]["PytorchListenerRule"]
+    assert listener_rule["DeletionPolicy"] == "Retain"
+    assert listener_rule["UpdateReplacePolicy"] == "Retain"
+
+
+def test_shared_network_and_repository_are_consumed_through_exports():
+    template = synth_template()
+
+    target_group = resources_of_type(
+        template, "AWS::ElasticLoadBalancingV2::TargetGroup"
+    )[0]
+    assert target_group["Properties"]["VpcId"] == {
+        "Fn::ImportValue": "SharedVpcId"
+    }
+    assert target_group["DeletionPolicy"] == "Retain"
+    assert target_group["UpdateReplacePolicy"] == "Retain"
+
+    asg = resources_of_type(template, "AWS::AutoScaling::AutoScalingGroup")[0]
+    assert asg["Properties"]["VPCZoneIdentifier"] == [
+        {"Fn::ImportValue": "SharedPublicSubnet1Id"}
+    ]
+
+    task_definition = resources_of_type(template, "AWS::ECS::TaskDefinition")[0]
+    images = {
+        container["Name"]: container["Image"]
+        for container in task_definition["Properties"]["ContainerDefinitions"]
+    }
+    for name, parameter in (
+        ("FlaskContainer", "ImageTagFlask"),
+        ("JavaContainer", "ImageTagJava"),
+        ("NginxContainer", "ImageTagReact"),
+    ):
+        assert images[name] == {
+            "Fn::Join": [
+                "",
+                [
+                    {"Fn::ImportValue": "PytorchRepositoryUri"},
+                    ":",
+                    {"Ref": parameter},
+                ],
+            ]
+        }
 
 
 def test_owns_retained_root_alias_using_shared_outputs():

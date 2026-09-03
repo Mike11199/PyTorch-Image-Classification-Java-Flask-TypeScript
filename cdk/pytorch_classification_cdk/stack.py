@@ -72,13 +72,15 @@ class PytorchClassificationStack(Stack):
         alias_record.override_logical_id("MachineLearningAliasRecord")
         alias_record.apply_removal_policy(RemovalPolicy.RETAIN)
 
-        # Import existing VPC (from existing_resources.py).
+        # Import shared network attributes through stable CloudFormation exports.
         vpc = ec2.Vpc.from_vpc_attributes(
             self,
             "SharedVPC",
-            vpc_id=existing_resources.VPC_ID,
-            availability_zones=list(existing_resources.AVAILABILITY_ZONES),
-            public_subnet_ids=list(existing_resources.PUBLIC_SUBNET_IDS),
+            vpc_id=Fn.import_value("SharedVpcId"),
+            availability_zones=[
+                Fn.import_value("SharedPublicSubnet1AvailabilityZone")
+            ],
+            public_subnet_ids=[Fn.import_value("SharedPublicSubnet1Id")],
         )
 
         # ECS cluster (EC2 launch type - no extra charge beyond instance cost).
@@ -109,24 +111,21 @@ class PytorchClassificationStack(Stack):
             network_mode=ecs.NetworkMode.AWS_VPC,  # Tasks get ENI for IP targets with ALB
         )
 
-        ecr_repo_name = "pytorch-web"
-
         # Image tags passed via CDK deploy parameters (--parameters ImageTagFlask="...").
         image_tag_flask = self.param_image_tag_flask.value_as_string
         image_tag_java = self.param_image_tag_java.value_as_string
         image_tag_react = self.param_image_tag_react.value_as_string
 
-        account_id = Stack.of(self).account
-        region = Stack.of(self).region
+        repository_uri = Fn.import_value("PytorchRepositoryUri")
 
         flask_image = ecs.ContainerImage.from_registry(
-            f"{account_id}.dkr.ecr.{region}.amazonaws.com/{ecr_repo_name}:{image_tag_flask}"
+            Fn.join("", [repository_uri, ":", image_tag_flask])
         )
         java_image = ecs.ContainerImage.from_registry(
-            f"{account_id}.dkr.ecr.{region}.amazonaws.com/{ecr_repo_name}:{image_tag_java}"
+            Fn.join("", [repository_uri, ":", image_tag_java])
         )
         react_image = ecs.ContainerImage.from_registry(
-            f"{account_id}.dkr.ecr.{region}.amazonaws.com/{ecr_repo_name}:{image_tag_react}"
+            Fn.join("", [repository_uri, ":", image_tag_react])
         )
 
         # Container 1: Flask/PyTorch backend.
@@ -178,7 +177,7 @@ class PytorchClassificationStack(Stack):
         shared_alb_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
             "SharedAlbSecurityGroup",
-            existing_resources.SHARED_ALB_SECURITY_GROUP_ID,
+            Fn.import_value("SharedAlbSecurityGroupId"),
             mutable=False,
         )
         service.connections.allow_from(
@@ -209,12 +208,13 @@ class PytorchClassificationStack(Stack):
                 unhealthy_threshold_count=3,
             ),
         )
+        target_group.node.default_child.apply_removal_policy(RemovalPolicy.RETAIN)
 
         # Listener rule on shared ALB: production host header -> our target group.
         listener_rule = elbv2.CfnListenerRule(
             self,
             "PytorchListenerRule",
-            listener_arn=existing_resources.SHARED_HTTPS_LISTENER_ARN,  # from existing_resources.py
+            listener_arn=Fn.import_value("SharedHttpsListenerArn"),
             priority=existing_resources.LISTENER_RULE_PRIORITY,
             conditions=[
                 {
@@ -229,6 +229,7 @@ class PytorchClassificationStack(Stack):
                 }
             ],
         )
+        listener_rule.apply_removal_policy(RemovalPolicy.RETAIN)
 
         # ECS rejects service creation when its target group has not yet been
         # associated with a load balancer.
