@@ -102,6 +102,21 @@ def test_active_workflow_deploys_repository_before_building_application():
     assert "create-repository" not in workflow
 
 
+def test_application_deploy_excludes_the_already_deployed_repository_stack():
+    """Image parameters must be sent only to the application stack."""
+    workflow = (
+        Path(__file__).parents[3] / ".github/workflows/deploy-cdk-aws.yml"
+    ).read_text()
+    application_deploy = workflow[
+        workflow.index("cdk deploy PytorchClassificationStack") :
+    ]
+
+    assert "--exclusively" in application_deploy
+    assert application_deploy.index("--exclusively") < application_deploy.index(
+        "--parameters"
+    )
+
+
 def test_ecs_service_runs_one_task():
     """Singleton service uses stop-first updates and rolls back failed deployments."""
     services = resources_of_type(synth_template(), "AWS::ECS::Service")
