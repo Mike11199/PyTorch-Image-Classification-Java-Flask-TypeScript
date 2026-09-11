@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: backend-flask-pytorch/Dockerfile
     command: ["gunicorn", "--reload", "-w", "1", "-b", "0.0.0.0:5000", "app:app"]
-    environment:
-      MASK_LOW_RES: "${MASK_LOW_RES:-true}"
+    env_file:
+      - ./backend-flask-pytorch/.env
     volumes:
       - ./backend-flask-pytorch:/app
     # Share localhost between containers, matching the production ECS task.

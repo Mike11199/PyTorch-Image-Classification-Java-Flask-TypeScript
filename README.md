@@ -5,9 +5,9 @@
 
 ## Local development
 
-Run `make dev` (`docker compose up --build`), then open http://localhost:5173. Stop with `make down`.
+Run `make dev`, then open http://localhost:5173. Stop with `make down`.
 
-`MASK_LOW_RES=true` uses smaller masks by default, including in CDK. Set `MASK_LOW_RES=false` in the root `.env` and rerun `make dev` for original-resolution masks (higher memory use).
+`make dev` creates `backend-flask-pytorch/.env` from `default.env` only if missing. Edit `.env` and rerun `make dev`: `MASK_LOW_RES=true` uses smaller masks (Docker default); `false` uses original-resolution masks. `.env` is gitignored.
 
 ## CDK Details
 - Deployment is automated by [GitHub Actions](.github/workflows/deploy-cdk-aws.yml) and [AWS CDK](cdk/README.md).

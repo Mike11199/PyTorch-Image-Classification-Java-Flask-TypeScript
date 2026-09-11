@@ -18,7 +18,7 @@ const customFormatJSON = (data: any): string => {
     Array.isArray(data.labels)
   ) {
     return `{
-  "scores": ${JSON.stringify(data.scores, null, 2)},
+  "scores": [${data.scores.map((score: number) => score.toFixed(4)).join(", ")}],
   "classes": ${JSON.stringify(data.classes, null, 2)},
   "boxes": [
     ${data.boxes

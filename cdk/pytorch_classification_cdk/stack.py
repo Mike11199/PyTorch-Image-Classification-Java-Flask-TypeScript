@@ -135,7 +135,6 @@ class PytorchClassificationStack(Stack):
             image=flask_image,
             cpu=512,
             memory_limit_mib=1600,
-            environment={"MASK_LOW_RES": "true"},
             essential=True,
             port_mappings=[ecs.PortMapping(container_port=5000)],  # AWS_VPC auto-matches host_port; no translation allowed
             logging=ecs.LogDrivers.aws_logs(stream_prefix="flask"),
