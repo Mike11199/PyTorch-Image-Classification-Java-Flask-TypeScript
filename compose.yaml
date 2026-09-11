@@ -1,0 +1,45 @@
+name: pytorch-image-classification
+
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: backend-flask-pytorch/Dockerfile
+    command: ["gunicorn", "--reload", "-w", "1", "-b", "0.0.0.0:5000", "app:app"]
+    environment:
+      MASK_LOW_RES: "${MASK_LOW_RES:-true}"
+    volumes:
+      - ./backend-flask-pytorch:/app
+    # Share localhost between containers, matching the production ECS task.
+    # Publish ports on the container that owns the network namespace.
+    ports:
+      - "127.0.0.1:5173:5173"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:5000:5000"
+
+  java:
+    build:
+      context: .
+      dockerfile: backend-java-spring-boot/Dockerfile
+    environment:
+      SERVER_PORT: "8080"
+    network_mode: service:flask
+    depends_on:
+      - flask
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
+    # Refresh dependencies inside Docker when the lockfile changes.
+    command: ["sh", "-c", "yarn install --frozen-lockfile && yarn dev --host 0.0.0.0 --port 5173 --strictPort"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    network_mode: service:flask
+    depends_on:
+      - java

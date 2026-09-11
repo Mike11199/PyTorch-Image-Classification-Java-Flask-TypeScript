@@ -57,8 +57,8 @@ def predict_mask():
 
         if file and allowed_file(file.filename):
             image_data = file.read()
-            mask_rcnn_model = inf_mask.model_fn()
             input_tensor = inf_mask.input_fn(image_data)
+            mask_rcnn_model = inf_mask.model_fn()
             prediction = inf_mask.predict_fn(input_tensor, mask_rcnn_model)
             response = inf_mask.output_fn(prediction)
             return jsonify(json.loads(response)), 200

@@ -1,5 +1,6 @@
 import os
 import uuid
+from io import BytesIO
 from datetime import datetime
 import torch
 import logging
@@ -28,13 +29,36 @@ class ModelLoadError(Exception):
     pass
 
 
+# Bound both input-sized output masks and the model's internal feature maps.
+MASK_MAX_EDGE = 768
+MASK_MIN_EDGE = 384
+DETECTION_THRESHOLD = 0.9
+
+
+def use_low_resolution() -> bool:
+    """Set MASK_LOW_RES=false to preserve upload-sized masks and model defaults."""
+    value = os.getenv("MASK_LOW_RES", "true").strip().lower()
+    if value not in {"true", "false", "1", "0"}:
+        raise ValueError("MASK_LOW_RES must be true or false (or 1 or 0).")
+    return value in {"true", "1"}
+
+
 def model_fn() -> MaskRCNN:
     """
     Loads a Mask R-CNN model with pretrained COCO weights (ignoring any local .pth model).
     """
     try:
         weights = MaskRCNN_ResNet50_FPN_V2_Weights.DEFAULT
-        model = maskrcnn_resnet50_fpn_v2(weights=weights)
+        resize_options = (
+            {"min_size": MASK_MIN_EDGE, "max_size": MASK_MAX_EDGE}
+            if use_low_resolution() else {}
+        )
+        model = maskrcnn_resnet50_fpn_v2(
+            weights=weights,
+            **resize_options,
+            # Filter before torchvision expands masks, not only during JSON output.
+            box_score_thresh=DETECTION_THRESHOLD,
+        )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
         logger.info("Loaded Mask R-CNN model with default pretrained (COCO) weights.")
@@ -45,35 +69,23 @@ def model_fn() -> MaskRCNN:
         )
 
 
-def input_fn(input_data: bytes) -> Dict[str, np.ndarray]:
+def input_fn(input_data: bytes) -> Dict[str, Any]:
     """
-    Decode and preprocess binary image data for inference and annotation.
+    Resize before tensor creation so torchvision produces bounded-size masks.
 
-    This function takes raw binary image data, decodes it into an OpenCV-compatible
-    (BGR) image, converts it to a PIL image (RGB), then transforms it into a torch tensor
-    for inference. It also provides the original BGR image for annotation or further
-    processing.
-
-    Note - might be possible to skip cv2 and convert directly to PIL but left this in.
-
-    Returns a dict with:
-      - 'tensor': the image as a NumPy array for inference
-      - 'original_image': the original OpenCV BGR image for annotation
+    Preserve original dimensions for scaling boxes back to upload coordinates.
+    The BGR image retained for debug annotation is the processed-size image.
     """
     logger.info("input_fn_start")
 
-    # Convert raw image bytes from uploaded image into a 1d numpy array of type uint8
-    image_1d_np_array: np.ndarray = np.frombuffer(buffer=input_data, dtype=np.uint8)
-
-    # Decode the image using OpenCV (BGR) into a 3d numpy array
-    image_cv2_3d_np_array: np.ndarray = decode_array_to_cv2_image(
-        image_1d_np_array=image_1d_np_array
-    )
-
-    # Convert the image to a PIL (Python Imaging Library) Image (RGB) for torchvision transforms
-    image_pil = Image.fromarray(
-        cv2.cvtColor(src=image_cv2_3d_np_array, code=cv2.COLOR_BGR2RGB)
-    )
+    with Image.open(BytesIO(input_data)) as source:
+        original_size = source.size
+        # thumbnail can use JPEG decoder downsampling and never enlarges inputs.
+        if use_low_resolution():
+            source.thumbnail((MASK_MAX_EDGE, MASK_MAX_EDGE), Image.Resampling.LANCZOS)
+        image_pil = source.convert("RGB")
+    logger.info("Mask image resized from %s to %s", original_size, image_pil.size)
+    image_cv2_3d_np_array = cv2.cvtColor(np.asarray(image_pil), cv2.COLOR_RGB2BGR)
 
     # Converts PIL image to a normalized pytorch tensor using transforms for the model
     normalized_image_tensor: torch.Tensor = get_pytorch_tensor_from_pil_image(
@@ -85,6 +97,7 @@ def input_fn(input_data: bytes) -> Dict[str, np.ndarray]:
     return {
         "tensor": normalized_image_tensor.numpy(),
         "original_image": image_cv2_3d_np_array,
+        "original_size": original_size,
     }
 
 
@@ -193,7 +206,11 @@ def predict_fn(data: Dict[str, np.ndarray], model: MaskRCNN) -> Dict[str, Any]:
     logger.info("predict_fn_end")
 
     # Return both the output and the original_image
-    return {"predictions": output, "original_image": data["original_image"]}
+    return {
+        "predictions": output,
+        "original_image": data["original_image"],
+        "original_size": data["original_size"],
+    }
 
 
 def output_fn(prediction_dict: Dict[str, Any]) -> str:
@@ -209,6 +226,14 @@ def output_fn(prediction_dict: Dict[str, Any]) -> str:
 
     # array of a mask per object, each mask a binary array
     normalized_masks_array = create_normalized_mask_arrays(boxes, masks)
+
+    # Keep the existing box coordinate contract. Only the browser expands masks.
+    height, width = original_image.shape[:2]
+    original_width, original_height = prediction_dict["original_size"]
+    boxes = boxes * np.array([
+        original_width / width, original_height / height,
+        original_width / width, original_height / height,
+    ])
 
     # get each class name from label integers, e.g 18, from coco_names array or generic id_# if missing
     pred_classes_names = [
@@ -320,7 +345,7 @@ def process_predictions(
             scores=scores,
             labels=labels,
             masks=masks,
-            detection_threshold=0.9,
+            detection_threshold=DETECTION_THRESHOLD,
         )
     )
 

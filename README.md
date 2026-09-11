@@ -3,6 +3,12 @@
 - https://machine-learning-projects.com/
   - ECS on EC2 Spot (TypeScript, Java Spring Boot, Flask/PyTorch)
 
+## Local development
+
+Run `make dev` (`docker compose up --build`), then open http://localhost:5173. Stop with `make down`.
+
+`MASK_LOW_RES=true` uses smaller masks by default, including in CDK. Set `MASK_LOW_RES=false` in the root `.env` and rerun `make dev` for original-resolution masks (higher memory use).
+
 ## CDK Details
 - Deployment is automated by [GitHub Actions](.github/workflows/deploy-cdk-aws.yml) and [AWS CDK](cdk/README.md).
 - The workflow tests the CDK stack, builds three Docker images, pushes them to ECR, and deploys one ECS task containing Nginx/React, Java Spring Boot, and Flask/PyTorch.

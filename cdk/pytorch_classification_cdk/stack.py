@@ -26,6 +26,7 @@ from aws_cdk import (
     aws_autoscaling as autoscaling,
     aws_elasticloadbalancingv2 as elbv2,
     aws_iam as iam,
+    aws_logs as logs,
     aws_route53 as route53,
 )
 
@@ -134,6 +135,7 @@ class PytorchClassificationStack(Stack):
             image=flask_image,
             cpu=512,
             memory_limit_mib=1600,
+            environment={"MASK_LOW_RES": "true"},
             essential=True,
             port_mappings=[ecs.PortMapping(container_port=5000)],  # AWS_VPC auto-matches host_port; no translation allowed
             logging=ecs.LogDrivers.aws_logs(stream_prefix="flask"),
@@ -160,6 +162,12 @@ class PytorchClassificationStack(Stack):
             port_mappings=[ecs.PortMapping(container_port=80)],  # ALB targets this port
             logging=ecs.LogDrivers.aws_logs(stream_prefix="nginx"),
         )
+
+        # Keep the generated log-group identities, but delete groups when their
+        # resources are removed or replaced instead of leaving retained orphans.
+        for construct in task_definition.node.find_all():
+            if isinstance(construct, logs.LogGroup):
+                construct.apply_removal_policy(RemovalPolicy.DESTROY)
 
         # ECS Service: ensures exactly 1 task is always running. Handles restarts on failure.
         service = ecs.Ec2Service(

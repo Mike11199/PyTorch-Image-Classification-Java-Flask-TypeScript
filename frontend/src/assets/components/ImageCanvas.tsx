@@ -57,12 +57,19 @@ const ImageCanvas = ({
       }
 
       const maskCanvas = document.createElement("canvas");
-      maskCanvas.width = image.width;
-      maskCanvas.height = image.height;
+      // Masks may be computed at lower resolution than the uploaded image.
+      const maskHeight = pyTorchMasksArray[0].length;
+      const maskWidth = pyTorchMasksArray[0][0]?.length ?? 0;
+      if (!maskWidth || !maskHeight) {
+        setCachedMaskImage(null);
+        return;
+      }
+      maskCanvas.width = maskWidth;
+      maskCanvas.height = maskHeight;
       const maskCtx = maskCanvas.getContext("2d");
       if (!maskCtx) return;
 
-      const maskData = maskCtx.createImageData(image.width, image.height);
+      const maskData = maskCtx.createImageData(maskWidth, maskHeight);
       const data = maskData.data;
 
       // Batch update pixels for all masks
@@ -75,7 +82,7 @@ const ImageCanvas = ({
         mask.forEach((row, y) => {
           row.forEach((pixel, x) => {
             if (pixel === 1) {
-              const offset = (y * image.width + x) * 4;
+              const offset = (y * maskWidth + x) * 4;
               data[offset] = r; // Red
               data[offset + 1] = g; // Green
               data[offset + 2] = b; // Blue
@@ -118,7 +125,8 @@ const ImageCanvas = ({
 
       // Draw cached mask image
       if (cachedMaskImage) {
-        ctx.drawImage(cachedMaskImage, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(cachedMaskImage, 0, 0, image.width, image.height);
       }
 
       // Draw bounding boxes
