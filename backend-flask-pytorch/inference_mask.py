@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import cv2
 import json
-from PIL import Image
+from PIL import Image, ImageOps, ExifTags
 from torchvision import transforms
 from typing import Optional, Any, Dict, Tuple, List
 from torchvision.models.detection import (
@@ -80,10 +80,14 @@ def input_fn(input_data: bytes) -> Dict[str, Any]:
 
     with Image.open(BytesIO(input_data)) as source:
         original_size = source.size
+        # Match the browser's EXIF orientation, including mirrored phone photos.
+        # Orientations 5-8 rotate by 90/270 degrees, swapping displayed dimensions.
+        if source.getexif().get(ExifTags.Base.Orientation) in (5, 6, 7, 8):
+            original_size = original_size[::-1]
         # thumbnail can use JPEG decoder downsampling and never enlarges inputs.
         if use_low_resolution():
             source.thumbnail((MASK_MAX_EDGE, MASK_MAX_EDGE), Image.Resampling.LANCZOS)
-        image_pil = source.convert("RGB")
+        image_pil = ImageOps.exif_transpose(source).convert("RGB")
     logger.info("Mask image resized from %s to %s", original_size, image_pil.size)
     image_cv2_3d_np_array = cv2.cvtColor(np.asarray(image_pil), cv2.COLOR_RGB2BGR)
 
