@@ -43,7 +43,17 @@ class MediaStack(Stack):
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 allowed_methods=cloudfront.AllowedMethods.ALLOW_GET_HEAD,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
-                response_headers_policy=cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+                # Allow browser image analysis without disabling media caching.
+                response_headers_policy=cloudfront.ResponseHeadersPolicy(
+                    self, "PublicMediaHeaders",
+                    cors_behavior=cloudfront.ResponseHeadersCorsBehavior(
+                        access_control_allow_origins=["*"],
+                        access_control_allow_methods=["GET", "HEAD"],
+                        access_control_allow_headers=["*"],
+                        access_control_allow_credentials=False,
+                        origin_override=True,
+                    ),
+                ),
             ),
             comment="PyTorch media",
         )

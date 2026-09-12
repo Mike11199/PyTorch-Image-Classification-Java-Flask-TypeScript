@@ -120,6 +120,13 @@ def test_private_retained_media_uses_pay_as_you_go_cloudfront(application, assem
     media.resource_count_is("AWS::CloudFront::OriginAccessControl", 1)
     media.resource_count_is("AWS::PricingPlanManager::Subscription", 0)
     media.resource_count_is("AWS::WAFv2::WebACL", 0)
+    media.has_resource_properties("AWS::CloudFront::ResponseHeadersPolicy", {
+        "ResponseHeadersPolicyConfig": {
+            "CustomHeadersConfig": Match.absent(),
+            "CorsConfig": {"AccessControlAllowOrigins": {"Items": ["*"]},
+                           "OriginOverride": True},
+        },
+    })
     media.has_resource_properties("AWS::CloudFront::Distribution", {
         "DistributionConfig": {"DefaultCacheBehavior": {
             "ViewerProtocolPolicy": "redirect-to-https",
