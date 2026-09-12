@@ -70,6 +70,15 @@ class SpotCapacity(Construct):
 
         cluster.add_asg_capacity_provider(capacity_provider)
 
+        # Cached images can fill the disk and cause deployment image pulls to fail.
+        # Shorten ECS cleanup delays to reclaim stopped containers and unused images.
+        launch_template.user_data.add_commands(
+            "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config",
+            "echo ECS_IMAGE_MINIMUM_CLEANUP_AGE=1m >> /etc/ecs/ecs.config",
+            "echo ECS_IMAGE_CLEANUP_INTERVAL=10m >> /etc/ecs/ecs.config",
+            "echo ECS_NUM_IMAGES_DELETE_PER_CYCLE=100 >> /etc/ecs/ecs.config",
+        )
+
         Tags.of(pytorch_asg).add("DeployedBy", "GitHub-Actions-CDK")
 
         Tags.of(pytorch_asg).add("Project", "pytorch-image-classification")

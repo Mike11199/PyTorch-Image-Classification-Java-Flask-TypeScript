@@ -37,3 +37,5 @@ A fresh account needs GitHub AWS credentials and the region configured, plus dom
 Nginx serves React and proxies Java and Flask over task-local `localhost`. Model weights are cached during the Flask image build. The ALB checks Nginx `/health`.
 
 The ASG keeps exactly one host. Releases stop the old task before starting its replacement; releases and Spot interruptions can cause brief downtime. ECS service creation waits for the listener rule and host capacity.
+
+New hosts make stopped containers and unused images eligible for cleanup after one minute, checking images every ten minutes. Existing hosts need a one-time ECS configuration update; disk sizes and ECR retention are unchanged.
