@@ -16,10 +16,19 @@ PytorchClassificationStack
 ├── ECS cluster, task definition, and service
 ├── fixed one-host Spot Auto Scaling Group
 ├── Launch Template and capacity provider
-└── application security group
+├── application security group
+└── MediaStorage construct: retained private S3 bucket
+
+PytorchMediaStack (us-east-1)
+├── pay-as-you-go CloudFront distribution and origin access control
+├── S3 bucket policy
+├── ACM certificate for assets.machine-learning-projects.com
+└── assets A/AAAA aliases in Route 53
 ```
 
-Shared CDK owns the VPC, public subnets, ALB security group, hosted zone, certificate, ALB, and listeners.
+Shared CDK owns the VPC, public subnets, ALB security group, hosted zone, ALB certificate, ALB, and listeners.
+
+The main stack owns private S3 through `MediaStorage`; `PytorchMediaStack` owns pay-as-you-go CloudFront, its certificate, and assets DNS in `us-east-1`. GitHub Actions deploys both; media files are migrated separately.
 
 - Shared IDs are consumed through CloudFormation exports; production network and listener IDs are not stored in source.
 - `PytorchRepositoryStack` exports `PytorchRepositoryUri` for immutable container image tags.
@@ -53,5 +62,5 @@ Shared CDK owns the VPC, public subnets, ALB security group, hosted zone, certif
 1. Deploy shared infrastructure.
 2. Deploy `PytorchRepositoryStack`.
 3. Build and push all three images.
-4. Deploy `PytorchClassificationStack`.
+4. Deploy `PytorchClassificationStack` and `PytorchMediaStack`.
 5. Verify target health, HTTPS, Java routing, and inference.

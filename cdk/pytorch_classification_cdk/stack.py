@@ -31,12 +31,14 @@ from aws_cdk import (
 )
 
 from . import existing_resources
+from .media_storage import MediaStorage
 
 
 class PytorchClassificationStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        MediaStorage(self, "MediaStorage")
 
         # CloudFormation parameters (passed via --parameters in CI).
         self.param_image_tag_flask = CfnParameter(

@@ -135,7 +135,7 @@ jobs:
       - name: Install pinned CDK CLI
         run: npm install --global "aws-cdk@$CDK_CLI_VERSION"
 
-      - name: Deploy ECS stack with image tags
+      - name: Deploy application and media
         working-directory: cdk
         run: |
           uv sync --frozen --group dev
@@ -144,9 +144,11 @@ jobs:
           JAVA_TAG="java-api-${{ github.sha }}"
           REACT_TAG="react-front-end-${{ github.sha }}"
 
-          cdk deploy PytorchClassificationStack \
+          HOSTED_ZONE_ID="$(aws cloudformation list-exports --query "Exports[?Name=='SharedMachineLearningHostedZoneId'].Value | [0]" --output text)"
+          cdk deploy PytorchClassificationStack PytorchMediaStack \
             --exclusively \
             --require-approval never \
-            --parameters ImageTagFlask="$FLASK_TAG" \
-            --parameters ImageTagJava="$JAVA_TAG" \
-            --parameters ImageTagReact="$REACT_TAG"
+            --parameters PytorchClassificationStack:ImageTagFlask="$FLASK_TAG" \
+            --parameters PytorchClassificationStack:ImageTagJava="$JAVA_TAG" \
+            --parameters PytorchClassificationStack:ImageTagReact="$REACT_TAG" \
+            --parameters PytorchMediaStack:HostedZoneId="$HOSTED_ZONE_ID"

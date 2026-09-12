@@ -13,28 +13,28 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           id="image_url_options"
           name="image_url_options"
         >
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100366/labrador_retriever_xi8k9z.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/labrador_retriever_xi8k9z.6f53bb98b098d4d1.jpg">
             Labrador
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831056/winter_road_aiqpqk.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/winter_road_aiqpqk.bb00416e98289dce.jpg">
             Winter Road
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100677/Elephant_aoojxl.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/Elephant_aoojxl.4958b1960c5f86c9.jpg">
             Elephant
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703831905/new_york_crosswalk_hsyblv.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/new_york_crosswalk_hsyblv.214aadd6b868d6e1.jpg">
             New York Traffic
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100598/cats_and_dogs_original_bjnbbj.webp">
+          <option value="https://assets.machine-learning-projects.com/images/cats_and_dogs_original_bjnbbj.deea681becc7f815.webp">
             Cats and Dogs
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100516/city_crosswalk_k83x4d.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/city_crosswalk_k83x4d.e6c00bd941dae8be.jpg">
             City Crosswalk
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703823336/nat_geo_collage_aufbyo.png">
+          <option value="https://assets.machine-learning-projects.com/images/nat_geo_collage_aufbyo.a473cd24dbb6a8a6.png">
             Nat Geo Collage
           </option>
-          <option value="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703829029/20171225_184853_srzt72.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/20171225_184853_srzt72.2054284e1e217df6.jpg">
             Cat Image
           </option>
         </select>

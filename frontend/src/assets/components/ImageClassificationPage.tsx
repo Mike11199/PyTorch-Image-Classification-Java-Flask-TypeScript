@@ -14,7 +14,7 @@ import { SliderConfig, SlidersContainer } from "./SlidersContainer.tsx";
 
 const ImageClassificationPage = () => {
   const [inputValue, setInputValue] = useState(
-    "https://res.cloudinary.com/dwgvi9vwb/image/upload/v1737100366/labrador_retriever_xi8k9z.jpg"
+    "https://assets.machine-learning-projects.com/images/labrador_retriever_xi8k9z.6f53bb98b098d4d1.jpg"
   );
   const [pyTorchResponseObj, setPyTorchResponseObj] =
     useState<PyTorchImageResponseType | null>(null);
@@ -198,7 +198,7 @@ const ImageClassificationPageDescription = () => {
         <img
           className="my-8 flex w-[50rem] rounded-lg shadow-2xl"
           alt="faster-r-cnn-pipeline"
-          src="https://res.cloudinary.com/dwgvi9vwb/image/upload/v1703965451/faster_rcnn_o7riso.png"
+          src="https://assets.machine-learning-projects.com/images/faster_rcnn_o7riso.3f18ee1545f73d7f.png"
         ></img>
       </div>
       <div className="ml-2 md:ml-8">

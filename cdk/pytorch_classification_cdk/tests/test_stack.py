@@ -97,6 +97,13 @@ def test_cdk_app_defines_repository_before_dependent_application_stack():
         dependency.id for dependency in application_artifact.dependencies
     }
 
+    delivery = assembly.get_stack_by_name("PytorchMediaStack")
+    assert application_artifact.id in {dependency.id for dependency in delivery.dependencies}
+    assert delivery.environment.region == "us-east-1"
+    assert len(resources_of_type(application_artifact.template, "AWS::S3::Bucket")) == 1
+    assert not resources_of_type(delivery.template, "AWS::PricingPlanManager::Subscription")
+    assert not resources_of_type(delivery.template, "AWS::WAFv2::WebACL")
+
 
 def test_account_specific_resource_ids_are_not_stored_in_source():
     cdk_root = Path(__file__).parents[2]
