@@ -2,9 +2,9 @@
 
 from aws_cdk import App, Environment
 
-from pytorch_classification_cdk.media_stack import MediaStack
-from pytorch_classification_cdk.repository_stack import RepositoryStack
-from pytorch_classification_cdk.stack import PytorchClassificationStack
+from pytorch_classification_cdk.media.stack import MediaStack
+from pytorch_classification_cdk.repository.stack import RepositoryStack
+from pytorch_classification_cdk.application.stack import PytorchClassificationStack
 
 
 def build_app() -> App:

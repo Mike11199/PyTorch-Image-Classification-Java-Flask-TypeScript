@@ -13,8 +13,8 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from .existing_resources import PRODUCTION_HOST
-from .media_storage import MEDIA_REGION, media_bucket_name
+from ..existing_resources import PRODUCTION_HOST
+from ..application.constructs.media_storage import MEDIA_REGION, media_bucket_name
 
 MEDIA_HOST = f"assets.{PRODUCTION_HOST}"
 

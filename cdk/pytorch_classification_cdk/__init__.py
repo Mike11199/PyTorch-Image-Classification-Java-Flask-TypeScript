@@ -1,5 +1,5 @@
-from .stack import PytorchClassificationStack
-from .repository_stack import RepositoryStack
+from .application.stack import PytorchClassificationStack
+from .repository.stack import RepositoryStack
 
 __all__ = [
     "PytorchClassificationStack",
