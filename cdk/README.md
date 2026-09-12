@@ -1,66 +1,39 @@
 # PyTorch image classification CDK
 
-Three containers run as one ECS task on one Spot `t3.medium` EC2 instance. Brief release and Spot-recovery downtime is accepted.
+React/Nginx, Java, and Flask/PyTorch run as one ECS task on one Spot `t3.medium` EC2 host. Deployments run through GitHub Actions.
 
-The retained-resource migration is complete. The deployment workflow is active for normal repository, image, and application deployments.
-
-## Ownership
+## Structure and ownership
 
 ```text
-PytorchRepositoryStack
-└── retained ECR repository: pytorch-web
-
-PytorchClassificationStack
-├── retained root A-alias
-├── listener rule and target group
-├── ECS cluster, task definition, and service
-├── fixed one-host Spot Auto Scaling Group
-├── Launch Template and capacity provider
-├── application security group
-└── MediaStorage construct: retained private S3 bucket
-
-PytorchMediaStack (us-east-1)
-├── pay-as-you-go CloudFront distribution and origin access control
-├── S3 bucket policy
-├── ACM certificate for assets.machine-learning-projects.com
-└── assets A/AAAA aliases in Route 53
+app.py                                  # connects the three stacks
+pytorch_classification_cdk/
++-- existing_resources.py                # application constants
++-- application/
+|   +-- stack.py                         # PytorchClassificationStack
+|   \-- constructs/
+|       +-- application_service.py       # ECS cluster, containers, and service
+|       +-- shared_network.py            # imports shared networking
+|       +-- web_routing.py               # Route 53 alias, ALB rule, and target group
+|       +-- spot_capacity.py             # EC2 launch template and one-host Spot ASG
+|       \-- media_storage.py             # retained private S3 bucket
++-- media/
+|   \-- stack.py                         # PytorchMediaStack (us-east-1)
+\-- repository/
+    \-- stack.py                         # PytorchRepositoryStack: retained pytorch-web ECR
 ```
 
-Shared CDK owns the VPC, public subnets, ALB security group, hosted zone, ALB certificate, ALB, and listeners.
+The application stack owns the S3 bucket in `us-west-1`. The media stack owns pay-as-you-go CloudFront, origin access control, the bucket policy, an ACM certificate, and Route 53 A/AAAA records for `assets.machine-learning-projects.com`. Its certificate requires `us-east-1`.
 
-The main stack owns private S3 through `MediaStorage`; `PytorchMediaStack` owns pay-as-you-go CloudFront, its certificate, and assets DNS in `us-east-1`. GitHub Actions deploys both; media files are migrated separately.
+Shared infrastructure owns the VPC, subnets, ALB security group, hosted zone, ALB certificate, load balancer, and listeners. This application imports their CloudFormation exports.
 
-- Shared IDs are consumed through CloudFormation exports; production network and listener IDs are not stored in source.
-- `PytorchRepositoryStack` exports `PytorchRepositoryUri` for immutable container image tags.
-- Dependencies are one-way: shared infrastructure, then repository, image pushes, then application.
+## Deployment
 
-## Containers
+Deploy shared infrastructure first; its workflow bootstraps missing CDK environments in both regions. The [site workflow](../.github/workflows/deploy-cdk-aws.yml) then deploys the repository, builds and pushes three images, and deploys the application and media stacks together. It reads the hosted-zone ID from shared exports.
 
-- Nginx serves React and proxies backend requests over task-local `localhost`.
-- Java Spring Boot handles `/api-java-spring-boot/*` and calls Flask on port 5000.
-- Flask/PyTorch serves inference on port 5000; model weights are cached during image build.
-- The ALB health check uses Nginx `/health`; it is routing evidence, not an inference test.
+A fresh account needs GitHub AWS credentials and the region configured, plus domain registration/name-server delegation. Media files must be copied into S3 separately; deploying CDK creates the resources, not their content.
 
-## Host and release behavior
+## Runtime
 
-- ECS maintains one application task and replaces tasks for normal releases.
-- The Auto Scaling Group keeps `min=1`, `desired=1`, and `max=1` and replaces an interrupted Spot host.
-- The explicit Launch Template avoids the account-disabled legacy LaunchConfiguration path.
-- `minimumHealthyPercent=0` and `maximumPercent=100` are required because two complete tasks do not fit on one host.
-- Managed scaling and managed termination protection are disabled so stack deletion can scale the group to zero.
-- The ECS service depends on the listener rule and Auto Scaling Group so routing and host capacity exist first.
+Nginx serves React and proxies Java and Flask over task-local `localhost`. Model weights are cached during the Flask image build. The ALB checks Nginx `/health`.
 
-## Existing account
-
-- The existing ECR repository, listener rule, and target group were retained and imported without changing physical IDs.
-- Shared identifiers now come from CloudFormation exports.
-- Drift detection reports `IN_SYNC`; the final CDK diff is empty; target health and HTTPS are healthy.
-- Do not rerun retained-resource import steps.
-
-## Fresh environment
-
-1. Deploy shared infrastructure.
-2. Deploy `PytorchRepositoryStack`.
-3. Build and push all three images.
-4. Deploy `PytorchClassificationStack` and `PytorchMediaStack`.
-5. Verify target health, HTTPS, Java routing, and inference.
+The ASG keeps exactly one host. Releases stop the old task before starting its replacement; releases and Spot interruptions can cause brief downtime. ECS service creation waits for the listener rule and host capacity.
