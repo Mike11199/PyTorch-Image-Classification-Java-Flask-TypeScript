@@ -1,4 +1,4 @@
-const videoSrc = "https://assets.machine-learning-projects.com/videos/ml_video.f4174f87be6e186f.mp4";
+const videoSrc = "https://assets.machine-learning-projects.com/videos/ml-video.mp4";
 
 const HomePage = () => {
   return (

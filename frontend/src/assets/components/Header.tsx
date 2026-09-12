@@ -19,7 +19,7 @@ export default Header;
 export const Title = () => {
   return (
     <div className="flex items-center justify-center">
-      <img className="w-8 h-8" src="https://assets.machine-learning-projects.com/images/pytorch_logo.d3b918cc53c1c71b.png" alt="Logo" />
+      <img className="w-8 h-8" src="https://assets.machine-learning-projects.com/images/pytorch-logo.png" alt="Logo" />
       <h1
         className="ml-2 font-semibold text-gray-50 cursor-pointer active:scale-[0.98]"
         onClick={() => (window.location.href = "/")}

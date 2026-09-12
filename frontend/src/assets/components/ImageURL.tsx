@@ -13,28 +13,28 @@ const ImageURL = ({ urlInputValue, setterURLInputValue }: ImageURLProps) => {
           id="image_url_options"
           name="image_url_options"
         >
-          <option value="https://assets.machine-learning-projects.com/images/labrador_retriever_xi8k9z.6f53bb98b098d4d1.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/labrador.jpg">
             Labrador
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/winter_road_aiqpqk.bb00416e98289dce.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/winter-road.jpg">
             Winter Road
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/Elephant_aoojxl.4958b1960c5f86c9.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/elephant.jpg">
             Elephant
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/new_york_crosswalk_hsyblv.214aadd6b868d6e1.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/new-york-crosswalk.jpg">
             New York Traffic
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/cats_and_dogs_original_bjnbbj.deea681becc7f815.webp">
+          <option value="https://assets.machine-learning-projects.com/images/cats-and-dogs.webp">
             Cats and Dogs
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/city_crosswalk_k83x4d.e6c00bd941dae8be.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/city-crosswalk.jpg">
             City Crosswalk
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/nat_geo_collage_aufbyo.a473cd24dbb6a8a6.png">
+          <option value="https://assets.machine-learning-projects.com/images/nat-geo-collage.png">
             Nat Geo Collage
           </option>
-          <option value="https://assets.machine-learning-projects.com/images/20171225_184853_srzt72.2054284e1e217df6.jpg">
+          <option value="https://assets.machine-learning-projects.com/images/cat.jpg">
             Cat Image
           </option>
         </select>

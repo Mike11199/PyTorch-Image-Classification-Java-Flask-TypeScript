@@ -14,7 +14,7 @@ import SlidersContainer from "./SlidersContainer.tsx";
 
 const MaskRCNNPage = () => {
   const [inputValue, setInputValue] = useState(
-    "https://assets.machine-learning-projects.com/images/labrador_retriever_xi8k9z.6f53bb98b098d4d1.jpg"
+    "https://assets.machine-learning-projects.com/images/labrador.jpg"
   );
   const [pyTorchResponseObj, setPyTorchResponseObj] =
     useState<PyTorchImageResponseType | null>(null);
@@ -223,7 +223,7 @@ const ImageClassificationPageDescription = () => {
         <img
           className="my-4 flex w-[40rem] rounded-lg shadow-2xl"
           alt="faster-r-cnn-pipeline"
-          src="https://assets.machine-learning-projects.com/images/instance_segmentation_qafce9.6fdfabe38f6540d9.png"
+          src="https://assets.machine-learning-projects.com/images/instance-segmentation.png"
         />
       </div>
     </div>
