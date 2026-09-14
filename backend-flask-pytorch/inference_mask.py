@@ -58,6 +58,7 @@ def model_fn() -> MaskRCNN:
             **resize_options,
             # Filter before torchvision expands masks, not only during JSON output.
             box_score_thresh=DETECTION_THRESHOLD,
+            box_detections_per_img=int(os.getenv("MASK_MAX_DETECTIONS", "20")),
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)

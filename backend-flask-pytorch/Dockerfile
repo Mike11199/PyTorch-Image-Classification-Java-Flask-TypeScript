@@ -22,4 +22,4 @@ EXPOSE 5000
 
 ENV MASK_LOW_RES=true
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
