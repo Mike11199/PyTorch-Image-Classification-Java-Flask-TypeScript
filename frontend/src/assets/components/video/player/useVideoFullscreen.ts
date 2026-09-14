@@ -22,9 +22,14 @@ export const useVideoFullscreen = () => {
     return () => {
       document.body.style.overflow = overflow;
       document.removeEventListener("keydown", handleKey);
-      element.focus({ preventScroll: true });
+      // Mobile browsers keep the toggle button focused after an Escape exit.
+      // Clear that stale focus instead of putting it back on the player.
+      const active = document.activeElement;
+      if (active instanceof HTMLElement) active.blur();
       requestAnimationFrame(() => {
         if (!element.isConnected) return;
+        const activeAfterExit = document.activeElement;
+        if (activeAfterExit instanceof HTMLElement) activeAfterExit.blur();
         const top = element.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top, behavior: "instant" });
       });
