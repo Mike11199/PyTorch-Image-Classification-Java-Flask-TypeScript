@@ -12,6 +12,9 @@ export const NavigationButton = () => {
     case "/":
       currentPageTitle = "Home Page";
       break;
+    case "/video-mask-rcnn":
+      currentPageTitle = "Mask R-CNN Video";
+      break;
     case "/image-classification-resnet":
       currentPageTitle = "Fast R-CNN Image Classification";
       break;
@@ -63,6 +66,13 @@ export const NavigationButton = () => {
             onClick={toggleDropdown}
           >
             Home Page
+          </Link>
+          <Link
+            to="/video-mask-rcnn"
+            className="block px-4 py-2 text-gray-400 hover:bg-[#1e2535] text-center"
+            onClick={toggleDropdown}
+          >
+            Mask R-CNN Video
           </Link>
           <Link
             to="/image-classification-resnet"

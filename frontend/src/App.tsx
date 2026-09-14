@@ -10,6 +10,7 @@ import {
 import Header from "./assets/components/Header";
 import Footer from "./assets/components/Footer";
 import MaskRCNNPage from "./assets/components/MaskRCNNPage";
+import MaskVideoPage from "./assets/components/video/MaskVideoPage";
 import ReactGA from "react-ga4";
 import { useEffect } from "react";
 
@@ -40,6 +41,7 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/video-mask-rcnn" element={<MaskVideoPage />} />
             <Route
               path="/image-classification-resnet"
               element={<ImageClassificationPage />}
