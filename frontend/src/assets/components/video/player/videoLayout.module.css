@@ -8,6 +8,28 @@
 }
 
 .player:focus { outline: none; }
+.playbackToggle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.playbackToggle:disabled { cursor: default; }
+.playbackToggle:focus-visible { outline: 2px solid #ea580c; outline-offset: -2px; }
+.pausedIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid #30343b;
+  border-radius: 3px;
+  background: #101318d9;
+  color: #cbd1d9;
+}
 .fullscreen {
   position: fixed;
   inset: 0;

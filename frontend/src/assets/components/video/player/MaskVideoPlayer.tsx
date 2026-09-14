@@ -68,10 +68,25 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
               className="absolute inset-0 w-full h-full pointer-events-none"
               style={{ filter: `hue-rotate(${appearance.colorRotation}deg)` }}
             />
+            <button
+              type="button"
+              className={layout.playbackToggle}
+              aria-label={playback.playing ? "Pause video" : "Play video"}
+              disabled={!!playback.error}
+              onClick={playback.togglePlayback}
+            >
+              {!playback.playing && !playback.error && (
+                <span className={layout.pausedIcon}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+              )}
+            </button>
             {playback.buffering && (
               <div
                 role="status"
-                className="absolute bottom-2 left-2 rounded bg-black/70 px-3 py-1 text-white text-sm"
+                className="absolute bottom-2 left-2 rounded bg-black/70 px-3 py-1 text-white text-sm pointer-events-none"
               >
                 Buffering masks...
               </div>
