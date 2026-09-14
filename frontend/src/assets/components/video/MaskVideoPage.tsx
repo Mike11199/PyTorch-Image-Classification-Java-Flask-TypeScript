@@ -1,4 +1,5 @@
 import { useState } from "react";
+import VideoProcessingPreview from "./components/VideoProcessingPreview";
 import SlidersContainer from "../SlidersContainer.tsx";
 import VideoDescription from "./components/VideoDescription";
 import VideoProgress from "./components/VideoProgress";
@@ -68,7 +69,11 @@ const MaskVideoPage = () => {
         {video.manifest ? (
           <MaskVideoPlayer manifest={video.manifest} appearance={appearance} />
         ) : (
-          <p className="p-6 text-center">Your analyzed video will appear here.</p>
+          <VideoProcessingPreview
+            status={video.status}
+            loading={video.loading}
+            appearance={appearance}
+          />
         )}
       </div>
     </div>
