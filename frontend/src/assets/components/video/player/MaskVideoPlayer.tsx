@@ -1,3 +1,4 @@
+import layout from "./videoLayout.module.css";
 import { useState } from "react";
 import DetectionTimeline from "../timeline/DetectionTimeline";
 import type { VideoAppearance, VideoManifest } from "../types";
@@ -25,7 +26,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
     playback.setError("Video could not be loaded. Reload the result and try again.");
 
   return (
-    <>
+    <div className={layout.player}>
       <div className="h-[30rem] md:h-[50rem] flex flex-col p-4 gap-4">
         <div
           className="flex-1 min-h-0 flex items-center justify-center"
@@ -73,7 +74,8 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
             {playback.error}
           </p>
         )}
-        <VideoControls
+      </div>
+      <VideoControls
           playing={playback.playing}
           disabled={!!playback.error}
           time={playback.time}
@@ -83,7 +85,6 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
           onSeek={playback.seek}
           onVolume={playback.changeVolume}
         />
-      </div>
       <DetectionTimeline
         manifest={manifest}
         duration={playback.duration}
@@ -94,7 +95,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
         onSelect={setSelected}
         onSeek={playback.seek}
       />
-    </>
+    </div>
   );
 };
 

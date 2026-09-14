@@ -1,3 +1,4 @@
+import styles from "./timeline.module.css";
 import type { DetectionCategory } from "./detectionSegments";
 import type { KeyboardEvent, MouseEvent } from "react";
 
@@ -49,14 +50,15 @@ const DetectionRow = ({
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className={`${styles.row} ${selected === row.label ? styles.selected : ""}`}>
       <button
         aria-pressed={selected === row.label}
         title={`Highlight ${row.label} boxes`}
-        className={`w-20 shrink-0 text-left truncate rounded px-1 py-2 hover:bg-[#114d7e] ${selected === row.label ? "bg-[#0c2c46] text-white font-bold" : "text-gray-300"}`}
+        className={styles.label}
         onClick={() => onSelect(selected === row.label ? null : row.label)}
       >
-        {row.label}
+        <span className={styles.dot} style={{ backgroundColor: row.color, filter: `hue-rotate(${colorRotation}deg)` }} />
+        <span className="truncate">{row.label}</span>
       </button>
       <div
         role="slider"
@@ -66,28 +68,24 @@ const DetectionRow = ({
         aria-valuemax={end}
         aria-valuenow={Math.min(time, end)}
         aria-valuetext={`${time.toFixed(1)} seconds`}
-        className="relative h-8 flex-1 cursor-pointer rounded bg-[#1c2a3f] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+        className={styles.track}
         onClick={handleTrackClick}
         onKeyDown={handleTrackKey}
       >
         {row.segments.map((segment) => (
           <span
             key={segment.start}
-            className="absolute top-1 bottom-1 rounded-sm pointer-events-none"
+            className={styles.segment}
             style={{
               left: `${(segment.start / end) * 100}%`,
               width: `${((segment.end - segment.start) / end) * 100}%`,
               minWidth: 1,
-              backgroundColor: row.color,
-              opacity: selected && selected !== row.label ? 0.25 : 0.85,
+              color: row.color,
+              opacity: selected && selected !== row.label ? 0.25 : 1,
               filter: `hue-rotate(${colorRotation}deg)`,
             }}
           />
         ))}
-        <span
-          className="absolute inset-y-0 w-0.5 bg-white pointer-events-none"
-          style={{ left: `calc(${Math.min(1, time / end) * 100}% - 1px)` }}
-        />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import styles from "./timeline.module.css";
 import { useMemo } from "react";
 import DetectionRow from "./DetectionRow";
 import { detectionSegments } from "./detectionSegments";
@@ -33,33 +34,40 @@ const DetectionTimeline = ({
 
   return (
     <section
-      className="border-t border-gray-700 p-4 md:p-6 text-sm"
+      className={styles.timeline}
       aria-label="Detection timeline"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h2 className="font-bold text-orange-600">Detection timeline</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="font-bold text-orange-600">Detection timeline</h2>
+          <span className={styles.badge}>{rows.length} categories</span>
+        </div>
         {selected && (
-          <button className="underline" onClick={() => onSelect(null)}>
+          <button className={styles.clear} onClick={() => onSelect(null)}>
             Show all categories
           </button>
         )}
       </div>
-      <p className="text-gray-400 mb-4">
+      <p className="text-slate-400 text-xs mb-5">
         Click a row to seek. Select a category to highlight its boxes.
       </p>
       {!rows.length ? (
         <p className="text-gray-400">No objects detected in this clip.</p>
       ) : (
         <>
+          <div className={styles.axisHeading}>Object category</div>
           <div
-            className="ml-24 flex justify-between text-xs text-gray-400 mb-2"
+            className={styles.ruler}
             aria-hidden="true"
           >
             {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
-              <span key={fraction}>{(end * fraction).toFixed(1)}s</span>
+              <span key={fraction} className={styles.tick} style={{ left: `${fraction * 100}%` }}>{(end * fraction).toFixed(1)}s</span>
             ))}
           </div>
-          <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+          <div className={styles.rows}>
+            <div className={styles.grid} aria-hidden="true">
+              <span className={styles.playhead} style={{ left: `calc(${Math.min(1, time / end) * 100}% - 1px)` }} />
+            </div>
             {rows.map((row) => (
               <DetectionRow
                 key={row.label}

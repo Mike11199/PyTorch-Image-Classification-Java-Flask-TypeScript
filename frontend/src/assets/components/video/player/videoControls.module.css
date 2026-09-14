@@ -1,0 +1,82 @@
+.controls {
+  display: grid;
+  grid-template-columns: var(--label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px var(--track-gap);
+  padding: 12px var(--video-inset);
+  border-block: 1px solid #202a36;
+  border-radius: 3px;
+  background: #000;
+  flex-shrink: 0;
+}
+.play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  justify-self: start;
+  min-width: 78px;
+  padding: 8px 12px;
+  border: 1px solid #30343b;
+  border-radius: 3px;
+  background: #171b21;
+  color: #cbd1d9;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 150ms;
+}
+.play:hover { background: #222830; border-color: #4a535f; color: #fff; }
+.play:active { background: #101318; }
+.play svg { width: 12px; height: 12px; color: #9aa5b3; }
+.play:disabled { opacity: .5; cursor: not-allowed; }
+.play:focus-visible, .range:focus-visible { outline: 2px solid #ea580c; outline-offset: 4px; }
+.range {
+  appearance: none;
+  min-width: 0;
+  height: 20px;
+  cursor: pointer;
+  background: transparent;
+  --fill: #750a0a;
+}
+.range::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px #282c33;
+  background: linear-gradient(to right, var(--fill) var(--progress), #000 var(--progress));
+}
+.range::-moz-range-track {
+  height: 5px;
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px #282c33;
+  background: linear-gradient(to right, var(--fill) var(--progress), #000 var(--progress));
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-top: -6.5px;
+  border: 0;
+  border-radius: 50%;
+  background: #5f6d80;
+}
+.range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: #5f6d80;
+}
+/* The thumb center follows the same bounds as the timeline's inner track. */
+.seek { width: calc(100% + 16px); margin: 0 -8px; }
+.details { grid-column: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.time { white-space: nowrap; font-size: 12px; font-variant-numeric: tabular-nums; color: #8292a8; }
+.time strong { color: #e2e8f0; font-weight: 500; }
+.volume { display: flex; align-items: center; gap: 10px; color: #a6b5c8; border-left: 1px solid #243044; padding-left: 16px; }
+.volume input { width: 80px; }
+@media (max-width: 640px) {
+  .controls { row-gap: 8px; }
+  .play { min-width: 72px; padding: 8px; }
+  .volume { border: 0; padding-left: 0; margin-left: auto; }
+}
