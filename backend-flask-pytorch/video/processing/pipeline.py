@@ -4,6 +4,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from ..cache import cached_result, completion, upload_cache_key
 from ..sources.source import obtain_input
 from ..types import PreparedVideo, VideoJob
 from ..quality import job_mask_quality, model_frame_edge
@@ -47,13 +48,24 @@ def prepare_video(source: Path, directory: Path, job: VideoJob, update) -> Prepa
 
 def process_video(store, job: VideoJob, update):
     """Run each stage with one temporary directory and one active model user."""
-    from .frames import analyze_video
-
     with tempfile.TemporaryDirectory(prefix="work-", dir=store.root) as work:
         directory = Path(work)
         source = directory / "input"
         update(stage="importing")
         obtain_input(store, job, source)
+
+        if job["source"] == "upload":
+            identity = upload_cache_key(
+                source, job.get("startSeconds", 0), job_mask_quality(job)
+            )
+            job = dict(job, cacheKey=identity)
+            update(cacheKey=identity)
+            cached = cached_result(store, job)
+            if cached:
+                update(**completion(cached))
+                return
+
+        from .frames import analyze_video
 
         update(stage="preparing", progress=0)
         prepared = prepare_video(source, directory, job, update)

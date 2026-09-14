@@ -1,4 +1,4 @@
-"""Public URL cache identity. Bump the recipe whenever inference/output changes."""
+"""Cache identities for public URLs and verified uploads."""
 
 import hashlib
 import re
@@ -28,7 +28,7 @@ def youtube_video_id(url):
 
 
 def cache_key(source, url, start_seconds=0, mask_quality="detailed"):
-    """Identify a public URL and recipe; uploads never share the URL cache."""
+    """Identify a public URL; uploaded files are hashed by the worker."""
     if source == "upload":
         return None
     if source == "youtube":
@@ -48,6 +48,17 @@ def cache_key(source, url, start_seconds=0, mask_quality="detailed"):
                 )
             )
         )
+    return _recipe_key(identity, start_seconds, mask_quality)
+
+
+def upload_cache_key(path, start_seconds=0, mask_quality="detailed"):
+    """Hash the actual uploaded bytes without loading the whole file into memory."""
+    with path.open("rb") as upload:
+        digest = hashlib.file_digest(upload, "sha256").hexdigest()
+    return _recipe_key("upload:" + digest, start_seconds, mask_quality)
+
+
+def _recipe_key(identity, start_seconds, mask_quality):
     # Preserve existing zero-start cache entries; other sections get distinct keys.
     if start_seconds:
         identity += f":start={start_seconds:.3f}"
@@ -56,7 +67,7 @@ def cache_key(source, url, start_seconds=0, mask_quality="detailed"):
 
 
 def cached_result(store, job):
-    """Find a completed result with the same URL, start time, and recipe."""
+    """Find a completed result for this source and processing recipe."""
     key = job.get("cacheKey") or cache_key(
         job["source"],
         job.get("url", ""),
