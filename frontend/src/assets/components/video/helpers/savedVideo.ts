@@ -1,6 +1,14 @@
 import type { VideoJob } from "../types";
 
 const STORAGE_KEY = "mask-video-job";
+export const clearSavedVideo = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Storage may be unavailable in this browser.
+  }
+};
+
 export const readSavedVideo = (): VideoJob | null => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");

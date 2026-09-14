@@ -1,7 +1,7 @@
 import { isDefaultVideo } from "../helpers/defaultVideoColors";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cancelVideoJob } from "../api/videoRequests";
-import { readSavedVideo, saveVideo } from "../helpers/savedVideo";
+import { clearSavedVideo, readSavedVideo, saveVideo } from "../helpers/savedVideo";
 import type { VideoJob } from "../types";
 import { useVideoConfig } from "./useVideoConfig";
 import { useVideoStatus } from "./useVideoStatus";
@@ -11,10 +11,12 @@ import { useVideoSubmission } from "./useVideoSubmission";
 export const useVideoJob = () => {
   const { config, error: configError } = useVideoConfig();
   const [job, setJob] = useState(readSavedVideo);
+  const restoredJob = useRef(job);
   const [error, setError] = useState("");
   const result = useVideoStatus(job);
 
   const selectJob = useCallback((selected: VideoJob) => {
+    restoredJob.current = null;
     setError("");
     saveVideo(selected);
     setJob({ id: selected.id, token: selected.token });
@@ -22,6 +24,18 @@ export const useVideoJob = () => {
 
   const initial = useInitialVideoJob(config, job, selectJob);
   const submission = useVideoSubmission(config, selectJob);
+
+  const discardRestoredJob =
+    !!job && job === restoredJob.current &&
+    (result.status?.state === "failed" || result.status?.state === "cancelled");
+
+  useEffect(() => {
+    if (!discardRestoredJob) return;
+    // Only discard a job restored on entry, never a failed new submission.
+    restoredJob.current = null;
+    clearSavedVideo();
+    setJob(null);
+  }, [discardRestoredJob]);
 
   const cancel = async () => {
     if (!job) return;
@@ -41,9 +55,9 @@ export const useVideoJob = () => {
   return {
     config,
     defaultVideo: isDefaultVideo(result.status),
-    status: submission.busy ? null : result.status,
+    status: submission.busy || discardRestoredJob ? null : result.status,
     manifest: submission.busy ? null : result.manifest,
-    loading: initial.loading || submission.busy || active,
+    loading: discardRestoredJob || initial.loading || submission.busy || active,
     active,
     error: error || submission.error || initial.error || result.error || configError,
     setError,
