@@ -1,3 +1,4 @@
+import { isDefaultVideo } from "../helpers/defaultVideoColors";
 import { useCallback, useState } from "react";
 import { cancelVideoJob } from "../api/videoRequests";
 import { readSavedVideo, saveVideo } from "../helpers/savedVideo";
@@ -39,6 +40,7 @@ export const useVideoJob = () => {
     ["uploading", "queued", "running"].includes(result.status.state);
   return {
     config,
+    defaultVideo: isDefaultVideo(result.status),
     status: submission.busy ? null : result.status,
     manifest: submission.busy ? null : result.manifest,
     loading: initial.loading || submission.busy || active,

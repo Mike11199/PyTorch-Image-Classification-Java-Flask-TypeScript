@@ -88,6 +88,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
         manifest={manifest}
         duration={playback.duration}
         time={playback.time}
+        defaultVideo={appearance.defaultVideo}
         colorRotation={appearance.colorRotation}
         selected={selected}
         onSelect={setSelected}

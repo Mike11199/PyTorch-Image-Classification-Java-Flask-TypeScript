@@ -8,6 +8,7 @@ interface DetectionTimelineProps {
   duration: number;
   time: number;
   colorRotation: number;
+  defaultVideo?: boolean;
   selected: string | null;
   onSelect: (label: string | null) => void;
   onSeek: (time: number) => void;
@@ -18,6 +19,7 @@ const DetectionTimeline = ({
   duration,
   time,
   colorRotation,
+  defaultVideo,
   selected,
   onSelect,
   onSeek,
@@ -25,8 +27,8 @@ const DetectionTimeline = ({
   const end =
     duration || (manifest.frames[manifest.frames.length - 1]?.time || 0) + 0.033;
   const rows = useMemo(
-    () => detectionSegments(manifest.frames, end),
-    [manifest, end]
+    () => detectionSegments(manifest.frames, end, defaultVideo),
+    [manifest, end, defaultVideo]
   );
 
   return (

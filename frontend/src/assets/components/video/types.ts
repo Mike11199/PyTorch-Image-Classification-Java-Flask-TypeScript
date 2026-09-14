@@ -9,6 +9,9 @@ export interface VideoJob {
 }
 
 export interface VideoStatus {
+  source?: string;
+  url?: string;
+  startSeconds?: number;
   state: VideoJobState;
   stage?:
     | "importing"
@@ -103,6 +106,7 @@ export interface VideoAppearance {
   xOffset: number;
   yOffset: number;
   colorRotation: number;
+  defaultVideo?: boolean;
 }
 
 export type MaskFrames = Pick<

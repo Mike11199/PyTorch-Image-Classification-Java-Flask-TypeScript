@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export const useVideoAppearance = () => {
+export const useVideoAppearance = (defaultVideo = false) => {
   const [maskOpacity, setMaskOpacity] = useState(27);
   const [boxOpacity, setBoxOpacity] = useState(78);
   const [lineWidth, setLineWidth] = useState(1);
@@ -62,6 +62,7 @@ export const useVideoAppearance = () => {
       xOffset,
       yOffset,
       colorRotation,
+      defaultVideo,
     },
     regenerateColors: () => setColorRotation((value) => value + 67),
   };

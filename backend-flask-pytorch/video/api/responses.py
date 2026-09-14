@@ -54,6 +54,9 @@ def job_status(store, job):
     """Include the latest preview and an analysis-only ETA for running jobs."""
     fields = (
         "id",
+        "source",
+        "url",
+        "startSeconds",
         "state",
         "stage",
         "progress",

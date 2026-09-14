@@ -1,3 +1,4 @@
+import { categoryColor } from "../helpers/defaultVideoColors";
 import type { VideoFrame } from "../types";
 
 export interface DetectionCategory {
@@ -9,7 +10,8 @@ export interface DetectionCategory {
 /** Merge consecutive appearances without filling detection gaps. */
 export const detectionSegments = (
   frames: VideoFrame[],
-  end: number
+  end: number,
+  defaultVideo = false
 ): DetectionCategory[] => {
   const categories = new Map<string, DetectionCategory & { last: number }>();
   frames.forEach((frame, index) => {
@@ -21,7 +23,7 @@ export const detectionSegments = (
       if (!row) {
         row = {
           label: detection.label,
-          color: `rgb(${detection.color.join(",")})`,
+          color: `rgb(${categoryColor(detection, defaultVideo).join(",")})`,
           segments: [],
           last: -2,
         };

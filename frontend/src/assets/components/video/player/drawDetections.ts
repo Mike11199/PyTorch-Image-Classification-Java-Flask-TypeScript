@@ -1,3 +1,4 @@
+import { categoryColor, recolorMask } from "../helpers/defaultVideoColors";
 import type { VideoAppearance, VideoDetection, MaskFrames } from "../types";
 
 const drawMask = (
@@ -37,7 +38,7 @@ const drawBoxes = (
     const [x1, y1, x2, y2] = detection.box;
     context.globalAlpha = (appearance.boxOpacity / 100) * (matches ? 1 : 0.15);
     context.lineWidth = appearance.lineWidth + (selected && matches ? 2 : 0);
-    context.strokeStyle = context.fillStyle = `rgb(${detection.color.join(",")})`;
+    context.strokeStyle = context.fillStyle = `rgb(${categoryColor(detection, appearance.defaultVideo).join(",")})`;
     context.strokeRect(x1, y1, x2 - x1, y2 - y1);
     context.fillText(
       `${detection.label} ${Math.round(detection.score * 100)}%`,
@@ -55,6 +56,12 @@ export const drawDetections = (
   appearance: VideoAppearance,
   selected: string | null
 ) => {
-  drawMask(context, image, manifest, index, appearance.maskOpacity);
+  drawMask(context, image, manifest, index, appearance.defaultVideo ? 100 : appearance.maskOpacity);
+  if (appearance.defaultVideo) {
+    recolorMask(
+      context, manifest.frames[index].detections,
+      manifest.width, manifest.height, appearance.maskOpacity
+    );
+  }
   drawBoxes(context, manifest.frames[index].detections, appearance, selected);
 };
