@@ -18,7 +18,7 @@ export const createMaskRenderer = (
   manifest: VideoManifest,
   options: MaskRendererOptions
 ) => {
-  const context = canvas.getContext("2d")!;
+  const context = canvas.getContext("2d", { willReadFrequently: true })!;
   const cache = createMaskCache(manifest.maskUrls);
   let disposed = false;
   let generation = 0;

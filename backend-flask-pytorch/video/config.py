@@ -14,13 +14,13 @@ TERMINAL = {"completed", "failed", "cancelled"}
 EXAMPLES = [
     {
         "id": "youtube-VjmUlxRamwg-7572",
-        "name": "YouTube example (from 2:06:12)",
+        "name": "New York City in rain",
         "url": "https://youtu.be/VjmUlxRamwg?t=7572",
         "source": "youtube",
     },
     {
         "id": "youtube-eGr0Fm3X5YE-1845",
-        "name": "YouTube example (from 30:45)",
+        "name": "Chicago in winter",
         "url": "https://youtu.be/eGr0Fm3X5YE?t=1845",
         "source": "youtube",
     },

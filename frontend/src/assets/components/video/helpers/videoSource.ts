@@ -5,7 +5,7 @@ export const DEFAULT_MASK_QUALITY: VideoMaskQuality = "detailed";
 // Keep this fallback aligned with the server's default example.
 export const DEFAULT_VIDEO: VideoExample = {
   id: "youtube-VjmUlxRamwg-7572",
-  name: "YouTube example (from 2:06:12)",
+  name: "New York City in rain",
   url: "https://youtu.be/VjmUlxRamwg?t=7572",
 };
 

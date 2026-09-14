@@ -40,7 +40,7 @@ export const usePreviewMask = (
 
   useEffect(() => {
     const element = canvas.current;
-    const context = element?.getContext("2d");
+    const context = element?.getContext("2d", { willReadFrequently: true });
     if (!element || !context) return;
     context.clearRect(0, 0, element.width, element.height);
     if (!loaded || loaded.url !== url) return;
