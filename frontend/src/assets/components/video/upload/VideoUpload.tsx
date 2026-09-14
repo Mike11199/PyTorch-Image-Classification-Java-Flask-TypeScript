@@ -1,0 +1,83 @@
+import Button from "../../Button";
+import type { VideoExample, VideoMaskQuality } from "../types";
+import VideoDropzone from "./VideoDropzone";
+import VideoSourceInput from "./VideoSourceInput";
+import VideoStartTimeInput from "./VideoStartTimeInput";
+import VideoMaskQualityInput from "./VideoMaskQualityInput";
+
+interface VideoUploadProps {
+  file: File | null;
+  setFile: (file: File | null) => void;
+  url: string;
+  setUrl: (url: string) => void;
+  startTime: string;
+  setStartTime: (time: string) => void;
+  maskQuality: VideoMaskQuality;
+  setMaskQuality: (value: VideoMaskQuality) => void;
+  qualitySupported: boolean;
+  examples: VideoExample[];
+  loading: boolean;
+  submitUrl: () => Promise<void>;
+  submitFile: () => Promise<void>;
+  onError: (message: string) => void;
+}
+
+const VideoUpload = ({
+  file,
+  setFile,
+  url,
+  setUrl,
+  startTime,
+  setStartTime,
+  maskQuality,
+  setMaskQuality,
+  qualitySupported,
+  examples,
+  loading,
+  submitUrl,
+  submitFile,
+  onError,
+}: VideoUploadProps) => (
+  <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-8 shadow-md shadow-black">
+    <VideoDropzone
+      file={file}
+      setFile={setFile}
+      loading={loading}
+      onError={onError}
+    />
+    <VideoSourceInput
+      url={url}
+      setUrl={setUrl}
+      examples={examples}
+      loading={loading}
+    />
+    <VideoStartTimeInput
+      value={startTime}
+      onChange={setStartTime}
+      disabled={loading}
+    />
+    <VideoMaskQualityInput
+      value={maskQuality}
+      onChange={setMaskQuality}
+      disabled={loading || !qualitySupported}
+    />
+    <div className="flex gap-4 justify-between w-full flex-col md:flex-row">
+      <Button
+        color="bg-[#0c2c46]"
+        hoverColor="hover:bg-[#114d7e]"
+        buttonOnClick={submitUrl}
+        loading={loading}
+        buttonText="Submit Video URL 🌐"
+      />
+      <Button
+        color="bg-[#0c2c46]"
+        hoverColor="hover:bg-[#114d7e]"
+        buttonOnClick={submitFile}
+        loading={loading}
+        buttonText="Submit Video File 🎥"
+      />
+    </div>{" "}
+  </div>
+);
+
+export default VideoUpload;

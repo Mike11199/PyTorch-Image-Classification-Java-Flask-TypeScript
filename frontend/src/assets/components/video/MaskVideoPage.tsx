@@ -1,60 +1,77 @@
 import { useState } from "react";
+import VideoDescription from "./components/VideoDescription";
+import VideoProgress from "./components/VideoProgress";
+import VideoUpload from "./upload/VideoUpload";
 import { useVideoJob } from "./hooks/useVideoJob";
-import { DEFAULT_VIDEO } from "./helpers/videoSource";
+import { DEFAULT_MASK_QUALITY, DEFAULT_VIDEO } from "./helpers/videoSource";
 import { youtubeStartTime } from "./helpers/startTime";
+import type { VideoMaskQuality } from "./types";
 
 const MaskVideoPage = () => {
   const [url, setUrl] = useState(DEFAULT_VIDEO.url);
+  const [file, setFile] = useState<File | null>(null);
+  const [maskQuality, setMaskQuality] = useState<VideoMaskQuality>(DEFAULT_MASK_QUALITY);
+  const [startTime, setStartTime] = useState(
+    () => youtubeStartTime(DEFAULT_VIDEO.url) || "0:00"
+  );
   const video = useVideoJob();
 
+  const changeUrl = (value: string) => {
+    setUrl(value);
+    setStartTime(youtubeStartTime(value) || "0:00");
+  };
+
   return (
-    <section className="p-6 md:p-12 space-y-6 text-gray-200">
-      <h1 className="text-2xl font-semibold">Mask R-CNN Video</h1>
-      <p>Analyze a ten-second clip from a supported video URL.</p>
-      <form
-        className="flex flex-col gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void video.submit({
-            input: "url",
-            url,
-            file: null,
-            startTime: youtubeStartTime(url),
-          });
-        }}
-      >
-        <label htmlFor="video-url">Video or YouTube URL</label>
-        <input
-          id="video-url"
-          type="url"
-          required
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          className="rounded bg-gray-800 p-3"
+    <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-8">
+      <div className="flex gap-4 w-full flex-col md:flex-row md:mt-0 mt-6">
+        <VideoDescription />
+        <VideoUpload
+          file={file}
+          setFile={setFile}
+          url={url}
+          setUrl={changeUrl}
+          startTime={startTime}
+          setStartTime={setStartTime}
+          maskQuality={maskQuality}
+          setMaskQuality={setMaskQuality}
+          qualitySupported={!!video.config?.maskQualities}
+          examples={video.config?.examples || [DEFAULT_VIDEO]}
+          loading={video.loading}
+          submitUrl={() =>
+            video.submit({ input: "url", url, file, startTime, maskQuality })
+          }
+          submitFile={() =>
+            video.submit({ input: "upload", url, file, startTime, maskQuality })
+          }
+          onError={video.setError}
         />
-        <button
-          type="submit"
-          disabled={video.loading || !video.config}
-          className="rounded bg-[#0c2c46] p-3 disabled:opacity-50"
-        >
-          Analyze video
-        </button>
-      </form>
-      <p role="status">
-        {video.status?.state || (video.loading ? "Loading video..." : "Choose a video to begin.")}
-      </p>
-      {video.active && <button onClick={video.cancel}>Cancel processing</button>}
-      {video.error && <p role="alert" className="text-red-400">{video.error}</p>}
-      {video.manifest && (
-        <video
-          controls
-          playsInline
-          src={video.manifest.videoUrl}
-          poster={video.manifest.posterUrl}
-          className="w-full rounded bg-black"
+      </div>
+      {video.status && (
+        <VideoProgress
+          status={video.status}
+          active={video.active}
+          onCancel={video.cancel}
         />
       )}
-    </section>
+      {video.error && (
+        <p role="alert" className="mt-4 text-red-500 text-center font-bold">
+          {video.error}
+        </p>
+      )}
+      <div className="mt-4 bg-black md:rounded-md shadow-md shadow-black text-gray-200">
+        {video.manifest ? (
+          <video
+            controls
+            playsInline
+            src={video.manifest.videoUrl}
+            poster={video.manifest.posterUrl}
+            className="w-full"
+          />
+        ) : (
+          <p className="p-6 text-center">Your analyzed video will appear here.</p>
+        )}
+      </div>
+    </div>
   );
 };
 
