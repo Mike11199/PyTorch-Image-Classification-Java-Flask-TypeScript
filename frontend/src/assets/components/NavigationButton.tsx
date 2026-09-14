@@ -10,8 +10,6 @@ export const NavigationButton = () => {
   let currentPageTitle;
   switch (location.pathname) {
     case "/":
-      currentPageTitle = "Home Page";
-      break;
     case "/video-mask-rcnn":
       currentPageTitle = "Mask R-CNN Video";
       break;
@@ -60,13 +58,6 @@ export const NavigationButton = () => {
 
       {isDropdownOpen && (
         <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 bg-[#151a25] shadow-lg rounded-lg py-2 z-20">
-          <Link
-            to="/"
-            className="block px-4 py-2 text-gray-400 hover:bg-[#1e2535] text-center"
-            onClick={toggleDropdown}
-          >
-            Home Page
-          </Link>
           <Link
             to="/video-mask-rcnn"
             className="block px-4 py-2 text-gray-400 hover:bg-[#1e2535] text-center"

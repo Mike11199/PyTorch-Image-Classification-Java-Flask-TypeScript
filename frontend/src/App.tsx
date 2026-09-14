@@ -1,10 +1,10 @@
 import "./App.css";
-import HomePage from "./assets/components/HomePage";
 import ImageClassificationPage from "./assets/components/ImageClassificationPage";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 import Header from "./assets/components/Header";
@@ -13,6 +13,12 @@ import MaskRCNNPage from "./assets/components/MaskRCNNPage";
 import MaskVideoPage from "./assets/components/video/MaskVideoPage";
 import ReactGA from "react-ga4";
 import { useEffect } from "react";
+
+/** Keep existing root links working, including tracking parameters and fragments. */
+const VideoRedirect = () => {
+  const { search, hash } = useLocation();
+  return <Navigate to={`/video-mask-rcnn${search}${hash}`} replace />;
+};
 
 function App() {
   // init Google Analytics
@@ -40,8 +46,8 @@ function App() {
         <Header />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<HomePage />} />
             <Route path="/video-mask-rcnn" element={<MaskVideoPage />} />
+            <Route path="/" element={<VideoRedirect />} />
             <Route
               path="/image-classification-resnet"
               element={<ImageClassificationPage />}
