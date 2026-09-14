@@ -17,8 +17,15 @@ class VideoAssets:
         self.bucket = bucket
         if bucket:
             import boto3
+            from botocore.config import Config
 
-            self.s3 = boto3.client("s3")
+            # Regional links avoid redirects that block browser mask fetches.
+            self.s3 = boto3.client(
+                "s3",
+                config=Config(
+                    signature_version="s3v4", s3={"addressing_style": "virtual"}
+                ),
+            )
 
     def put_file(self, key, path, content_type):
         if self.bucket:
