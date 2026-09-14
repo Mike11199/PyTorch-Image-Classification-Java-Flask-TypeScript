@@ -7,6 +7,10 @@
 
 Run `make dev`, then open http://localhost:5173. Stop with `make down`.
 
+`make dev` always builds images and recreates containers. Python changes apply on
+that restart; Flask auto-reload is disabled so file edits do not interrupt videos.
+React still updates automatically. Run `make dev` between video jobs.
+
 `make dev` creates `backend-flask-pytorch/.env` from `default.env` only if missing. Edit `.env` and rerun `make dev`: `MASK_LOW_RES=true` uses smaller masks (Docker default); `false` uses original-resolution masks. `.env` is gitignored.
 
 ## CDK Details

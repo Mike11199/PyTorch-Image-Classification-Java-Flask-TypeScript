@@ -1,4 +1,4 @@
-"""Serve image inference using a shared model session."""
+"""Serve image inference and register the asynchronous video API."""
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -7,6 +7,7 @@ import inference as inf
 import inference_mask as inf_mask
 import json
 from model_runtime import model_session
+from video import register_video_api
 
 app = Flask(__name__)
 CORS(app)
@@ -75,6 +76,8 @@ def predict_mask():
         print("error: " + str(e))
         return jsonify({"error": str(e)}), 500
 
+
+register_video_api(app)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
