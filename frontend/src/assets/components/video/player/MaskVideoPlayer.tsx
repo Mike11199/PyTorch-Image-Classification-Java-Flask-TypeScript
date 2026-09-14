@@ -1,3 +1,5 @@
+import { useState } from "react";
+import DetectionTimeline from "../timeline/DetectionTimeline";
 import type { VideoAppearance, VideoManifest } from "../types";
 import VideoControls from "./VideoControls";
 import { useMaskPlayback } from "./useMaskPlayback";
@@ -8,7 +10,8 @@ interface MaskVideoPlayerProps {
 }
 
 const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
-  const playback = useMaskPlayback(manifest, appearance, null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const playback = useMaskPlayback(manifest, appearance, selected);
   const videoWidth = manifest.videoWidth || manifest.width;
   const videoHeight = manifest.videoHeight || manifest.height;
 
@@ -81,6 +84,15 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
           onVolume={playback.changeVolume}
         />
       </div>
+      <DetectionTimeline
+        manifest={manifest}
+        duration={playback.duration}
+        time={playback.time}
+        colorRotation={appearance.colorRotation}
+        selected={selected}
+        onSelect={setSelected}
+        onSeek={playback.seek}
+      />
     </>
   );
 };
