@@ -80,3 +80,25 @@
   .play { min-width: 72px; padding: 8px; }
   .volume { border: 0; padding-left: 0; margin-left: auto; }
 }
+
+.actions { display: flex; align-items: center; gap: 12px; }
+.fullscreen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+  color: #a6b5c8;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.fullscreen:hover { color: #fff; background: #171b21; }
+.fullscreen:focus-visible { outline: 2px solid #ea580c; outline-offset: 2px; }
+@media (max-width: 640px) {
+  .fullscreenLabel { display: none; }
+  .actions { gap: 4px; }
+  .volume input { width: 56px; }
+  .details { grid-column: 1 / -1; }
+}

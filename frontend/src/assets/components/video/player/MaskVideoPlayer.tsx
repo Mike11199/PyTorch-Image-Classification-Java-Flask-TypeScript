@@ -1,3 +1,4 @@
+import { useVideoFullscreen } from "./useVideoFullscreen";
 import layout from "./videoLayout.module.css";
 import { useState } from "react";
 import DetectionTimeline from "../timeline/DetectionTimeline";
@@ -11,6 +12,7 @@ interface MaskVideoPlayerProps {
 }
 
 const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
+  const fullscreen = useVideoFullscreen();
   const [selected, setSelected] = useState<string | null>(null);
   const playback = useMaskPlayback(manifest, appearance, selected);
   const videoWidth = manifest.videoWidth || manifest.width;
@@ -26,8 +28,15 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
     playback.setError("Video could not be loaded. Reload the result and try again.");
 
   return (
-    <div className={layout.player}>
-      <div className="h-[30rem] md:h-[50rem] flex flex-col p-4 gap-4">
+    <div
+      ref={fullscreen.root}
+      className={`${layout.player} ${fullscreen.isFullscreen ? layout.fullscreen : ""}`}
+      tabIndex={-1}
+      role={fullscreen.isFullscreen ? "dialog" : undefined}
+      aria-modal={fullscreen.isFullscreen || undefined}
+      aria-label={fullscreen.isFullscreen ? "Fullscreen video player" : undefined}
+    >
+      <div className={`${layout.viewport} h-[30rem] md:h-[50rem] flex flex-col p-4 gap-4`}>
         <div
           className="flex-1 min-h-0 flex items-center justify-center"
           style={{ containerType: "size" }}
@@ -76,6 +85,8 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
         )}
       </div>
       <VideoControls
+          isFullscreen={fullscreen.isFullscreen}
+          onFullscreen={fullscreen.toggleFullscreen}
           playing={playback.playing}
           disabled={!!playback.error}
           time={playback.time}
@@ -85,7 +96,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
           onSeek={playback.seek}
           onVolume={playback.changeVolume}
         />
-      <DetectionTimeline
+      {!fullscreen.isFullscreen && <DetectionTimeline
         manifest={manifest}
         duration={playback.duration}
         time={playback.time}
@@ -94,7 +105,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
         selected={selected}
         onSelect={setSelected}
         onSeek={playback.seek}
-      />
+      />}
     </div>
   );
 };

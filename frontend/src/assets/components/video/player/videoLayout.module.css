@@ -6,3 +6,23 @@
 @media (max-width: 640px) {
   .player { --video-inset: 12px; --label-width: 96px; }
 }
+
+.player:focus { outline: none; }
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overscroll-behavior: contain;
+}
+.fullscreen .viewport {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding: 8px;
+}

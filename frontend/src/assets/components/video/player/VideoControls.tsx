@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 import styles from "./videoControls.module.css";
 
 interface VideoControlsProps {
+  isFullscreen: boolean;
+  onFullscreen: () => void;
   playing: boolean;
   disabled: boolean;
   time: number;
@@ -13,7 +15,7 @@ interface VideoControlsProps {
 }
 
 const VideoControls = ({
-  playing, disabled, time, duration, volume, onToggle, onSeek, onVolume,
+  isFullscreen, onFullscreen, playing, disabled, time, duration, volume, onToggle, onSeek, onVolume,
 }: VideoControlsProps) => (
   <div className={styles.controls}>
     <button className={styles.play} disabled={disabled} onClick={onToggle}>
@@ -33,6 +35,7 @@ const VideoControls = ({
     <span className={styles.time}>
       <strong>{time.toFixed(1)}</strong><span> / {duration.toFixed(1)}s</span>
     </span>
+    <div className={styles.actions}>
     <label className={styles.volume}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
         <path d="M11 5L6 9H3v6h3l5 4z" />
@@ -45,6 +48,21 @@ const VideoControls = ({
         onChange={(event) => onVolume(Number(event.target.value))}
       />
     </label>
+    <button
+      className={styles.fullscreen}
+      onClick={onFullscreen}
+      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      title={isFullscreen ? "Exit fullscreen (Esc)" : "Enter fullscreen"}
+      aria-pressed={isFullscreen}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <path d={isFullscreen
+          ? "M9 3v6H3m12-6v6h6M9 21v-6H3m12 6v-6h6"
+          : "M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"} />
+      </svg>
+      <span className={styles.fullscreenLabel}>{isFullscreen ? "Exit fullscreen" : "Fullscreen"}</span>
+    </button>
+    </div>
     </div>
   </div>
 );
