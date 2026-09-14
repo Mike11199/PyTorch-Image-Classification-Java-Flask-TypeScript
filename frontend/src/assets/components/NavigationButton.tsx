@@ -10,7 +10,8 @@ export const NavigationButton = () => {
   let currentPageTitle;
   switch (location.pathname) {
     case "/":
-      currentPageTitle = "Home Page";
+    case "/video-mask-rcnn":
+      currentPageTitle = "Mask R-CNN Video";
       break;
     case "/image-classification-resnet":
       currentPageTitle = "Fast R-CNN Image Classification";
@@ -58,11 +59,11 @@ export const NavigationButton = () => {
       {isDropdownOpen && (
         <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 bg-[#151a25] shadow-lg rounded-lg py-2 z-20">
           <Link
-            to="/"
+            to="/video-mask-rcnn"
             className="block px-4 py-2 text-gray-400 hover:bg-[#1e2535] text-center"
             onClick={toggleDropdown}
           >
-            Home Page
+            Mask R-CNN Video
           </Link>
           <Link
             to="/image-classification-resnet"

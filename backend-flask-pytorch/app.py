@@ -1,9 +1,13 @@
+"""Serve image inference and register the asynchronous video API."""
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 import inference as inf
 import inference_mask as inf_mask
 import json
+from model_runtime import model_session
+from video import register_video_api
 
 app = Flask(__name__)
 CORS(app)
@@ -32,12 +36,15 @@ def predict():
 
         if file and allowed_file(file.filename):
             image_data = file.read()
-            fast_rcnn_model = inf.model_fn(load_weights_from_checkpoint=False)
             input_tensor = inf.input_fn(image_data)
-            prediction = inf.predict_fn(input_tensor, fast_rcnn_model)
-            response = inf.output_fn(prediction)
+            with model_session("boxes") as fast_rcnn_model:
+                prediction = inf.predict_fn(input_tensor, fast_rcnn_model)
+                response = inf.output_fn(prediction)
             print(jsonify(json.loads(response)))
             return jsonify(json.loads(response)), 200
+        return jsonify({"error": "Please upload a PNG or JPEG image."}), 400
+    except TimeoutError as e:
+        return jsonify({"error": str(e)}), 429
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -58,14 +65,19 @@ def predict_mask():
         if file and allowed_file(file.filename):
             image_data = file.read()
             input_tensor = inf_mask.input_fn(image_data)
-            mask_rcnn_model = inf_mask.model_fn()
-            prediction = inf_mask.predict_fn(input_tensor, mask_rcnn_model)
-            response = inf_mask.output_fn(prediction)
+            with model_session("mask") as mask_rcnn_model:
+                prediction = inf_mask.predict_fn(input_tensor, mask_rcnn_model)
+                response = inf_mask.output_fn(prediction)
             return jsonify(json.loads(response)), 200
+        return jsonify({"error": "Please upload a PNG or JPEG image."}), 400
+    except TimeoutError as e:
+        return jsonify({"error": str(e)}), 429
     except Exception as e:
         print("error: " + str(e))
         return jsonify({"error": str(e)}), 500
 
+
+register_video_api(app)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

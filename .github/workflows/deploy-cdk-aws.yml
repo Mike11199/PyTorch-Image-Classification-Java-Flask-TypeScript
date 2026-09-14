@@ -135,8 +135,18 @@ jobs:
       - name: Install pinned CDK CLI
         run: npm install --global "aws-cdk@$CDK_CLI_VERSION"
 
+      - name: Read shared network settings
+        id: network
+        working-directory: cdk
+        run: python scripts/video_network.py >> "$GITHUB_OUTPUT"
+
       - name: Deploy application and media
         working-directory: cdk
+        env:
+          HOSTED_ZONE_ID: ${{ steps.network.outputs.hosted_zone_id }}
+          ROUTE_TABLE_ID: ${{ steps.network.outputs.route_table_id }}
+          S3_EXISTS: ${{ steps.network.outputs.existing_s3_endpoint }}
+          DDB_EXISTS: ${{ steps.network.outputs.existing_dynamodb_endpoint }}
         run: |
           uv sync --frozen --group dev
 
@@ -144,11 +154,13 @@ jobs:
           JAVA_TAG="java-api-${{ github.sha }}"
           REACT_TAG="react-front-end-${{ github.sha }}"
 
-          HOSTED_ZONE_ID="$(aws cloudformation list-exports --query "Exports[?Name=='SharedMachineLearningHostedZoneId'].Value | [0]" --output text)"
           cdk deploy PytorchClassificationStack PytorchMediaStack \
             --exclusively \
             --require-approval never \
             --parameters PytorchClassificationStack:ImageTagFlask="$FLASK_TAG" \
             --parameters PytorchClassificationStack:ImageTagJava="$JAVA_TAG" \
             --parameters PytorchClassificationStack:ImageTagReact="$REACT_TAG" \
+            --parameters PytorchClassificationStack:VideoRouteTableId="$ROUTE_TABLE_ID" \
+            --parameters PytorchClassificationStack:VideoExistingS3Endpoint="$S3_EXISTS" \
+            --parameters PytorchClassificationStack:VideoExistingDynamodbEndpoint="$DDB_EXISTS" \
             --parameters PytorchMediaStack:HostedZoneId="$HOSTED_ZONE_ID"

@@ -1,3 +1,4 @@
+# Build and manage the local Docker services.
 .PHONY: help dev down logs build ps env
 
 ifeq ($(OS),Windows_NT)
@@ -6,7 +7,7 @@ SHELL := cmd.exe
 endif
 
 help:
-	@echo make dev    - Create .env if missing, then build and start containers in the background.
+	@echo make dev    - Create .env if missing, then build images and recreate containers.
 	@echo make down   - Stop and remove containers.
 	@echo make logs   - Follow container logs. Press Ctrl+C to exit.
 	@echo make build  - Build container images without starting them.
@@ -15,7 +16,7 @@ help:
 	@echo make help   - Show this command list.
 
 dev: env
-	docker compose up --build -d
+	docker compose up --build --force-recreate -d
 
 down: env
 	docker compose down

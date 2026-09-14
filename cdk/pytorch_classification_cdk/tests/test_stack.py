@@ -51,7 +51,7 @@ def test_single_task_updates_wait_for_routing_and_capacity(application):
 
 def test_container_images_ports_and_memory(application):
     task, = application.find_resources("AWS::ECS::TaskDefinition").values()
-    assert task["Properties"]["NetworkMode"] == "awsvpc"
+    assert task["Properties"]["NetworkMode"] == "host"
     containers = task["Properties"]["ContainerDefinitions"]
     assert len(containers) == 3
     for container, (name, tag, port, memory) in zip(containers, (
@@ -73,7 +73,7 @@ def test_shared_alb_routes_to_nginx(application):
         "SourceSecurityGroupId": {"Fn::ImportValue": "SharedAlbSecurityGroupId"},
     })
     application.has_resource("AWS::ElasticLoadBalancingV2::TargetGroup", {
-        "Properties": {"Port": 80, "TargetType": "ip", "HealthCheckPath": "/health",
+        "Properties": {"Port": 80, "TargetType": "instance", "HealthCheckPath": "/health",
                        "VpcId": {"Fn::ImportValue": "SharedVpcId"}},
         "DeletionPolicy": "Retain",
     })

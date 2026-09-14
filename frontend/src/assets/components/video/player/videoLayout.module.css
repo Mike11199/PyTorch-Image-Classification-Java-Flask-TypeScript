@@ -1,0 +1,8 @@
+.player {
+  --video-inset: 24px;
+  --label-width: 120px;
+  --track-gap: 12px;
+}
+@media (max-width: 640px) {
+  .player { --video-inset: 12px; --label-width: 96px; }
+}
