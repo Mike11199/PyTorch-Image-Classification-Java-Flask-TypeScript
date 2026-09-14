@@ -13,7 +13,7 @@ const VideoSourceInput = ({
   examples,
   loading,
 }: VideoSourceInputProps) => (
-  <div className="flex flex-col justify-center items-center text-center gap-6">
+  <div className="flex flex-col justify-center items-center text-center gap-4">
     <select
       aria-label="Example video"
       value={examples.some((e) => e.url === url) ? url : ""}

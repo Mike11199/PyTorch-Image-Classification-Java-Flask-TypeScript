@@ -1,5 +1,4 @@
 import type { VideoExample, VideoOptions, VideoMaskQuality } from "../types";
-import { parseStartTime } from "./startTime";
 
 export const DEFAULT_MASK_QUALITY: VideoMaskQuality = "detailed";
 
@@ -24,7 +23,6 @@ export interface VideoSubmission {
   input: "url" | "upload";
   url: string;
   file: File | null;
-  startTime: string;
   maskQuality?: VideoMaskQuality;
 }
 
@@ -32,14 +30,12 @@ export const videoSubmissionOptions = ({
   input,
   url,
   file,
-  startTime,
   examples,
   maskQuality = DEFAULT_MASK_QUALITY,
 }: VideoSubmission & { examples: VideoExample[] }): VideoOptions => {
-  const startSeconds = parseStartTime(startTime);
   if (input === "url") {
-    return { ...videoUrlOptions(url, examples), startSeconds, maskQuality };
+    return { ...videoUrlOptions(url, examples), maskQuality };
   }
   if (!file?.size) throw new Error("Choose a non-empty video file.");
-  return { source: "upload", size: file.size, startSeconds, maskQuality };
+  return { source: "upload", size: file.size, maskQuality };
 };

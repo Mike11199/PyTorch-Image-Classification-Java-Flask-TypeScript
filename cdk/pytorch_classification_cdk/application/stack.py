@@ -30,18 +30,18 @@ class PytorchClassificationStack(Stack):
         video = VideoStorage(self, "VideoStorage", vpc=network.vpc)
         application = ApplicationService(
             self, "Application", vpc=network.vpc,
-            shared_alb_security_group=network.alb_security_group,
             image_tag_flask=self.param_image_tag_flask.value_as_string,
             image_tag_java=self.param_image_tag_java.value_as_string,
             image_tag_react=self.param_image_tag_react.value_as_string,
             video_storage=video,
             media_bucket=media.bucket,
         )
-        routing = WebRouting(
-            self, "Routing", vpc=network.vpc, service=application.service,
-        )
         capacity = SpotCapacity(
             self, "Capacity", vpc=network.vpc, cluster=application.cluster,
+            shared_alb_security_group=network.alb_security_group,
+        )
+        routing = WebRouting(
+            self, "Routing", vpc=network.vpc, service=application.service,
         )
 
         # ECS creation waits for listener attachment and available host capacity.

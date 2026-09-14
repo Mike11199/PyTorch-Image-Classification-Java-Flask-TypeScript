@@ -36,20 +36,20 @@ const VideoDropzone = ({ file, setFile, loading, onError }: VideoDropzoneProps) 
   if (isDragAccept) borderColor = "#00e676";
 
   return (
-    <div className="flex-1 min-h-64">
+    <div className="w-full">
       <div
         {...getRootProps({ style: { borderColor } })}
-        className="flex flex-col gap-8 items-center justify-center border-2 border-dashed rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500 h-full p-4"
+        className="flex flex-col gap-4 items-center justify-center border-2 border-dashed rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500 min-h-40 p-4"
       >
         <input {...getInputProps({ "aria-label": "Upload video" })} />
-        <p className="text-gray-200 mt-8 text-center">{prompt}</p>
+        <p className="text-gray-200 text-center">{prompt}</p>
         {preview ? (
           <video
             src={preview}
             muted
             playsInline
             preload="metadata"
-            className="h-36 max-w-full rounded-md shadow-md"
+            className="h-20 max-w-full rounded-md shadow-md"
           />
         ) : (
           <svg
@@ -67,7 +67,7 @@ const VideoDropzone = ({ file, setFile, loading, onError }: VideoDropzoneProps) 
             />
           </svg>
         )}
-        <p className="mb-6 text-sm text-gray-400 text-center break-all">
+        <p className="text-sm text-gray-400 text-center break-all">
           {file?.name || "Long videos are automatically trimmed to 10 seconds"}
         </p>
       </div>

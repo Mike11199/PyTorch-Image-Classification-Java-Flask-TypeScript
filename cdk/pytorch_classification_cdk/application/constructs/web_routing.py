@@ -54,11 +54,11 @@ class WebRouting(Construct):
 
         target_group = elbv2.ApplicationTargetGroup(
             scope,
-            "PytorchTargetGroup",
+            "PytorchHostTargetGroup",
             vpc=vpc,
             port=80,
             protocol=elbv2.ApplicationProtocol.HTTP,
-            target_type=elbv2.TargetType.IP,
+            target_type=elbv2.TargetType.INSTANCE,
             targets=[
                 service.load_balancer_target(
                     container_name="NginxContainer",

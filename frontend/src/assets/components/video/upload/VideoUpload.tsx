@@ -2,7 +2,6 @@ import Button from "../../Button";
 import type { VideoExample, VideoMaskQuality } from "../types";
 import VideoDropzone from "./VideoDropzone";
 import VideoSourceInput from "./VideoSourceInput";
-import VideoStartTimeInput from "./VideoStartTimeInput";
 import VideoMaskQualityInput from "./VideoMaskQualityInput";
 
 interface VideoUploadProps {
@@ -10,8 +9,6 @@ interface VideoUploadProps {
   setFile: (file: File | null) => void;
   url: string;
   setUrl: (url: string) => void;
-  startTime: string;
-  setStartTime: (time: string) => void;
   maskQuality: VideoMaskQuality;
   setMaskQuality: (value: VideoMaskQuality) => void;
   qualitySupported: boolean;
@@ -28,8 +25,6 @@ const VideoUpload = ({
   setFile,
   url,
   setUrl,
-  startTime,
-  setStartTime,
   maskQuality,
   setMaskQuality,
   qualitySupported,
@@ -40,7 +35,7 @@ const VideoUpload = ({
   regenerateColors,
   onError,
 }: VideoUploadProps) => (
-  <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-8 shadow-md shadow-black">
+  <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl w-full md:w-[40%] gap-5 shadow-md shadow-black">
     <VideoDropzone
       file={file}
       setFile={setFile}
@@ -53,17 +48,12 @@ const VideoUpload = ({
       examples={examples}
       loading={loading}
     />
-    <VideoStartTimeInput
-      value={startTime}
-      onChange={setStartTime}
-      disabled={loading}
-    />
     <VideoMaskQualityInput
       value={maskQuality}
       onChange={setMaskQuality}
       disabled={loading || !qualitySupported}
     />
-    <div className="flex gap-4 justify-between w-full flex-col md:flex-row">
+    <div className="flex gap-4 w-full flex-col sm:flex-row">
       <Button
         color="bg-[#0c2c46]"
         hoverColor="hover:bg-[#114d7e]"

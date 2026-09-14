@@ -8,23 +8,14 @@ import MaskVideoPlayer from "./player/MaskVideoPlayer";
 import { useVideoAppearance } from "./hooks/useVideoAppearance";
 import { useVideoJob } from "./hooks/useVideoJob";
 import { DEFAULT_MASK_QUALITY, DEFAULT_VIDEO } from "./helpers/videoSource";
-import { youtubeStartTime } from "./helpers/startTime";
 import type { VideoMaskQuality } from "./types";
 
 const MaskVideoPage = () => {
   const [url, setUrl] = useState(DEFAULT_VIDEO.url);
   const [file, setFile] = useState<File | null>(null);
   const [maskQuality, setMaskQuality] = useState<VideoMaskQuality>(DEFAULT_MASK_QUALITY);
-  const [startTime, setStartTime] = useState(
-    () => youtubeStartTime(DEFAULT_VIDEO.url) || "0:00"
-  );
   const video = useVideoJob();
   const { appearance, slidersConfig, regenerateColors } = useVideoAppearance();
-
-  const changeUrl = (value: string) => {
-    setUrl(value);
-    setStartTime(youtubeStartTime(value) || "0:00");
-  };
 
   return (
     <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-8">
@@ -34,19 +25,17 @@ const MaskVideoPage = () => {
           file={file}
           setFile={setFile}
           url={url}
-          setUrl={changeUrl}
-          startTime={startTime}
-          setStartTime={setStartTime}
+          setUrl={setUrl}
           maskQuality={maskQuality}
           setMaskQuality={setMaskQuality}
           qualitySupported={!!video.config?.maskQualities}
           examples={video.config?.examples || [DEFAULT_VIDEO]}
           loading={video.loading}
           submitUrl={() =>
-            video.submit({ input: "url", url, file, startTime, maskQuality })
+            video.submit({ input: "url", url, file, maskQuality })
           }
           submitFile={() =>
-            video.submit({ input: "upload", url, file, startTime, maskQuality })
+            video.submit({ input: "upload", url, file, maskQuality })
           }
           regenerateColors={regenerateColors}
           onError={video.setError}

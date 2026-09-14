@@ -57,7 +57,6 @@ export interface VideoOptions {
   exampleId?: string;
   url?: string;
   size?: number;
-  startSeconds?: number;
   maskQuality?: VideoMaskQuality;
 }
 
