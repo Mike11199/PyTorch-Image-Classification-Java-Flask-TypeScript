@@ -11,6 +11,8 @@ from aws_cdk import (
 )
 from constructs import Construct
 
+from .tor_proxy import CONTROL_PATH, TorProxy
+
 
 class ApplicationService(Construct):
     def __init__(
@@ -96,6 +98,9 @@ class ApplicationService(Construct):
             logging=ecs.LogDrivers.aws_logs(stream_prefix="youtube-tokens"),
         )
 
+        self.tor_proxy = TorProxy(self, "TorProxy", cluster=cluster)
+        task_definition.add_volume(name="tor-control", host=ecs.Host(source_path=CONTROL_PATH))
+
         flask = task_definition.add_container(
             "FlaskContainer",
             image=flask_image,
@@ -109,10 +114,14 @@ class ApplicationService(Construct):
                 "AWS_DEFAULT_REGION": "us-west-1",
                 "TORCH_NUM_THREADS": "1",
                 "VIDEO_YOUTUBE_ENABLED": "true",
+                "VIDEO_YOUTUBE_TOR": "true",
             } if video_storage else {},
             port_mappings=[ecs.PortMapping(container_port=5000)],
             logging=ecs.LogDrivers.aws_logs(stream_prefix="flask"),
         )
+        flask.add_mount_points(ecs.MountPoint(
+            source_volume="tor-control", container_path="/tor-control", read_only=True,
+        ))
         flask.add_container_dependencies(
             ecs.ContainerDependency(
                 container=youtube_tokens,

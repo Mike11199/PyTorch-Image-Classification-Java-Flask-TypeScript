@@ -52,7 +52,7 @@ def process_video(store, job: VideoJob, update):
         directory = Path(work)
         source = directory / "input"
         update(stage="importing")
-        obtain_input(store, job, source)
+        obtain_input(store, job, source, update)
 
         if job["source"] == "upload":
             identity = upload_cache_key(

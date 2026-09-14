@@ -49,14 +49,14 @@ def copy_example(store, path):
     shutil.copyfile(bundled, path)
 
 
-def obtain_input(store, job, path):
+def obtain_input(store, job, path, update=lambda: None):
     """Import the selected source without buffering the full video in memory."""
     if job["source"] == "example":
         copy_example(store, path)
     elif job["source"] == "upload":
         store.assets.download(f"jobs/{job['id']}/input", path)
     elif job["source"] == "youtube":
-        download_youtube(job["url"], path, job.get("startSeconds", 0))
+        download_youtube(job["url"], path, job.get("startSeconds", 0), update)
     else:
         download_url(job["url"], path)
     if not path.is_file() or not path.stat().st_size:

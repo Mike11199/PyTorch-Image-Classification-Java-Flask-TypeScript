@@ -32,7 +32,7 @@ def test_stack_order_and_repository_retention(assembly):
 
 
 def test_single_task_updates_wait_for_routing_and_capacity(application):
-    application.resource_count_is("AWS::ECS::Service", 1)
+    application.resource_count_is("AWS::ECS::Service", 2)
     application.has_resource_properties("AWS::ECS::Service", {
         "DesiredCount": 1,
         "DeploymentConfiguration": {
@@ -43,14 +43,16 @@ def test_single_task_updates_wait_for_routing_and_capacity(application):
             "ContainerName": "NginxContainer", "ContainerPort": 80,
         })]),
     })
-    service = next(iter(application.find_resources("AWS::ECS::Service").values()))
+    service = next(s for s in application.find_resources("AWS::ECS::Service").values()
+                   if s["Properties"].get("LoadBalancers"))
     for kind in ("AWS::ElasticLoadBalancingV2::ListenerRule",
                  "AWS::AutoScaling::AutoScalingGroup"):
         assert set(application.find_resources(kind)) <= set(service["DependsOn"])
 
 
 def test_container_images_ports_and_memory(application):
-    task, = application.find_resources("AWS::ECS::TaskDefinition").values()
+    task = next(t for t in application.find_resources("AWS::ECS::TaskDefinition").values()
+                if t["Properties"]["NetworkMode"] == "host")
     assert task["Properties"]["NetworkMode"] == "host"
     containers = task["Properties"]["ContainerDefinitions"]
     assert len(containers) == 4

@@ -10,11 +10,14 @@ services:
     environment:
       VIDEO_DATA_DIR: /video-data
       VIDEO_YOUTUBE_ENABLED: "true"
+      VIDEO_YOUTUBE_TOR: "true"
+      VIDEO_TOR_HOST: youtube-tor
     env_file:
       - ./backend-flask-pytorch/.env
     volumes:
       - ./backend-flask-pytorch:/app
       - video-data:/video-data
+      - tor-control:/tor-control:ro
       - ./frontend/src/assets/ml_video.mp4:/app/examples/ml-video.mp4:ro
     # Share localhost between containers, matching the production ECS task.
     # Publish ports on the container that owns the network namespace.
@@ -38,6 +41,21 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  youtube-tor:
+    build: ./youtube-tor
+    restart: unless-stopped
+    mem_limit: 256m
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN, CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/lib/tor:size=64m,noexec,nosuid,nodev
+      - /run:size=1m,noexec,nosuid,nodev
+    volumes:
+      - tor-control:/tor-control
 
   java:
     build:
@@ -68,3 +86,4 @@ services:
 
 volumes:
   video-data:
+  tor-control:

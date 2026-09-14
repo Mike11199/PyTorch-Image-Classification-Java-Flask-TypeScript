@@ -48,3 +48,6 @@ class PytorchClassificationStack(Stack):
         service = application.service.node.default_child
         service.add_resource_dependency(routing.listener_rule)
         service.add_resource_dependency(capacity.auto_scaling_group.node.default_child)
+        application.tor_proxy.service.node.default_child.add_resource_dependency(
+            capacity.auto_scaling_group.node.default_child
+        )

@@ -1,0 +1,10 @@
+ClientOnly 1
+SocksPort 0
+HTTPTunnelPort 0.0.0.0:9080
+ControlPort 0.0.0.0:9051
+ClientUseIPv6 0
+CookieAuthentication 1
+CookieAuthFile /tor-control/control_auth_cookie
+DataDirectory /var/lib/tor
+StrictNodes 1
+Log notice stdout
