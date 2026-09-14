@@ -19,6 +19,7 @@ interface VideoUploadProps {
   loading: boolean;
   submitUrl: () => Promise<void>;
   submitFile: () => Promise<void>;
+  regenerateColors: () => void;
   onError: (message: string) => void;
 }
 
@@ -36,6 +37,7 @@ const VideoUpload = ({
   loading,
   submitUrl,
   submitFile,
+  regenerateColors,
   onError,
 }: VideoUploadProps) => (
   <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl justify-between w-full md:w-[40%] gap-8 shadow-md shadow-black">
@@ -75,6 +77,13 @@ const VideoUpload = ({
         buttonOnClick={submitFile}
         loading={loading}
         buttonText="Submit Video File 🎥"
+      />
+      <Button
+        color="bg-[#000000]"
+        hoverColor="hover:bg-[#111111]"
+        buttonOnClick={regenerateColors}
+        loading={false}
+        buttonText="Regenerate Colors 🎨"
       />
     </div>{" "}
   </div>

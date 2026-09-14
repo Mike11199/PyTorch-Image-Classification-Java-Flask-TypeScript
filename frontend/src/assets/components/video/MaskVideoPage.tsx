@@ -1,7 +1,10 @@
 import { useState } from "react";
+import SlidersContainer from "../SlidersContainer.tsx";
 import VideoDescription from "./components/VideoDescription";
 import VideoProgress from "./components/VideoProgress";
 import VideoUpload from "./upload/VideoUpload";
+import MaskVideoPlayer from "./player/MaskVideoPlayer";
+import { useVideoAppearance } from "./hooks/useVideoAppearance";
 import { useVideoJob } from "./hooks/useVideoJob";
 import { DEFAULT_MASK_QUALITY, DEFAULT_VIDEO } from "./helpers/videoSource";
 import { youtubeStartTime } from "./helpers/startTime";
@@ -15,6 +18,7 @@ const MaskVideoPage = () => {
     () => youtubeStartTime(DEFAULT_VIDEO.url) || "0:00"
   );
   const video = useVideoJob();
+  const { appearance, slidersConfig, regenerateColors } = useVideoAppearance();
 
   const changeUrl = (value: string) => {
     setUrl(value);
@@ -43,9 +47,11 @@ const MaskVideoPage = () => {
           submitFile={() =>
             video.submit({ input: "upload", url, file, startTime, maskQuality })
           }
+          regenerateColors={regenerateColors}
           onError={video.setError}
         />
       </div>
+      <SlidersContainer slidersConfig={slidersConfig} />
       {video.status && (
         <VideoProgress
           status={video.status}
@@ -60,13 +66,7 @@ const MaskVideoPage = () => {
       )}
       <div className="mt-4 bg-black md:rounded-md shadow-md shadow-black text-gray-200">
         {video.manifest ? (
-          <video
-            controls
-            playsInline
-            src={video.manifest.videoUrl}
-            poster={video.manifest.posterUrl}
-            className="w-full"
-          />
+          <MaskVideoPlayer manifest={video.manifest} appearance={appearance} />
         ) : (
           <p className="p-6 text-center">Your analyzed video will appear here.</p>
         )}
