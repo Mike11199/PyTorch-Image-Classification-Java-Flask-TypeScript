@@ -23,6 +23,8 @@ class ApplicationService(Construct):
         image_tag_flask: str,
         image_tag_java: str,
         image_tag_react: str,
+        video_storage=None,
+        media_bucket=None,
     ) -> None:
         super().__init__(scope, construct_id)
         # Preserve deployed resource paths while separating their implementation.
@@ -51,6 +53,10 @@ class ApplicationService(Construct):
             execution_role=task_execution_role,
             network_mode=ecs.NetworkMode.AWS_VPC,
         )
+        if video_storage:
+            video_storage.bucket.grant_read_write(task_definition.task_role)
+            video_storage.table.grant_read_write_data(task_definition.task_role)
+            media_bucket.grant_read(task_definition.task_role, "videos/ml-video.mp4")
 
         repository_uri = Fn.import_value("PytorchRepositoryUri")
 
@@ -72,6 +78,14 @@ class ApplicationService(Construct):
             cpu=512,
             memory_limit_mib=1600,
             essential=True,
+            environment={
+                "VIDEO_BUCKET": video_storage.bucket.bucket_name,
+                "VIDEO_TABLE": video_storage.table.table_name,
+                "VIDEO_MEDIA_BUCKET": media_bucket.bucket_name,
+                "AWS_DEFAULT_REGION": "us-west-1",
+                "TORCH_NUM_THREADS": "1",
+                "VIDEO_YOUTUBE_ENABLED": "false",
+            } if video_storage else {},
             port_mappings=[ecs.PortMapping(container_port=5000)],
             logging=ecs.LogDrivers.aws_logs(stream_prefix="flask"),
         )

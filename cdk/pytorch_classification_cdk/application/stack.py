@@ -8,12 +8,13 @@ from .constructs.shared_network import SharedNetwork
 from .constructs.application_service import ApplicationService
 from .constructs.web_routing import WebRouting
 from .constructs.spot_capacity import SpotCapacity
+from .constructs.video_storage import VideoStorage
 
 
 class PytorchClassificationStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        MediaStorage(self, "MediaStorage")
+        media = MediaStorage(self, "MediaStorage")
 
         self.param_image_tag_flask = CfnParameter(
             self, "ImageTagFlask", default="flask-api-latest"
@@ -26,12 +27,15 @@ class PytorchClassificationStack(Stack):
         )
 
         network = SharedNetwork(self, "Network")
+        video = VideoStorage(self, "VideoStorage", vpc=network.vpc)
         application = ApplicationService(
             self, "Application", vpc=network.vpc,
             shared_alb_security_group=network.alb_security_group,
             image_tag_flask=self.param_image_tag_flask.value_as_string,
             image_tag_java=self.param_image_tag_java.value_as_string,
             image_tag_react=self.param_image_tag_react.value_as_string,
+            video_storage=video,
+            media_bucket=media.bucket,
         )
         routing = WebRouting(
             self, "Routing", vpc=network.vpc, service=application.service,
