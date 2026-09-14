@@ -53,7 +53,8 @@ def test_container_images_ports_and_memory(application):
     task, = application.find_resources("AWS::ECS::TaskDefinition").values()
     assert task["Properties"]["NetworkMode"] == "host"
     containers = task["Properties"]["ContainerDefinitions"]
-    assert len(containers) == 3
+    assert len(containers) == 4
+    containers = [c for c in containers if c["Name"] != "YouTubeTokenContainer"]
     for container, (name, tag, port, memory) in zip(containers, (
         ("FlaskContainer", "ImageTagFlask", 5000, 1600),
         ("JavaContainer", "ImageTagJava", 8080, 700),

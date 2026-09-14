@@ -72,7 +72,31 @@ class ApplicationService(Construct):
             Fn.join("", [repository_uri, ":", image_tag_react])
         )
 
-        task_definition.add_container(
+        youtube_tokens = task_definition.add_container(
+            "YouTubeTokenContainer",
+            image=ecs.ContainerImage.from_registry(
+                "brainicism/bgutil-ytdlp-pot-provider:2.0.0"
+            ),
+            # Host networking shares localhost; do not expose the token server publicly.
+            command=["--host", "127.0.0.1"],
+            cpu=128,
+            memory_limit_mib=512,
+            essential=False,
+            enable_restart_policy=True,
+            linux_parameters=ecs.LinuxParameters(
+                scope, "YouTubeTokenLinuxParameters", init_process_enabled=True
+            ),
+            health_check=ecs.HealthCheck(
+                command=[
+                    "CMD", "node", "-e",
+                    "fetch('http://127.0.0.1:4416/ping').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+                ],
+                start_period=Duration.seconds(10),
+            ),
+            logging=ecs.LogDrivers.aws_logs(stream_prefix="youtube-tokens"),
+        )
+
+        flask = task_definition.add_container(
             "FlaskContainer",
             image=flask_image,
             cpu=512,
@@ -88,6 +112,12 @@ class ApplicationService(Construct):
             } if video_storage else {},
             port_mappings=[ecs.PortMapping(container_port=5000)],
             logging=ecs.LogDrivers.aws_logs(stream_prefix="flask"),
+        )
+        flask.add_container_dependencies(
+            ecs.ContainerDependency(
+                container=youtube_tokens,
+                condition=ecs.ContainerDependencyCondition.HEALTHY,
+            )
         )
 
         task_definition.add_container(

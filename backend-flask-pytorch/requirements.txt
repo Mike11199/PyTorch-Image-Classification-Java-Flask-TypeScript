@@ -37,3 +37,4 @@ wheel==0.44.0
 gunicorn==23.0.0
 boto3>=1.35,<2
 yt-dlp[default]>=2026.3.3
+bgutil-ytdlp-pot-provider==2.0.0

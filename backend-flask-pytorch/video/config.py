@@ -18,6 +18,12 @@ EXAMPLES = [
         "url": "https://youtu.be/VjmUlxRamwg?t=7572",
         "source": "youtube",
     },
+    {
+        "id": "youtube-eGr0Fm3X5YE-1845",
+        "name": "YouTube example (from 30:45)",
+        "url": "https://youtu.be/eGr0Fm3X5YE?t=1845",
+        "source": "youtube",
+    },
 ]
 
 
