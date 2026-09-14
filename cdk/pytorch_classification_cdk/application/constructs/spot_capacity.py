@@ -58,8 +58,11 @@ class SpotCapacity(Construct):
             min_capacity=1,
             max_capacity=1,
             desired_capacity=1,
-            # Replace the host so changes to ECS agent configuration take effect.
-            update_policy=autoscaling.UpdatePolicy.replacing_update(),
+            # Retire the old host before ECS can schedule tasks on it again.
+            update_policy=autoscaling.UpdatePolicy.rolling_update(
+                min_instances_in_service=0,
+                max_batch_size=1,
+            ),
             mixed_instances_policy=autoscaling.MixedInstancesPolicy(
                 instances_distribution=autoscaling.InstancesDistribution(
                     spot_allocation_strategy=autoscaling.SpotAllocationStrategy.CAPACITY_OPTIMIZED,
