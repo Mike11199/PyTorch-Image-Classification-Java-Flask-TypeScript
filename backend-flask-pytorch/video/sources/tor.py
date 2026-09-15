@@ -10,34 +10,43 @@ from stem.connection import AuthenticationFailure
 from stem.control import Controller
 
 
+class TorConnectionFailure(ValueError):
+    """A temporary control-connection failure that can be retried."""
+
+
 @contextmanager
 def tor_connection(progress):
     ready_by = time.monotonic() + 60
     controller = None
     while controller is None:
+        progress()
         candidate = None
         try:
             address = socket.gethostbyname(os.getenv("VIDEO_TOR_HOST", "127.0.0.1"))
             candidate = Controller.from_port(address=address, port=9051)
             candidate.authenticate()
             controller = candidate
+        except InterruptedError:
+            if candidate:
+                candidate.close()
+            raise
         except (ControllerError, AuthenticationFailure, OSError):
             if candidate:
                 candidate.close()
             if time.monotonic() >= ready_by:
-                raise ValueError("The YouTube connection is not ready. Please try again shortly.") from None
+                raise TorConnectionFailure("The YouTube connection is not ready. Please try again shortly.") from None
             progress()
             time.sleep(2)
     try:
         with controller:
             while controller.get_info("status/circuit-established") != "1":
                 if time.monotonic() >= ready_by:
-                    raise ValueError("The YouTube connection is not ready. Please try again shortly.")
+                    raise TorConnectionFailure("The YouTube connection is not ready. Please try again shortly.")
                 progress()
                 time.sleep(2)
             yield controller
     except ControllerError as error:
-        raise ValueError("The YouTube connection was interrupted. Please try again.") from error
+        raise TorConnectionFailure("The YouTube connection was interrupted. Please try again.") from error
 
 
 def change_exit(controller, progress):

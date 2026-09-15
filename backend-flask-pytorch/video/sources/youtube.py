@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 import signal
 import shlex
 import subprocess
@@ -25,6 +26,24 @@ class DownloadFailure(ValueError):
     def __init__(self, reason, retryable=True):
         super().__init__(reason)
         self.retryable = retryable
+
+
+def download_diagnostic(detail):
+    """Allow only fixed failure labels and HTTP codes into server logs."""
+    reasons = [label for label, markers in (
+        ("bot verification required", ("not a bot", "confirm you're not", "confirm you’re not")),
+        ("rate limited", ("too many requests", "rate limit")),
+        ("connection timed out", ("timed out", "timeout")),
+        ("connection failed", ("connection refused", "connection reset", "network is unreachable", "unable to connect")),
+        ("DNS lookup failed", ("name resolution", "name or service not known")),
+        ("TLS verification failed", ("certificate verify failed", "certificate verification failed")),
+        ("private or unavailable video", ("private video", "video unavailable", "video has been removed")),
+        ("restricted video", ("members-only", "confirm your age")),
+        ("requested format unavailable", ("requested format is not available",)),
+    ) if any(marker in detail for marker in markers)]
+    codes = sorted(set(re.findall(r"\bhttp(?: error| error code| status(?: code)?)?[:\s]+([45]\d{2})\b", detail)))
+    reasons.extend(f"HTTP {code}" for code in codes)
+    return "; ".join(reasons) or "unclassified downloader failure"
 
 
 def validate_youtube_url(url):
@@ -94,6 +113,8 @@ def downloader_command(arguments, url, timeout, proxy="", progress=lambda: None)
             raise
     if process.returncode:
         detail = stderr.decode(errors="replace").lower()
+        log.warning("yt-dlp exited with code %s: %s", process.returncode,
+                    download_diagnostic(detail))
         permanent = any(message in detail for message in (
             "private video", "video unavailable", "video has been removed",
             "members-only", "confirm your age",
@@ -156,18 +177,22 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
         if time.monotonic() >= deadline:
             raise ValueError("YouTube import timed out. Please try again or upload the file.")
 
+    retry_errors = (DownloadFailure,)
     if use_tor:
-        from .tor import change_exit, tor_connection
-    connection = tor_connection(progress) if use_tor else nullcontext(None)
+        from .tor import TorConnectionFailure, change_exit, tor_connection
+        retry_errors += (TorConnectionFailure,)
     proxy = f"http://{os.getenv('VIDEO_TOR_HOST', '127.0.0.1')}:9080" if use_tor else ""
-    attempts = 3 if use_tor else 1
+    attempts = 5 if use_tor else 1
     try:
-        with connection as controller:
-            for attempt in range(attempts):
-                progress()
-                if attempt:
-                    change_exit(controller, progress)
-                try:
+        for attempt in range(attempts):
+            progress()
+            try:
+                # Reconnect on every attempt so a dropped controller cannot poison retries.
+                connection = tor_connection(progress) if use_tor else nullcontext(None)
+                with connection as controller:
+                    if attempt:
+                        change_exit(controller, progress)
+                    progress()
                     # Each attempt starts fresh; never reuse a partial file from another exit.
                     with tempfile.TemporaryDirectory(dir=path.parent) as directory:
                         output = Path(directory) / "clip.mp4"
@@ -187,12 +212,13 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
                         )
                         output.replace(path)
                         return
-                except DownloadFailure as error:
-                    log.warning("YouTube import attempt %s/%s: %s", attempt + 1, attempts, error)
-                    if not error.retryable or attempt == attempts - 1:
-                        raise ValueError(
-                            "YouTube could not provide this video. Please try another public link or upload the file."
-                        ) from error
+            except retry_errors as error:
+                log.warning("YouTube import attempt %s/%s: %s", attempt + 1, attempts, error)
+                progress()
+                if (isinstance(error, DownloadFailure) and not error.retryable) or attempt == attempts - 1:
+                    raise ValueError(
+                        "YouTube could not provide this video. Please try another public link or upload the file."
+                    ) from error
     except InterruptedError:
         raise
     except OSError as error:
