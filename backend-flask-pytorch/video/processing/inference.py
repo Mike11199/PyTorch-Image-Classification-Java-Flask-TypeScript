@@ -1,11 +1,10 @@
-"""Run Mask R-CNN on one frame and draw its detected masks."""
+"""Run Mask R-CNN and label each visible mask pixel with its detection ID."""
 
 from contextlib import contextmanager
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 
 from coco_labels import coco_names
 import model_runtime
@@ -44,14 +43,14 @@ def predict_frame(frame):
     return boxes, labels, scores[keep], masks
 
 
-def draw_masks(shape, prediction):
-    """Build a transparent mask image and serializable detection metadata."""
+def index_masks(shape, prediction):
+    """ID zero is transparent; ID n selects detections[n - 1]. Later masks win."""
     height, width = shape[:2]
-    overlay = np.zeros((height, width, 4), dtype=np.uint8)
+    mask_ids = np.zeros((height, width), dtype=np.uint8)
     detections = []
-    for box, label, score, mask in zip(*prediction):
+    for detection_index, (box, label, score, mask) in enumerate(zip(*prediction), 1):
         color = [int(60 + (int(label) * factor) % 196) for factor in (67, 113, 157)]
-        overlay[mask] = color + [255]
+        mask_ids[mask] = detection_index
         detections.append(
             {
                 "box": box.tolist(),
@@ -60,8 +59,8 @@ def draw_masks(shape, prediction):
                 "color": color,
             }
         )
-    return Image.fromarray(overlay), detections
+    return mask_ids, detections
 
 
 def analyze_frame(frame):
-    return draw_masks(frame.shape, predict_frame(frame))
+    return index_masks(frame.shape, predict_frame(frame))

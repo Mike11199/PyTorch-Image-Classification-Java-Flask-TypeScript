@@ -86,11 +86,11 @@ export interface VideoFrame {
 }
 
 export interface VideoManifest {
+  maskFormat: "ids-gzip";
   width: number;
   height: number;
   videoWidth?: number;
   videoHeight?: number;
-  columns: number;
   chunkFrames: number;
   videoUrl: string;
   posterUrl?: string;
@@ -111,5 +111,5 @@ export interface VideoAppearance {
 
 export type MaskFrames = Pick<
   VideoManifest,
-  "width" | "height" | "columns" | "chunkFrames" | "frames"
->;
+  "width" | "height" | "chunkFrames" | "frames"
+> & { columns: number };

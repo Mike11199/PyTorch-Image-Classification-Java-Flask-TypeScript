@@ -5,9 +5,9 @@ from contextlib import closing
 
 import cv2
 
-from ..config import ATLAS_COLUMNS, CHUNK_FRAMES
+from ..config import CHUNK_FRAMES
 from .inference import analyze_frame
-from .mask_atlas import MaskAtlas
+from .mask_ids import MaskIds
 from .previews import PreviewPublisher
 
 
@@ -28,30 +28,26 @@ def read_frames(playback, timestamps):
 
 def analyze_video(assets, prepared, prefix, directory, update, preview_prefix):
     """Process one frame at a time, publishing masks and progress as it finishes."""
-    atlas = MaskAtlas(assets, prefix, directory)
+    masks = MaskIds(assets, prefix, directory, CHUNK_FRAMES)
     previews = PreviewPublisher(assets, prepared, preview_prefix, directory, update)
     frames = []
-    try:
-        with closing(read_frames(prepared.model_path, prepared.timestamps)) as decoded:
-            for index, timestamp, frame in decoded:
-                update(progress=index)
-                overlay, detections = analyze_frame(frame)
-                last_frame = index == len(prepared.timestamps) - 1
-                with overlay:
-                    atlas.add(overlay, index, last_frame)
-                    previews.publish(overlay, detections, index, timestamp, last_frame)
-                frames.append({"time": timestamp, "detections": detections})
-                time.sleep(0.02)
-    finally:
-        atlas.close()
+    with closing(read_frames(prepared.model_path, prepared.timestamps)) as decoded:
+        for index, timestamp, frame in decoded:
+            update(progress=index)
+            mask_ids, detections = analyze_frame(frame)
+            last_frame = index == len(prepared.timestamps) - 1
+            masks.add(mask_ids, index, last_frame)
+            previews.publish(mask_ids, detections, index, timestamp, last_frame)
+            frames.append({"time": timestamp, "detections": detections})
+            time.sleep(0.02)
     return {
-        "version": 1,
-        "width": atlas.width,
-        "height": atlas.height,
+        "version": 2,
+        "maskFormat": "ids-gzip",
+        "width": masks.width,
+        "height": masks.height,
         "videoWidth": prepared.width,
         "videoHeight": prepared.height,
         "chunkFrames": CHUNK_FRAMES,
-        "columns": ATLAS_COLUMNS,
         "frames": frames,
-        "maskKeys": atlas.keys,
+        "maskKeys": masks.keys,
     }

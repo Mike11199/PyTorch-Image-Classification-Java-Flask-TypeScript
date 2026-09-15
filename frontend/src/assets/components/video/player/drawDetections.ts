@@ -25,7 +25,7 @@ const drawMask = (
   );
 };
 
-const drawBoxes = (
+export const drawBoxes = (
   context: CanvasRenderingContext2D,
   detections: VideoDetection[],
   appearance: VideoAppearance,

@@ -1,8 +1,9 @@
-/** Load and paint the mask for each presented frame, pausing on missing images. */
+/** Follow the video's presented frame and draw its indexed masks. */
 import type { VideoAppearance, VideoManifest } from "../types";
-import { drawDetections } from "./drawDetections";
+import { drawBoxes } from "./drawDetections";
 import { frameAtTime, observeVideoFrames } from "./frameTiming";
 import { createMaskCache } from "./maskCache";
+import { createIdMaskPainter } from "./idMaskPainter";
 
 interface MaskRendererOptions {
   settings: () => { appearance: VideoAppearance; selected: string | null };
@@ -18,18 +19,18 @@ export const createMaskRenderer = (
   manifest: VideoManifest,
   options: MaskRendererOptions
 ) => {
-  const context = canvas.getContext("2d", { willReadFrequently: true })!;
-  // Aim for a second ahead, limiting retained RGBA pixels to roughly 64 MiB.
-  // Reserve space for the current, previous, and first sheets (kept for looping).
-  const sheetBytes = manifest.width * manifest.height * manifest.columns *
-    Math.ceil(manifest.chunkFrames / manifest.columns) * 4;
-  const secondFrame = frameAtTime(manifest.frames, manifest.frames[0].time + 1);
+  const context = canvas.getContext("2d")!;
+  const frameBytes = manifest.width * manifest.height;
+  // Reserve room for current, previous, and first chunks within 32 MiB of IDs.
+  const sheetBytes = frameBytes * manifest.chunkFrames;
+  const aheadFrame = frameAtTime(manifest.frames, manifest.frames[0].time + 2);
   const lookAhead = Math.max(1, Math.min(
-    Math.ceil(secondFrame / manifest.chunkFrames),
-    Math.floor(64 * 1024 * 1024 / sheetBytes) - 3,
-    6
+    Math.ceil(aheadFrame / manifest.chunkFrames),
+    Math.floor(32 * 1024 * 1024 / sheetBytes) - 3,
+    12
   ));
-  const cache = createMaskCache(manifest.maskUrls, lookAhead);
+  const cache = createMaskCache(manifest, lookAhead);
+  const paint = createIdMaskPainter(context, manifest.width, manifest.height);
   let disposed = false;
   let generation = 0;
   let buffering = true;
@@ -61,7 +62,10 @@ export const createMaskRenderer = (
       const image = cache.get(chunk);
       if (!image) return;
       const { appearance, selected } = options.settings();
-      drawDetections(context, image, manifest, index, appearance, selected);
+      const detections = manifest.frames[index].detections;
+      const offset = index % manifest.chunkFrames * frameBytes;
+      paint(image.subarray(offset, offset + frameBytes), detections, appearance.maskOpacity, appearance.defaultVideo);
+      drawBoxes(context, detections, appearance, selected);
       buffering = false;
       options.onBuffering(false);
 

@@ -12,6 +12,8 @@ def playback_result(store, job):
         raise ValueError("The video is not ready yet.")
     assets = store.assets
     manifest = assets.read_json(job["manifest"])
+    if manifest.get("maskFormat") != "ids-gzip":
+        raise ValueError("This result uses an older mask format. Run the video again.")
     manifest["videoUrl"] = assets.url(job, manifest.pop("videoKey"))
     if "posterKey" in manifest:
         manifest["posterUrl"] = assets.url(job, manifest.pop("posterKey"))

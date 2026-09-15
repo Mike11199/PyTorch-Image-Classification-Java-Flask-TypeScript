@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlsplit, urlunsplit
 from .sources.youtube import validate_youtube_url
 from .quality import job_mask_quality
 
-RECIPE = "mask-rcnn-v3:clip10:playback-original:model-native:score0.9:mask0.5:top20:atlas10"
+RECIPE = "mask-rcnn-v7:clip10:playback-original:model-native:score0.9:mask0.5:top20:ids-gzip10"
 
 
 def youtube_video_id(url):

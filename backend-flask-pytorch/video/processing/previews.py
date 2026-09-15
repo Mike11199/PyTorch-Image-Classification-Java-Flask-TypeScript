@@ -2,6 +2,9 @@
 
 import time
 
+import numpy as np
+from PIL import Image
+
 from ..config import PREVIEW_INTERVAL_SECONDS
 from .media import command
 
@@ -35,7 +38,7 @@ class PreviewPublisher:
         self.update = update
         self.last_published = None
 
-    def publish(self, overlay, detections, index, timestamp, last_frame):
+    def publish(self, mask_ids, detections, index, timestamp, last_frame):
         """Update the preview when its interval passes or the clip ends."""
         now = time.monotonic()
         due = (
@@ -45,9 +48,13 @@ class PreviewPublisher:
         if not (due or last_frame):
             return
         key = f"{self.prefix}/{index:04d}.jpg"
-        mask_key = save_preview(
-            self.assets, self.prepared, overlay, timestamp, key, self.directory
-        )
+        palette = np.array([[0, 0, 0, 0]] + [
+            detection["color"] + [255] for detection in detections
+        ], dtype=np.uint8)
+        with Image.fromarray(palette[mask_ids]) as overlay:
+            mask_key = save_preview(
+                self.assets, self.prepared, overlay, timestamp, key, self.directory
+            )
         self.update(
             progress=index + 1,
             previewKey=key,

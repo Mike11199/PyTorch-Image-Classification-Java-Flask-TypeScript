@@ -37,22 +37,32 @@ export const useMaskPlayback = (
       setPlaying(false);
     };
 
-    const renderer = createMaskRenderer(element, canvas.current!, manifest, {
-      settings: () => settings.current,
-      shouldPlay: () => wantsPlay.current,
-      onBuffering: setBuffering,
-      onPlayBlocked: stopPlayback,
-      onError: (message) => {
-        setError(message);
-        stopPlayback();
-      },
-    });
+    let renderer: ReturnType<typeof createMaskRenderer>;
+    try {
+      renderer = createMaskRenderer(element, canvas.current!, manifest, {
+        settings: () => settings.current,
+        shouldPlay: () => wantsPlay.current,
+        onBuffering: setBuffering,
+        onPlayBlocked: stopPlayback,
+        onError: (message) => {
+          setError(message);
+          setBuffering(false);
+          stopPlayback();
+        },
+      });
+    } catch (error) {
+      setError((error as Error).message);
+      setBuffering(false);
+      stopPlayback();
+      return;
+    }
     redraw.current = renderer.redraw;
 
     return () => {
       wantsPlay.current = false;
       element.pause();
       renderer.dispose();
+      redraw.current = () => undefined;
     };
   }, [manifest]);
 
