@@ -1,5 +1,5 @@
 const VideoDescription = () => (
-  <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-8 md:rounded-xl w-full md:w-[60%] shadow-md shadow-black">
+  <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start text-sm text-gray-200 text-left bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl w-full md:w-[60%] shadow-md shadow-black">
     <div className="min-w-0">
       <h1 className="font-bold mb-4 text-orange-600">App Description</h1>
       <ul className="ml-2 md:ml-8 list-disc">
