@@ -1,6 +1,6 @@
 /** Keep nearby mask images decoded, including the first image for looping. */
 
-export const createMaskCache = (urls: string[]) => {
+export const createMaskCache = (urls: string[], lookAhead = 2) => {
   const images = new Map<number, ImageBitmap>();
   const pending = new Map<number, Promise<ImageBitmap>>();
   const controller = new AbortController();
@@ -8,7 +8,7 @@ export const createMaskCache = (urls: string[]) => {
 
   const trim = () => {
     for (const [index, image] of images) {
-      const nearby = index >= center - 1 && index <= center + 2;
+      const nearby = index >= center - 1 && index <= center + lookAhead;
       if (index !== 0 && !nearby) {
         image.close();
         images.delete(index);
@@ -17,6 +17,7 @@ export const createMaskCache = (urls: string[]) => {
   };
 
   const download = async (index: number) => {
+    if (controller.signal.aborted) throw new Error("Player closed");
     const response = await fetch(urls[index], { signal: controller.signal });
     if (!response.ok)
       throw new Error(
@@ -28,6 +29,7 @@ export const createMaskCache = (urls: string[]) => {
       throw new Error("Player closed");
     }
     images.set(index, image);
+    trim();
     return image;
   };
 
@@ -42,13 +44,21 @@ export const createMaskCache = (urls: string[]) => {
   };
 
   const prefetch = () => {
-    const last = Math.min(center + 2, urls.length - 1);
+    const last = Math.min(center + lookAhead, urls.length - 1);
     for (let index = center + 1; index <= last; index++) {
       // A failed prefetch can retry when playback reaches that image.
       void load(index)
         .then(trim)
         .catch(() => undefined);
     }
+  };
+
+  // Wait for a useful runway before resuming, rather than one sheet at a time.
+  const buffer = () => {
+    const last = Math.min(center + lookAhead, urls.length - 1);
+    const requests: Promise<ImageBitmap>[] = [];
+    for (let index = center; index <= last; index++) requests.push(load(index));
+    return Promise.all(requests);
   };
 
   const moveTo = (index: number) => {
@@ -64,5 +74,5 @@ export const createMaskCache = (urls: string[]) => {
     images.clear();
   };
 
-  return { get, load, moveTo, prefetch, dispose };
+  return { get, load, moveTo, prefetch, buffer, dispose };
 };

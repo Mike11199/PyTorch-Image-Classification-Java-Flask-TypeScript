@@ -19,18 +19,20 @@ export const createMaskRenderer = (
   options: MaskRendererOptions
 ) => {
   const context = canvas.getContext("2d", { willReadFrequently: true })!;
-  const cache = createMaskCache(manifest.maskUrls);
+  // Aim for a second ahead, limiting retained RGBA pixels to roughly 64 MiB.
+  // Reserve space for the current, previous, and first sheets (kept for looping).
+  const sheetBytes = manifest.width * manifest.height * manifest.columns *
+    Math.ceil(manifest.chunkFrames / manifest.columns) * 4;
+  const secondFrame = frameAtTime(manifest.frames, manifest.frames[0].time + 1);
+  const lookAhead = Math.max(1, Math.min(
+    Math.ceil(secondFrame / manifest.chunkFrames),
+    Math.floor(64 * 1024 * 1024 / sheetBytes) - 3,
+    6
+  ));
+  const cache = createMaskCache(manifest.maskUrls, lookAhead);
   let disposed = false;
   let generation = 0;
-
-  const loadMask = async (chunk: number) => {
-    const cached = cache.get(chunk);
-    if (cached) return cached;
-    video.pause();
-    options.onBuffering(true);
-    context.clearRect(0, 0, manifest.width, manifest.height);
-    return cache.load(chunk);
-  };
+  let buffering = true;
 
   /** Resume after buffering only if the visitor still wants playback. */
   const resumePlayback = async () => {
@@ -48,17 +50,25 @@ export const createMaskRenderer = (
     cache.moveTo(chunk);
 
     try {
-      const image = cache.get(chunk) || (await loadMask(chunk));
+      if (!cache.get(chunk)) buffering = true;
+      if (buffering) {
+        video.pause();
+        options.onBuffering(true);
+        await cache.buffer();
+      }
       // Seeking or a newer frame can supersede an in-flight mask request.
       if (disposed || current !== generation) return;
+      const image = cache.get(chunk);
+      if (!image) return;
       const { appearance, selected } = options.settings();
       drawDetections(context, image, manifest, index, appearance, selected);
+      buffering = false;
       options.onBuffering(false);
 
-      await resumePlayback();
       cache.prefetch();
+      await resumePlayback();
     } catch (error) {
-      if (!disposed) options.onError((error as Error).message);
+      if (!disposed && current === generation) options.onError((error as Error).message);
     }
   };
 
