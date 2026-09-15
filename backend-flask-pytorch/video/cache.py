@@ -32,7 +32,7 @@ def cache_key(source, url, start_seconds=0, mask_quality="detailed"):
     if source == "upload":
         return None
     if source == "youtube":
-        identity = "youtube:" + youtube_video_id(url)
+        identity = "youtube:verified-resolution-v1:" + youtube_video_id(url)
     else:
         parsed = urlsplit(url)
         identity = (

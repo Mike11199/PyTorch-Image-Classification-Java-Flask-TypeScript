@@ -20,6 +20,7 @@ from ..config import MAX_SECONDS, youtube_enabled
 
 YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 class DownloadFailure(ValueError):
@@ -77,6 +78,9 @@ def downloader_command(arguments, url, timeout, proxy="", progress=lambda: None)
         "yt_dlp",
         "--ignore-config",
         "--no-playlist",
+        "--format-sort",
+        "res",
+        "--format-sort-force",
         "--extractor-args",
         "youtube:player_client=mweb",
         "--js-runtimes",
@@ -140,15 +144,47 @@ def clip_end(metadata, start_seconds):
     return min(start_seconds + MAX_SECONDS, duration)
 
 
-def download_section(url, output, start_seconds, end_seconds, timeout=180, proxy="", progress=lambda: None):
-    """Fetch the selected section at the highest available source resolution."""
+def selected_video(metadata):
+    """Require a concrete YouTube format and dimensions before downloading."""
+    format_id = metadata.get("format_id", "")
+    if not isinstance(format_id, str) or not re.fullmatch(r"[0-9]+(?:-[0-9]+)?(?:\+[0-9]+(?:-[0-9]+)?)*", format_id):
+        raise DownloadFailure("YouTube returned an unsupported format selection")
+    try:
+        width, height = int(metadata.get("width") or 0), int(metadata.get("height") or 0)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise DownloadFailure("YouTube returned invalid video dimensions") from error
+    if width <= 0 or height <= 0:
+        raise DownloadFailure("YouTube returned no video dimensions")
+    log.info("YouTube selected format %s at %dx%d", format_id, width, height)
+    return format_id, width, height
+
+
+def verify_download(output, width, height, timeout):
+    """Check actual media dimensions before accepting it as the source video."""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0",
+             "-show_entries", "stream=width,height", "-of", "json", str(output)],
+            capture_output=True, timeout=timeout,
+        )
+        if result.returncode:
+            raise DownloadFailure("Unable to verify downloaded video resolution")
+        stream = json.loads(result.stdout)["streams"][0]
+        actual_width, actual_height = int(stream["width"]), int(stream["height"])
+    except (subprocess.TimeoutExpired, ValueError, KeyError, IndexError, TypeError, OverflowError) as error:
+        raise DownloadFailure("Unable to verify downloaded video resolution") from error
+    log.info("YouTube downloaded %dx%d; requested %dx%d", actual_width, actual_height, width, height)
+    if actual_width < width or actual_height < height:
+        raise DownloadFailure("Downloaded video resolution was lower than requested")
+
+
+def download_section(url, output, start_seconds, end_seconds, format_id, timeout=180, proxy="", progress=lambda: None):
+    """Fetch the exact formats selected during metadata lookup, without fallback."""
     arguments = [
         "--download-sections",
         f"*{start_seconds:g}-{end_seconds:g}",
         "--format",
-        "bv*+ba/b",
-        "--format-sort",
-        "res",
+        format_id,
         "--merge-output-format",
         "mp4",
         "--no-progress",
@@ -161,7 +197,7 @@ def download_section(url, output, start_seconds, end_seconds, timeout=180, proxy
     ]
     downloader_command(arguments, url, timeout, proxy, progress)
     if not output.is_file():
-        raise ValueError(
+        raise DownloadFailure(
             "YouTube import finished without producing a video file. Please retry."
         )
 
@@ -183,6 +219,7 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
         retry_errors += (TorConnectionFailure,)
     proxy = f"http://{os.getenv('VIDEO_TOR_HOST', '127.0.0.1')}:9080" if use_tor else ""
     attempts = 5 if use_tor else 1
+    best_width = best_height = 0
     try:
         for attempt in range(attempts):
             progress()
@@ -198,7 +235,7 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
                         output = Path(directory) / "clip.mp4"
                         try:
                             metadata = json.loads(downloader_command(
-                                ["--dump-single-json", "--skip-download"], url,
+                                ["--dump-single-json", "--skip-download", "--format", "bv*+ba/b"], url,
                                 min(60, deadline - time.monotonic()), proxy, progress,
                             ))
                         except json.JSONDecodeError as error:
@@ -206,10 +243,18 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
                                 "YouTube returned invalid video metadata"
                             ) from error
                         end_seconds = clip_end(metadata, start_seconds)
+                        format_id, width, height = selected_video(metadata)
+                        if width < best_width or height < best_height:
+                            raise DownloadFailure("YouTube temporarily offered a lower video resolution")
+                        best_width, best_height = width, height
+                        progress()
                         download_section(
-                            url, output, start_seconds, end_seconds,
+                            url, output, start_seconds, end_seconds, format_id,
                             min(180, deadline - time.monotonic()), proxy, progress,
                         )
+                        progress()
+                        verify_download(output, width, height, min(30, deadline - time.monotonic()))
+                        progress()
                         output.replace(path)
                         return
             except retry_errors as error:
