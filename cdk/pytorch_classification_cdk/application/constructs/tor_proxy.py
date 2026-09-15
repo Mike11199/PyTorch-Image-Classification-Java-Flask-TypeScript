@@ -25,7 +25,8 @@ class TorProxy(Construct):
             ecs.Capability.NET_ADMIN, ecs.Capability.CHOWN, ecs.Capability.FOWNER,
             ecs.Capability.DAC_OVERRIDE, ecs.Capability.SETUID, ecs.Capability.SETGID,
         )
-        for path, size in (("/var/lib/tor", 64), ("/run", 1)):
+        # Allow headroom for directory-cache updates without filling the tmpfs.
+        for path, size in (("/var/lib/tor", 128), ("/run", 1)):
             linux.add_tmpfs(ecs.Tmpfs(
                 container_path=path, size=size,
                 mount_options=[ecs.TmpfsMountOption.RW, ecs.TmpfsMountOption.NOEXEC,
@@ -34,7 +35,7 @@ class TorProxy(Construct):
         container = task.add_container(
             "Tor",
             image=ecs.ContainerImage.from_asset(str(Path(__file__).resolve().parents[4] / "youtube-tor")),
-            cpu=128, memory_limit_mib=256,
+            cpu=128, memory_limit_mib=384,
             linux_parameters=linux, readonly_root_filesystem=True,
             docker_security_options=["no-new-privileges"],
             # Host ingress remains restricted to the ALB on port 80.
