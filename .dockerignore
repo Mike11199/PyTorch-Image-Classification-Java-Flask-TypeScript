@@ -9,4 +9,5 @@
 **/*.pyc
 **/target
 **/dist
+frontend/.packed.local
 cdk/cdk.out

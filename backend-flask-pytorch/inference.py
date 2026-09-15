@@ -42,6 +42,18 @@ def model_fn(load_weights_from_checkpoint: bool):
         model = fasterrcnn_resnet50_fpn_v2(weights=weights)
         if load_weights_from_checkpoint:
             load_model_with_checkpoint_values(model)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+        if device.type == "cuda":
+            logger.info(
+                "Loaded Faster R-CNN on CUDA device %s.",
+                torch.cuda.get_device_name(device),
+            )
+        else:
+            logger.warning(
+                "Loaded Faster R-CNN on CPU because CUDA is unavailable "
+                "in this Python runtime."
+            )
         return model
     except RuntimeError as e:
         raise ModelLoadError(f"Failed to load model. Error: {e}")
@@ -171,8 +183,6 @@ def load_model_with_checkpoint_values(model):
     try:
         state_dict = torch.load(model_path, map_location=torch.device("cpu"))
         model.load_state_dict(state_dict, strict=False)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
         print("Model loaded successfully from checkpoint!")
     except RuntimeError as e:
         raise RuntimeError(f"Failed to load model from {model_path}. Error: {e}")

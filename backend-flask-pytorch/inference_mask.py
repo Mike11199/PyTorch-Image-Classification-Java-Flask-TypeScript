@@ -62,7 +62,16 @@ def model_fn() -> MaskRCNN:
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
-        logger.info("Loaded Mask R-CNN model with default pretrained (COCO) weights.")
+        if device.type == "cuda":
+            logger.info(
+                "Loaded Mask R-CNN on CUDA device %s.",
+                torch.cuda.get_device_name(device),
+            )
+        else:
+            logger.warning(
+                "Loaded Mask R-CNN on CPU because CUDA is unavailable "
+                "in this Python runtime."
+            )
         return model
     except RuntimeError as e:
         raise ModelLoadError(
