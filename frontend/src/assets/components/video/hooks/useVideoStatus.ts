@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { getVideoResult, getVideoStatus } from "../api/videoRequests";
+import { getVideoResult, getVideoStatus, VideoRequestError } from "../api/videoRequests";
 import type { VideoJob, VideoManifest, VideoStatus } from "../types";
 
 export const useVideoStatus = (job: VideoJob | null) => {
   const [status, setStatus] = useState<VideoStatus | null>(null);
   const [manifest, setManifest] = useState<VideoManifest | null>(null);
   const [error, setError] = useState("");
+  const [unavailableJob, setUnavailableJob] = useState<VideoJob | null>(null);
 
   useEffect(() => {
     setStatus(null);
     setManifest(null);
     setError("");
+    setUnavailableJob(null);
     if (!job) return;
     const controller = new AbortController();
     const currentJob = job;
@@ -31,6 +33,11 @@ export const useVideoStatus = (job: VideoJob | null) => {
         }
       } catch (error) {
         if (!controller.signal.aborted) {
+          if (error instanceof VideoRequestError && error.jobUnavailable) {
+            setUnavailableJob(currentJob);
+            setError(error.message);
+            return;
+          }
           setStatus((current) => current && { ...current, connectionLost: true });
           setError((error as Error).message);
           timer = setTimeout(poll, 10000);
@@ -45,5 +52,8 @@ export const useVideoStatus = (job: VideoJob | null) => {
     };
   }, [job]);
 
-  return { status, setStatus, manifest, setManifest, error };
+  return {
+    status, setStatus, manifest, setManifest, error,
+    jobUnavailable: !!job && unavailableJob === job,
+  };
 };

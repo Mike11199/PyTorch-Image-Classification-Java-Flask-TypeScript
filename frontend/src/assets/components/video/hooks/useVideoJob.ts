@@ -27,7 +27,7 @@ export const useVideoJob = () => {
 
   const discardRestoredJob =
     !!job && job === restoredJob.current &&
-    (result.status?.state === "failed" || result.status?.state === "cancelled");
+    (result.jobUnavailable || result.status?.state === "failed" || result.status?.state === "cancelled");
 
   useEffect(() => {
     if (!discardRestoredJob) return;
@@ -59,7 +59,7 @@ export const useVideoJob = () => {
     manifest: submission.busy ? null : result.manifest,
     loading: discardRestoredJob || initial.loading || submission.busy || active,
     active,
-    error: error || submission.error || initial.error || result.error || configError,
+    error: error || submission.error || initial.error || (discardRestoredJob ? "" : result.error) || configError,
     setError,
     submit: submission.submit,
     cancel,
