@@ -2,9 +2,11 @@
 
 import json
 from functools import lru_cache
+from time import perf_counter
 
 from .prompt import SYSTEM_PROMPT
-from .schemas import plan_schema
+from .telemetry import log_event
+from .tools import plan_schema
 
 
 @lru_cache(maxsize=1)
@@ -14,14 +16,17 @@ def output_grammar():
     return LlamaGrammar.from_json_schema(json.dumps(plan_schema()), verbose=False)
 
 
-def generate_plan(context, error=''):
+def generate_plan(context, error='', request_id='unknown'):
     from model_runtime import model_session
 
     prompt = ('Viewer context: ' + json.dumps({k: v for k, v in context.items() if k != 'message'}, ensure_ascii=True)
               + '\nUser request: ' + context['message'])
     if error:
         prompt += '\nYour previous plan was invalid: ' + error + '\nReturn a corrected plan.'
-    with model_session('llm') as model:
+    log_event('model_waiting', request_id, model='qwen3-0.6b')
+    started = perf_counter()
+    with model_session('llm', request_id=request_id) as model:
+        log_event('model_started', request_id, model='qwen3-0.6b')
         # Qwen3's non-thinking template closes its think block before JSON decoding.
         # A generic ChatML completion otherwise forces JSON where it expects reasoning.
         response = model.create_completion(
@@ -33,4 +38,10 @@ def generate_plan(context, error=''):
             max_tokens=384,
             stop=['<|im_end|>'],
         )
-    return json.loads(response['choices'][0]['text'])
+    plan = json.loads(response['choices'][0]['text'])
+    log_event(
+        'model_completed', request_id, model='qwen3-0.6b',
+        duration_ms=round((perf_counter() - started) * 1000),
+        action_count=len(plan.get('actions', [])),
+    )
+    return plan

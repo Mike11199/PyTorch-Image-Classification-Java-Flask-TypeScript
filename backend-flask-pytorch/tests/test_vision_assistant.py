@@ -1,6 +1,7 @@
 import unittest
 
-from vision_assistant.schemas import validate_request, validate_plan
+from langgraph_vision_assistant.request import validate_request
+from langgraph_vision_assistant.tools import validate_plan
 
 
 class SchemaTests(unittest.TestCase):

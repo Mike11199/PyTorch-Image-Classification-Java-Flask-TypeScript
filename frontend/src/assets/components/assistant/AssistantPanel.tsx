@@ -1,9 +1,12 @@
 import { useId, useState } from "react";
+import AssistantLoading, { LoadingSpinner } from "./AssistantLoading";
+import { useElapsedSeconds } from "./useElapsedSeconds";
 import type { ViewerAssistant } from "./useViewerAssistant";
 
 export default function AssistantPanel({ assistant }: { assistant: ViewerAssistant }) {
   const [input, setInput] = useState("");
   const id = useId();
+  const elapsed = useElapsedSeconds(assistant.busy);
   const category = assistant.classes.includes("car") ? "car" : assistant.classes[0];
   const examples = category ? [
     `Only show ${category}`,
@@ -48,8 +51,9 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
           placeholder={assistant.ready ? "Only show cars and make them orange…" : "Analyze an image or load a video to begin"}
           className="min-w-0 flex-1 rounded-md border border-[#386077] bg-[#0c1522] px-3 py-3 text-sm text-gray-100 outline-none focus:border-[#39b9d2] disabled:opacity-50" />
         <button type="submit" disabled={disabled || !input.trim()}
-          className="rounded-md bg-[#0c2c46] px-5 py-3 text-sm font-bold text-gray-100 hover:bg-[#114d7e] disabled:opacity-40">
-          {assistant.busy ? "Working…" : "Apply"}
+          className="flex min-w-28 items-center justify-center gap-2 rounded-md bg-[#0c2c46] px-5 py-3 text-sm font-bold text-gray-100 hover:bg-[#114d7e] disabled:opacity-40">
+          {assistant.busy && <LoadingSpinner small />}
+          {assistant.busy ? "Running local Qwen…" : "Apply"}
         </button>
       </form>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -57,9 +61,9 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
           onClick={() => { setInput(example); void assistant.submit(example); }}
           className="rounded-md border border-[#386077] bg-[#111111] px-3 py-1.5 text-xs text-gray-300 hover:bg-[#222222] disabled:opacity-30">{example}</button>)}
       </div>
-      <div role="status" aria-live="polite" className="mt-3 text-sm leading-6">
-        {assistant.busy ? "Choosing viewer actions. If a vision model is running, the assistant waits for it to finish." : assistant.message}
-      </div>
+      {assistant.busy
+        ? <AssistantLoading seconds={elapsed} />
+        : <div role="status" aria-live="polite" className="mt-3 text-sm leading-6">{assistant.message}</div>}
       {assistant.error && <p role="alert" className="mt-2 text-sm text-red-300">{assistant.error}</p>}
       {!!assistant.trace.length && <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer">{assistant.trace.length} tool action{assistant.trace.length === 1 ? "" : "s"} performed</summary>

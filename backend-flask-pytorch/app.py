@@ -8,7 +8,7 @@ import inference_mask as inf_mask
 import json
 from model_runtime import model_session
 from video import register_video_api
-from vision_assistant import register_vision_assistant
+from langgraph_vision_assistant import register_langgraph_vision_assistant
 
 app = Flask(__name__)
 CORS(app)
@@ -79,7 +79,7 @@ def predict_mask():
 
 
 register_video_api(app)
-register_vision_assistant(app)
+register_langgraph_vision_assistant(app)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

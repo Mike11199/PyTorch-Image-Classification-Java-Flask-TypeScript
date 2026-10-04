@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Cache the small assistant model; all models share one runtime owner and mutex.
 ARG LLM_MODEL_URL=https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF/resolve/main/Qwen_Qwen3-0.6B-Q4_K_M.gguf
 ENV LLM_MODEL_PATH=/opt/models/Qwen_Qwen3-0.6B-Q4_K_M.gguf
-COPY backend-flask-pytorch/vision_assistant/download_model.py /tmp/download_assistant_model.py
+COPY backend-flask-pytorch/langgraph_vision_assistant/download_model.py /tmp/download_assistant_model.py
 RUN python /tmp/download_assistant_model.py "${LLM_MODEL_URL}" "${LLM_MODEL_PATH}"
 
 # Cache pretrained model weights during the image build to avoid startup downloads.

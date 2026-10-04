@@ -8,7 +8,7 @@
     "dev": "vite",
     "client": "vite",
     "build": "vite build",
-    "test": "node tests/assistant.test.cjs"
+    "test": "node tests/assistant.test.cjs && node tests/assistant-loading.test.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
