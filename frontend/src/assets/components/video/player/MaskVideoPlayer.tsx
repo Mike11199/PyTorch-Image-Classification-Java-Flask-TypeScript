@@ -1,6 +1,9 @@
 import { useVideoFullscreen } from "./useVideoFullscreen";
 import layout from "./videoLayout.module.css";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import AssistantPanel from "../../assistant/AssistantPanel";
+import { useViewerAssistant } from "../../assistant/useViewerAssistant";
+import type { Scene } from "../../assistant/types";
 import DetectionTimeline from "../timeline/DetectionTimeline";
 import type { VideoAppearance, VideoManifest } from "../types";
 import VideoControls from "./VideoControls";
@@ -14,7 +17,16 @@ interface MaskVideoPlayerProps {
 const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
   const fullscreen = useVideoFullscreen();
   const [selected, setSelected] = useState<string | null>(null);
-  const playback = useMaskPlayback(manifest, appearance, selected);
+  const playbackRef = useRef<ReturnType<typeof useMaskPlayback> | null>(null);
+  const scene = useMemo<Scene>(() => ({ page: "video", width: manifest.width, frames: manifest.frames }), [manifest]);
+  const assistant = useViewerAssistant(scene,
+    () => playbackRef.current?.video.current?.currentTime || 0,
+    (time) => { setSelected(null); playbackRef.current?.seekAndPause(time); });
+  const hasAssistantColors = Object.keys(assistant.view.boxColors).length || Object.keys(assistant.view.maskColors).length;
+  const colorRotation = hasAssistantColors ? 0 : appearance.colorRotation;
+  const viewerAppearance = useMemo(() => ({ ...appearance, assistantView: assistant.view }), [appearance, assistant.view]);
+  const playback = useMaskPlayback(manifest, viewerAppearance, selected);
+  playbackRef.current = playback;
   const videoWidth = manifest.videoWidth || manifest.width;
   const videoHeight = manifest.videoHeight || manifest.height;
 
@@ -36,6 +48,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
       aria-modal={fullscreen.isFullscreen || undefined}
       aria-label={fullscreen.isFullscreen ? "Fullscreen video player" : undefined}
     >
+      {!fullscreen.isFullscreen && <div className="px-4"><AssistantPanel assistant={assistant} /></div>}
       <div className={`${layout.viewport} h-[30rem] md:h-[50rem] flex flex-col p-4 gap-4`}>
         <div
           className="flex-1 min-h-0 flex items-center justify-center"
@@ -66,7 +79,7 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
               width={manifest.width}
               height={manifest.height}
               className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ filter: `hue-rotate(${appearance.colorRotation}deg)` }}
+              style={{ filter: `hue-rotate(${colorRotation}deg)` }}
             />
             <button
               type="button"
@@ -116,7 +129,8 @@ const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
         duration={playback.duration}
         time={playback.time}
         defaultVideo={appearance.defaultVideo}
-        colorRotation={appearance.colorRotation}
+        colorRotation={colorRotation}
+        assistantView={assistant.view}
         selected={selected}
         onSelect={setSelected}
         onSeek={playback.seek}

@@ -2,8 +2,11 @@ import { useEffect, useState, useMemo } from "react";
 import { PyTorchImageResponseType } from "./types";
 import { createClassColorMap } from "./FunctionUtils";
 import NeuralNetworkSpinner from "./NeuralNetworkSpinner";
+import type { ViewerState } from "./assistant/types";
+import { detectionAlpha, detectionVisible, hexRgb } from "./assistant/viewState";
 
 interface ImageCanvasProps {
+  assistantView?: ViewerState;
   loading: boolean;
   image?: HTMLImageElement | null;
   boundingBoxData?: PyTorchImageResponseType | null;
@@ -20,6 +23,7 @@ interface ImageCanvasProps {
 }
 
 const ImageCanvas = ({
+  assistantView,
   loading,
   image,
   boundingBoxData,
@@ -39,18 +43,18 @@ const ImageCanvas = ({
     [boundingBoxData, colorMapCounter]
   );
 
-  const [cachedMaskImage, setCachedMaskImage] = useState<ImageBitmap | null>(
+  const [cachedMaskImage, setCachedMaskImage] = useState<HTMLCanvasElement | null>(
     null
   );
 
   // Function to render masks onto a canvas
   useEffect(() => {
-    const generateMaskBitmap = async () => {
+    const generateMaskBitmap = () => {
       if (
         !pyTorchMasksArray ||
         !pyTorchMasksArray.length ||
         !image ||
-        !boundingBoxData?.boxes
+        !boundingBoxData?.boxes || assistantView?.showMasks === false
       ) {
         setCachedMaskImage(null);
         return;
@@ -75,9 +79,11 @@ const ImageCanvas = ({
       // Batch update pixels for all masks
       pyTorchMasksArray.forEach((mask, index) => {
         const className = boundingBoxData.classes[index];
+        if (!detectionVisible({ label: className, score: boundingBoxData.scores[index], box: boundingBoxData.boxes[index] }, assistantView)) return;
         const classColor = classColorMap[className] || "rgb(0, 0, 0)";
-        const [r, g, b] = classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
-        const alpha = Math.round((pyTorchMaskOpacity / 100) * 255);
+        const override = assistantView?.maskColors[className];
+        const [r, g, b] = override ? hexRgb(override) : classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
+        const alpha = Math.round((pyTorchMaskOpacity / 100) * 255 * detectionAlpha(index, 0, assistantView));
 
         mask.forEach((row, y) => {
           row.forEach((pixel, x) => {
@@ -93,12 +99,12 @@ const ImageCanvas = ({
       });
 
       maskCtx.putImageData(maskData, 0, 0);
-      const bitmap = await createImageBitmap(maskCanvas);
-      setCachedMaskImage(bitmap);
+      setCachedMaskImage(maskCanvas);
     };
 
     generateMaskBitmap();
   }, [
+    assistantView,
     pyTorchMasksArray,
     boundingBoxData,
     classColorMap,
@@ -131,14 +137,16 @@ const ImageCanvas = ({
 
       // Draw bounding boxes
       boundingBoxData.boxes.forEach((box, i) => {
+        if (assistantView?.showBoxes === false || !detectionVisible({ label: boundingBoxData.classes[i], score: boundingBoxData.scores[i], box }, assistantView)) return;
         const [x, y, width, height] = box.map(Math.round);
         const className = boundingBoxData.classes[i];
         const accuracy = (boundingBoxData.scores[i] * 100).toFixed(1);
 
         // Get class color and apply opacity
         const classColor = classColorMap[className] || "rgb(0, 0, 0)";
-        const [r, g, b] = classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
-        const rgbaColor = `rgba(${r}, ${g}, ${b}, ${pyTorchOpacity / 100})`;
+        const override = assistantView?.boxColors[className];
+        const [r, g, b] = override ? hexRgb(override) : classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
+        const rgbaColor = `rgba(${r}, ${g}, ${b}, ${pyTorchOpacity / 100 * detectionAlpha(i, 0, assistantView)})`;
 
         // Set styles
         ctx.strokeStyle = rgbaColor;
@@ -160,6 +168,7 @@ const ImageCanvas = ({
 
     drawBoundingBoxes();
   }, [
+    assistantView,
     image,
     boundingBoxData,
     cachedMaskImage,

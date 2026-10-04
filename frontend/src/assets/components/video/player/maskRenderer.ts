@@ -64,8 +64,8 @@ export const createMaskRenderer = (
       const { appearance, selected } = options.settings();
       const detections = manifest.frames[index].detections;
       const offset = index % manifest.chunkFrames * frameBytes;
-      paint(image.subarray(offset, offset + frameBytes), detections, appearance.maskOpacity, appearance.defaultVideo);
-      drawBoxes(context, detections, appearance, selected);
+      paint(image.subarray(offset, offset + frameBytes), detections, appearance.maskOpacity, appearance.defaultVideo, appearance.assistantView, manifest.frames[index].time);
+      drawBoxes(context, detections, appearance, selected, manifest.frames[index].time);
       buffering = false;
       options.onBuffering(false);
 

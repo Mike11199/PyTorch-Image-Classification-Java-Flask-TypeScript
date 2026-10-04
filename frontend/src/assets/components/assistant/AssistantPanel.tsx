@@ -1,0 +1,75 @@
+import { useId, useState } from "react";
+import type { ViewerAssistant } from "./useViewerAssistant";
+
+export default function AssistantPanel({ assistant }: { assistant: ViewerAssistant }) {
+  const [input, setInput] = useState("");
+  const id = useId();
+  const category = assistant.classes.includes("car") ? "car" : assistant.classes[0];
+  const examples = category ? [
+    `Only show ${category}`,
+    `Make ${category} boxes red`,
+    ...(assistant.page === "boxes" ? [] : [
+      `Make ${category} masks blue`,
+      `Make ${category} boxes red and masks blue`,
+      "Show masks only",
+      "Show boxes only",
+    ]),
+    `How many ${category} detections are visible?`,
+    assistant.page === "video" ? `Jump to the frame with the most ${category} detections`
+      : `Highlight the leftmost ${category}`,
+    "Hide detections below 80% confidence",
+  ] : ["Hide detections below 80% confidence", "Show all categories"];
+  const capabilities = assistant.page === "video"
+    ? "filters, colors, layers, counts, highlights, and video seeking"
+    : assistant.page === "mask"
+      ? "filters, colors, mask and box layers, counts, and highlights"
+      : "filters, colors, confidence, counts, and highlights";
+  const disabled = assistant.busy || !assistant.ready;
+  return (
+    <section className="my-4 bg-black bg-opacity-60 p-6 text-left text-gray-200 shadow-md shadow-black md:rounded-md" aria-labelledby={id}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 id={id} className="font-bold text-orange-600">LangGraph Vision Assistant</h2>
+          <p className="mt-1 text-sm text-gray-300">Ask a tool-enabled AI about this scene.</p>
+          <p className="mt-1 max-w-3xl text-xs text-gray-400">Runs on this website’s Flask server using a small local LLM—there is no ChatGPT or external LLM API call. Java forwards scene data to Qwen; LangGraph validates its tool choices, then the browser updates the viewer.</p>
+          <p className="mt-1 text-xs text-gray-500">Local model: Qwen3-0.6B Q4 · Tools: {capabilities}.</p>
+        </div>
+        <div className="flex gap-3 text-xs">
+          <button type="button" onClick={assistant.undo} disabled={disabled || !assistant.canUndo}
+            className="text-gray-300 disabled:opacity-30 hover:text-white hover:underline">Undo</button>
+          <button type="button" onClick={assistant.reset} disabled={disabled}
+            className="text-gray-300 disabled:opacity-30 hover:text-white hover:underline">Reset view</button>
+        </div>
+      </div>
+      <form className="flex flex-col sm:flex-row gap-2" onSubmit={(event) => { event.preventDefault(); void assistant.submit(input); }}>
+        <label htmlFor={`${id}-input`} className="sr-only">Ask the vision assistant</label>
+        <input id={`${id}-input`} value={input} onChange={(event) => setInput(event.target.value)}
+          maxLength={1000} disabled={disabled} autoComplete="off"
+          placeholder={assistant.ready ? "Only show cars and make them orange…" : "Analyze an image or load a video to begin"}
+          className="min-w-0 flex-1 rounded-md border border-[#386077] bg-[#0c1522] px-3 py-3 text-sm text-gray-100 outline-none focus:border-[#39b9d2] disabled:opacity-50" />
+        <button type="submit" disabled={disabled || !input.trim()}
+          className="rounded-md bg-[#0c2c46] px-5 py-3 text-sm font-bold text-gray-100 hover:bg-[#114d7e] disabled:opacity-40">
+          {assistant.busy ? "Working…" : "Apply"}
+        </button>
+      </form>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {examples.map((example) => <button type="button" key={example} disabled={disabled}
+          onClick={() => { setInput(example); void assistant.submit(example); }}
+          className="rounded-md border border-[#386077] bg-[#111111] px-3 py-1.5 text-xs text-gray-300 hover:bg-[#222222] disabled:opacity-30">{example}</button>)}
+      </div>
+      <div role="status" aria-live="polite" className="mt-3 text-sm leading-6">
+        {assistant.busy ? "Choosing viewer actions. If a vision model is running, the assistant waits for it to finish." : assistant.message}
+      </div>
+      {assistant.error && <p role="alert" className="mt-2 text-sm text-red-300">{assistant.error}</p>}
+      {!!assistant.trace.length && <details className="mt-3 text-xs text-gray-400">
+        <summary className="cursor-pointer">{assistant.trace.length} tool action{assistant.trace.length === 1 ? "" : "s"} performed</summary>
+        <ol className="mt-2 space-y-2">
+          {assistant.trace.map((entry, index) => <li key={index}>
+            <code className="text-orange-500">{entry.tool}</code><span className="ml-2">{entry.result}</span>
+          </li>)}
+        </ol>
+      </details>}
+      <p className="mt-3 text-[11px] text-gray-500">Answers use detector results, not pixel interpretation. Counts describe detections in a frame, not unique objects across a video.</p>
+    </section>
+  );
+}

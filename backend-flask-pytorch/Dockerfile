@@ -6,7 +6,7 @@ COPY --from=javascript /usr/local/bin/node /usr/local/bin/node
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg libglib2.0-0 libsm6 libxrender1 libxext6 libgl1 && \
+    apt-get install -y --no-install-recommends build-essential cmake ffmpeg libglib2.0-0 libsm6 libxrender1 libxext6 libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY backend-flask-pytorch/requirements.txt .
@@ -21,6 +21,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     else \
       pip install -r requirements.txt; \
     fi
+
+# Cache the small assistant model; all models share one runtime owner and mutex.
+ARG LLM_MODEL_URL=https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF/resolve/main/Qwen_Qwen3-0.6B-Q4_K_M.gguf
+ENV LLM_MODEL_PATH=/opt/models/Qwen_Qwen3-0.6B-Q4_K_M.gguf
+COPY backend-flask-pytorch/vision_assistant/download_model.py /tmp/download_assistant_model.py
+RUN python /tmp/download_assistant_model.py "${LLM_MODEL_URL}" "${LLM_MODEL_PATH}"
 
 # Cache pretrained model weights during the image build to avoid startup downloads.
 ENV TORCH_HOME=/opt/torch-cache

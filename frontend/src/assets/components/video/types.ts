@@ -1,3 +1,5 @@
+import type { ViewerState } from "../assistant/types";
+
 export type VideoJobState =
   "uploading" | "queued" | "running" | "completed" | "failed" | "cancelled";
 
@@ -99,6 +101,7 @@ export interface VideoManifest {
 }
 
 export interface VideoAppearance {
+  assistantView?: ViewerState;
   maskOpacity: number;
   boxOpacity: number;
   lineWidth: number;

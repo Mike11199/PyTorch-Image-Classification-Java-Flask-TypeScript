@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AssistantPanel from "./assistant/AssistantPanel";
+import { useImageAssistant } from "./assistant/useImageAssistant";
 import ImageCanvas from "./ImageCanvas";
 import {
   createImageURLFromBlob,
@@ -33,6 +35,7 @@ const MaskRCNNPage = () => {
   const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const assistant = useImageAssistant("mask", pyTorchResponseObj, canvasImage, loading);
 
   const slidersConfig = [
     {
@@ -154,6 +157,7 @@ const MaskRCNNPage = () => {
         </div>
 
         <SlidersContainer {...{ slidersConfig }} />
+        <AssistantPanel assistant={assistant} />
 
         {/* JSONBox and ImageCanvas */}
         <div className="flex flex-col md:flex-row gap-4 mt-4 h-[50rem]">
@@ -165,6 +169,7 @@ const MaskRCNNPage = () => {
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
             <ImageCanvas
+              assistantView={assistant.view}
               pyTorchBoxXOffset={pyTorchBoxXOffset}
               pyTorchBoxYOffset={pyTorchBoxYOffset}
               pyTorchBoxFontSize={pyTorchBoxFontSize}

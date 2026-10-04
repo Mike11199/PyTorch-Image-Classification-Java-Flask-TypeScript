@@ -56,7 +56,7 @@ const MaskVideoPage = () => {
       )}
       <div className="mt-4 bg-black md:rounded-md shadow-md shadow-black text-gray-200">
         {video.manifest ? (
-          <MaskVideoPlayer manifest={video.manifest} appearance={appearance} />
+          <MaskVideoPlayer key={video.manifest.videoUrl} manifest={video.manifest} appearance={appearance} />
         ) : (
           <VideoProcessingPreview
             status={video.status}

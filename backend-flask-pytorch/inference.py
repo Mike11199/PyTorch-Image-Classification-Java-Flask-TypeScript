@@ -24,6 +24,13 @@ class ModelLoadError(Exception):
     pass
 
 
+def numpy_prediction(value):
+    """Move model output to host memory before NumPy serialization."""
+    if torch.is_tensor(value):
+        return value.detach().cpu().numpy()
+    return np.asarray(value)
+
+
 def model_fn(load_weights_from_checkpoint: bool):
     """
     Loads a PyTorch model for Faster R-CNN.  Optionally loads checkpoint values from
@@ -136,14 +143,14 @@ def output_fn(prediction):
     output_data = prediction[0]
 
     boxes = output_data.get("boxes", [])
-    pred_scores = np.array(output_data.get("scores", []))
-    pred_bboxes = np.array(output_data.get("boxes", []))
+    pred_scores = numpy_prediction(output_data.get("scores", []))
+    pred_bboxes = numpy_prediction(output_data.get("boxes", []))
 
     print(pred_scores)
 
     detection_threshold = 0.9
     boxes = pred_bboxes[pred_scores >= detection_threshold].astype(np.int32)
-    labels = np.array(output_data.get("labels", [])[: len(boxes)])
+    labels = numpy_prediction(output_data.get("labels", []))[: len(boxes)]
     pred_classes = [coco_names[i] for i in labels]
 
     logger.info(pred_scores)

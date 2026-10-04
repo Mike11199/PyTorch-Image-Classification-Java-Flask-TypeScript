@@ -91,6 +91,13 @@ export const useMaskPlayback = (
     }
   };
 
+  const seekAndPause = (position: number) => {
+    wantsPlay.current = false;
+    setPlaying(false);
+    video.current?.pause();
+    seek(position);
+  };
+
   return {
     video,
     canvas,
@@ -105,6 +112,7 @@ export const useMaskPlayback = (
     setError,
     togglePlayback,
     seek,
+    seekAndPause,
     changeVolume,
   };
 };

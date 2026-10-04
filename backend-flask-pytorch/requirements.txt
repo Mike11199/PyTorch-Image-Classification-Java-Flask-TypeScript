@@ -10,7 +10,7 @@ Flask==2.3.2
 Flask-Cors==5.0.0
 fonttools==4.54.1
 fsspec==2024.9.0
-idna==3.10
+idna==3.20
 itsdangerous==2.2.0
 Jinja2==3.1.4
 kiwisolver==1.4.7
@@ -30,7 +30,7 @@ six==1.16.0
 sympy==1.13.3
 torch==2.4.1
 torchvision==0.19.1
-typing_extensions==4.12.2
+typing_extensions==4.16.0
 urllib3==2.3.0
 Werkzeug==3.0.4
 wheel==0.44.0
@@ -39,3 +39,5 @@ boto3>=1.35,<2
 yt-dlp[default]>=2026.3.3
 bgutil-ytdlp-pot-provider==2.0.0
 stem==1.8.2
+langgraph==1.0.10
+llama-cpp-python==0.3.16

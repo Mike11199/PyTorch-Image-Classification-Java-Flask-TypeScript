@@ -4,6 +4,7 @@ import type { KeyboardEvent, MouseEvent } from "react";
 
 interface DetectionRowProps {
   row: DetectionCategory;
+  count: number;
   end: number;
   time: number;
   colorRotation: number;
@@ -29,6 +30,7 @@ const keyboardPosition = (key: string, time: number, end: number) => {
 
 const DetectionRow = ({
   row,
+  count,
   end,
   time,
   colorRotation,
@@ -57,6 +59,7 @@ const DetectionRow = ({
         className={styles.label}
         onClick={() => onSelect(selected === row.label ? null : row.label)}
       >
+        <span className={styles.count} title={`${count} in the current frame`}>{count}</span>
         <span className={styles.dot} style={{ backgroundColor: row.color, filter: `hue-rotate(${colorRotation}deg)` }} />
         <span className="truncate">{row.label}</span>
       </button>

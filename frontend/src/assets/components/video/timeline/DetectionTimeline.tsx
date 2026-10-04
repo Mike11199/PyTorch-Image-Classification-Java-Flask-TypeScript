@@ -3,8 +3,12 @@ import { useMemo } from "react";
 import DetectionRow from "./DetectionRow";
 import { detectionSegments } from "./detectionSegments";
 import type { VideoManifest } from "../types";
+import type { ViewerState } from "../../assistant/types";
+import { detectionVisible } from "../../assistant/viewState";
+import { detectionCounts } from "../../assistant/scene";
 
 interface DetectionTimelineProps {
+  assistantView?: ViewerState;
   manifest: VideoManifest;
   duration: number;
   time: number;
@@ -16,6 +20,7 @@ interface DetectionTimelineProps {
 }
 
 const DetectionTimeline = ({
+  assistantView,
   manifest,
   duration,
   time,
@@ -28,9 +33,14 @@ const DetectionTimeline = ({
   const end =
     duration || (manifest.frames[manifest.frames.length - 1]?.time || 0) + 0.033;
   const rows = useMemo(
-    () => detectionSegments(manifest.frames, end, defaultVideo),
-    [manifest, end, defaultVideo]
+    () => detectionSegments(manifest.frames.map((frame) => ({ ...frame,
+      detections: frame.detections.filter((d) => detectionVisible(d, assistantView)),
+    })), end, defaultVideo).map((row) => ({ ...row, color: assistantView?.boxColors[row.label] || row.color })),
+    [manifest, end, defaultVideo, assistantView]
   );
+  const counts = useMemo(() => detectionCounts(
+    { page: "video", width: manifest.width, frames: manifest.frames }, time, assistantView
+  ), [manifest, time, assistantView]);
 
   return (
     <section
@@ -72,6 +82,7 @@ const DetectionTimeline = ({
               <DetectionRow
                 key={row.label}
                 row={row}
+                count={counts[row.label] || 0}
                 end={end}
                 time={time}
                 colorRotation={colorRotation}
