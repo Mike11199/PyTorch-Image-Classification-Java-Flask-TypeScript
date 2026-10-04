@@ -18,7 +18,7 @@ import ViewerControlsPanel from "./viewer-controls/ViewerControlsPanel";
 
 const ImageClassificationPage = () => {
   const [inputValue, setInputValue] = useState(
-    "https://assets.machine-learning-projects.com/images/labrador.jpg"
+    "https://assets.machine-learning-projects.com/images/cats-and-dogs.webp"
   );
   const [pyTorchResponseObj, setPyTorchResponseObj] =
     useState<PyTorchImageResponseType | null>(null);

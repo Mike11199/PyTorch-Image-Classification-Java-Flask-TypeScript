@@ -22,8 +22,11 @@ export function assistantExamples(page: AssistantPage | undefined, classes: stri
     "Only show car",
   ] : standard;
 
-  return page === "boxes" ? videoOrdered : [
+  const ordered = page === "boxes" ? videoOrdered : [
     "Show masks only at full opacity",
     ...videoOrdered.filter((example) => example !== "Show masks only"),
   ];
+  return page === "boxes" || page === "mask"
+    ? ["Make cats red and dogs blue", ...ordered]
+    : ordered;
 }

@@ -5,7 +5,9 @@ import { useElapsedSeconds } from "../useElapsedSeconds";
 import type { ViewerAssistant } from "../useViewerAssistant";
 
 export default function AssistantPanel({ assistant }: { assistant: ViewerAssistant }) {
-  const [input, setInput] = useState("");
+  const imageDefault = assistant.page === "boxes" || assistant.page === "mask"
+    ? "Make cats red and dogs blue" : "";
+  const [input, setInput] = useState(imageDefault);
   const id = useId();
   const elapsed = useElapsedSeconds(assistant.busy);
   const examples = assistantExamples(assistant.page, assistant.classes);
@@ -37,7 +39,7 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
         <input id={`${id}-input`} value={input} onChange={(event) => setInput(event.target.value)}
           maxLength={1000} disabled={disabled} autoComplete="off"
           placeholder={assistant.ready
-            ? assistant.page === "boxes" ? "Only show cars and make them orange…" : "Show masks only at full opacity"
+            ? imageDefault || "Show masks only at full opacity"
             : "Analyze an image or load a video to begin"}
           className="min-w-0 flex-1 rounded-md border border-[#386077] bg-[#0c1522] px-3 py-3 text-sm text-gray-100 outline-none focus:border-[#39b9d2] disabled:opacity-50" />
         <button type="submit" disabled={disabled || !input.trim()}

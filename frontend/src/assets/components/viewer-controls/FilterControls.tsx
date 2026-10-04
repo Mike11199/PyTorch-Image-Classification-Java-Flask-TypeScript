@@ -21,9 +21,9 @@ export default function FilterControls({ classes, controls }: {
   const visible = controls.state.filters.visibleClasses;
   const all = visible?.length === 0;
   const selectedCount = all ? classes.length : (visible?.length ?? 0);
-  return <section aria-labelledby="viewer-filters-heading" className="flex min-w-0 items-center gap-4 md:shrink-0">
+  return <section aria-labelledby="viewer-filters-heading" className="flex min-w-0 flex-col items-stretch gap-2 md:flex-row md:items-center md:gap-4 md:shrink-0">
     <h3 id="viewer-filters-heading" className="shrink-0 text-sm text-gray-400">Classes</h3>
-    <div className="min-w-0 flex-1 md:w-60 md:flex-none lg:w-96">
+    <div className="w-full min-w-0 md:w-60 md:flex-none lg:w-96">
       {classes.length ? <details ref={dropdownRef} className="group relative"
         onKeyDown={(event) => {
           if (event.key === "Escape" && event.currentTarget.open) {
@@ -37,7 +37,7 @@ export default function FilterControls({ classes, controls }: {
           {all ? "All classes" : visible === null ? "No classes selected" : `${selectedCount} of ${classes.length} selected`}
           <span className="inline-block transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
         </summary>
-        <fieldset className="absolute right-0 z-20 mt-2 min-w-0 w-full max-h-[min(420px,60vh)] overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl shadow-black/60 sm:w-[420px]">
+        <fieldset className="absolute right-0 z-20 mt-2 min-w-0 w-full max-h-[min(420px,60vh)] overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl shadow-black/60 md:w-[420px]">
           <legend className="sr-only">Visible detection classes</legend>
           <div className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-slate-700/70 px-2 pb-2 pt-1">
             <span className="text-xs text-slate-400">{selectedCount} of {classes.length} selected</span>
