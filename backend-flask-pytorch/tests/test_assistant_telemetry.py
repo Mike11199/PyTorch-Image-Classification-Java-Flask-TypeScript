@@ -47,7 +47,7 @@ class AssistantTelemetryTests(unittest.TestCase):
             workflow.invoke({'context': CONTEXT, 'request_id': 'abc12345'})
 
         output = '\n'.join(logs.output)
-        self.assertIn('event=plan_normalized', output)
+        self.assertIn('event=explicit_styles_applied', output)
         self.assertIn('event=validation_failed', output)
         self.assertIn('event=plan_validated', output)
         self.assertIn('"type":"reset_view"', output)

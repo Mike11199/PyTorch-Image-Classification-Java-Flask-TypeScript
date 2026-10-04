@@ -65,7 +65,7 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
         ? <AssistantLoading seconds={elapsed} />
         : <div role="status" aria-live="polite" className="mt-3 text-sm leading-6">{assistant.message}</div>}
       {assistant.error && <p role="alert" className="mt-2 text-sm text-red-300">{assistant.error}</p>}
-      {!!assistant.trace.length && <details className="mt-3 text-xs text-gray-400">
+      {!!assistant.trace.length && <details open className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer">{assistant.trace.length} tool action{assistant.trace.length === 1 ? "" : "s"} performed</summary>
         <ol className="mt-2 space-y-2">
           {assistant.trace.map((entry, index) => <li key={index}>

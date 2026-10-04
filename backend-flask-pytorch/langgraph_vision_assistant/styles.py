@@ -1,4 +1,9 @@
-"""Normalize and validate explicit color and layer instructions."""
+"""Enforce color and box/mask wording that the user stated explicitly.
+
+Qwen proposes actions, but a small model can change a requested color or confuse
+"mask color" with "show masks only." This module parses those unambiguous phrases
+directly so the final plan preserves them exactly.
+"""
 
 import re
 
@@ -11,6 +16,7 @@ NAMED_COLORS = {
 
 
 def _class_clauses(message, classes):
+    """Yield each detected class and the words following its mention."""
     mentions = []
     for category in classes:
         pattern = rf'\b{re.escape(category.lower())}(?:s)?\b'
@@ -23,6 +29,7 @@ def _class_clauses(message, classes):
 
 
 def requested_colors(message):
+    """Return every named or hexadecimal color explicitly present in the request."""
     message = message.lower()
     colors = set(re.findall(r'#[0-9a-f]{6}\b', message))
     colors.update(value for name, value in NAMED_COLORS.items()
@@ -31,6 +38,7 @@ def requested_colors(message):
 
 
 def validate_requested_colors(actions, message):
+    """Reject a plan that loses or invents a color when colors were explicit."""
     expected = requested_colors(message)
     if not expected:
         return
@@ -42,6 +50,7 @@ def validate_requested_colors(actions, message):
 
 
 def validate_requested_layers(actions, context):
+    """Ensure explicit box/mask color targets stay attached to the right class."""
     expected = {}
     for category, clause in _class_clauses(
             context['message'], context['availableClasses']):
@@ -97,7 +106,14 @@ def _requests_layer_visibility(message):
     )
 
 
-def normalize_explicit_styles(plan, context):
+def apply_explicit_style_requests(plan, context):
+    """Correct Qwen's plan using explicit class, color, and box/mask wording.
+
+    Generated color actions for mentioned classes are replaced with actions parsed
+    directly from the request. A color-only request also drops an accidental
+    ``set_layers`` action, which would otherwise hide every box or mask globally.
+    Ambiguous requests and unrelated actions are left unchanged.
+    """
     if not isinstance(plan, dict) or not isinstance(plan.get('actions'), list):
         return plan
     styles = []

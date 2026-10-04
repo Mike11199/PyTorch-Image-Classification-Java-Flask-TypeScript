@@ -8,9 +8,9 @@ viewer. The model never edits JavaScript and never executes Python or shell code
 LangGraph runs this small state machine from `workflow.py`:
 
 ```text
-START -> generate with Qwen -> validate plan -> END
-                 ^                |
-                 |--- error ------|  (at most three attempts)
+START -> generate with Qwen -> apply explicit styles -> validate plan -> END
+                 ^                                      |
+                 |--------------- error ----------------|  (at most three attempts)
 ```
 
 The graph carries `AssistantState`: request context, request ID, generated plan,
@@ -50,7 +50,8 @@ the validated plan, frontend `executor.ts` runs the commands with a `switch`.
 | `workflow.py` | LangGraph nodes and retry routing |
 | `workflow_state.py` | Values carried between graph nodes |
 | `qwen.py` / `prompt.py` | Local model call and instructions |
-| `tools.py` / `styles.py` | Tool grammar, validation, deterministic colors/layers |
+| `tools.py` | Allowed action grammar and final plan validation |
+| `styles.py` | Enforce colors and box/mask targets explicitly named by the user |
 | `request.py` | Validate viewer context before Qwen sees it |
 | `telemetry.py` | Request-scoped workflow logs |
 | `../model_runtime.py` | Shared one-model-at-a-time lock |

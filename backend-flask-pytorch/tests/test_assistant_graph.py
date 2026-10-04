@@ -17,6 +17,12 @@ class GraphTests(unittest.TestCase):
             'context', 'request_id', 'plan', 'validation_error', 'attempt', 'result'
         })
 
+    def test_workflow_exposes_planning_style_rules_and_validation_steps(self):
+        workflow = build_workflow(lambda *_: {'actions': []})
+        self.assertEqual(set(workflow.get_graph().nodes), {
+            '__start__', 'generate', 'apply_explicit_styles', 'validate', '__end__'
+        })
+
     def test_repairs_invalid_plan_once(self):
         attempts = iter([{'actions': [{'type': 'oops'}]},
                          {'actions': [{'type': 'set_visible_classes', 'classes': ['car']}]}])
@@ -34,7 +40,7 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(result['attempt'], 3)
         self.assertEqual(result['result']['actions'][0]['classes'], ['car'])
 
-    def test_normalizes_explicit_class_color_and_layer_phrases(self):
+    def test_enforces_explicit_class_color_and_layer_phrases(self):
         context = {
             'message': 'Make cat masks blue and make dog boxes and masks gray',
             'page': 'mask', 'availableClasses': ['cat', 'dog'], 'view': {},
