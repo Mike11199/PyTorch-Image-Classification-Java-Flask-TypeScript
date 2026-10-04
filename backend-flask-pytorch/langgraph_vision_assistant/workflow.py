@@ -10,6 +10,8 @@ from .telemetry import log_event
 from .tools import validate_plan
 from .workflow_state import AssistantState
 
+WORKFLOW_RECURSION_LIMIT = 12
+
 
 class PlanError(ValueError):
     """Raised after Qwen produces three plans that fail validation."""

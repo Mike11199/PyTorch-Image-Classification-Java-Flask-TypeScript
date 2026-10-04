@@ -8,7 +8,7 @@ from flask import Blueprint, current_app, jsonify, make_response, request
 
 from .request import validate_request
 from .telemetry import log_event
-from .workflow import PlanError, build_workflow
+from .workflow import PlanError, WORKFLOW_RECURSION_LIMIT, build_workflow
 
 MAX_REQUEST_BYTES = 16384
 
@@ -42,7 +42,7 @@ def _failure(message, status, request_id):
 
 def _invoke_workflow(context, request_id):
     state = {'context': context, 'request_id': request_id}
-    return workflow.invoke(state, {'recursion_limit': 8})['result']
+    return workflow.invoke(state, {'recursion_limit': WORKFLOW_RECURSION_LIMIT})['result']
 
 
 def _run_workflow(context, request_id):

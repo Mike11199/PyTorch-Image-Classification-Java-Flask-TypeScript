@@ -92,6 +92,29 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(action['target'], 'both')
         self.assertEqual(action['color'], '#5b146e')
 
+    def test_compound_styles_accept_a_color_typo_and_class_alias(self):
+        context = {
+            'message': 'Make car greeen and bike purple', 'page': 'video',
+            'availableClasses': ['car', 'bicycle'], 'view': {},
+        }
+        model_plan = {'actions': [
+            {'type': 'set_class_color', 'className': 'car',
+             'color': '#00ff00', 'target': 'both'},
+            {'type': 'set_class_color', 'className': 'bicycle',
+             'color': '#ff8800', 'target': 'both'},
+        ]}
+
+        actions = build_workflow(lambda *_: model_plan).invoke({
+            'context': context, 'request_id': 'test'
+        })['result']['actions']
+
+        self.assertEqual(actions, [
+            {'type': 'set_class_color', 'className': 'car',
+             'color': '#00ff00', 'target': 'both'},
+            {'type': 'set_class_color', 'className': 'bicycle',
+             'color': '#5b146e', 'target': 'both'},
+        ])
+
     def test_invalid_plan_stops_without_partial_actions(self):
         with self.assertRaises(PlanError):
             build_workflow(lambda *_: {'actions': [{'type': 'oops'}]}).invoke({'context': CONTEXT, 'request_id': 'test'})
@@ -116,6 +139,12 @@ class RouteTests(unittest.TestCase):
             for _ in range(2):
                 result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
                 self.assertEqual(result.status_code, 429)
+
+    def test_three_invalid_plans_return_a_plan_error(self):
+        workflow = build_workflow(lambda *_: {'actions': [{'type': 'unknown'}]})
+        with patch('langgraph_vision_assistant.routes.workflow', workflow):
+            result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
+        self.assertEqual(result.status_code, 422)
 
     def test_rejects_malformed_and_large_requests(self):
         self.assertEqual(self.client.post('/api-pytorch/vision-assistant', json=[]).status_code, 400)

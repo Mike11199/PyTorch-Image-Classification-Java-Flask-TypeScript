@@ -8,7 +8,7 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
   const id = useId();
   const elapsed = useElapsedSeconds(assistant.busy);
   const category = assistant.classes.includes("car") ? "car" : assistant.classes[0];
-  const examples = category ? [
+  const standardExamples = category ? [
     `Only show ${category}`,
     `Make ${category} purple`,
     ...(assistant.page === "boxes" ? [] : [
@@ -21,6 +21,11 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
       : `Highlight the leftmost ${category}`,
     "Hide detections below 80% confidence",
   ] : ["Hide detections below 80% confidence", "Show all categories"];
+  const examples = assistant.page === "video" && category === "car" ? [
+    "Make car purple and person red",
+    ...standardExamples.filter((example) => example !== "Only show car"),
+    "Only show car",
+  ] : standardExamples;
   const capabilities = assistant.page === "video"
     ? "filters, colors, layers, counts, highlights, and video seeking"
     : assistant.page === "mask"

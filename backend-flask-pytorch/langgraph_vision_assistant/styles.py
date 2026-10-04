@@ -14,27 +14,56 @@ NAMED_COLORS = {
     'black': '#000000',
 }
 
+CLASS_ALIASES = {
+    'bike': 'bicycle',
+    'bikes': 'bicycle',
+    'people': 'person',
+}
+
 
 def _class_clauses(message, classes):
     """Yield each detected class and the words following its mention."""
+    message_lower = message.lower()
     mentions = []
     for category in classes:
         pattern = rf'\b{re.escape(category.lower())}(?:s)?\b'
         mentions.extend((match.start(), match.end(), category)
-                        for match in re.finditer(pattern, message.lower()))
+                        for match in re.finditer(pattern, message_lower))
+    available = set(classes)
+    for alias, category in CLASS_ALIASES.items():
+        if category in available:
+            mentions.extend((match.start(), match.end(), category)
+                            for match in re.finditer(rf'\b{alias}\b', message_lower))
     mentions.sort()
     for index, (_, end, category) in enumerate(mentions):
         next_start = mentions[index + 1][0] if index + 1 < len(mentions) else len(message)
         yield category, message[end:next_start].lower()
 
 
+def _named_color(token):
+    """Resolve an exact color or one with a single accidentally repeated letter."""
+    if token in NAMED_COLORS:
+        return NAMED_COLORS[token]
+    for index in range(1, len(token)):
+        if token[index] == token[index - 1]:
+            repaired = token[:index] + token[index + 1:]
+            if repaired in NAMED_COLORS:
+                return NAMED_COLORS[repaired]
+    return None
+
+
+def _color_mentions(message):
+    """Yield color values in their textual order."""
+    for match in re.finditer(r'#[0-9a-f]{6}\b|\b[a-z]+\b', message.lower()):
+        token = match.group()
+        color = token if token.startswith('#') else _named_color(token)
+        if color:
+            yield color
+
+
 def requested_colors(message):
     """Return every named or hexadecimal color explicitly present in the request."""
-    message = message.lower()
-    colors = set(re.findall(r'#[0-9a-f]{6}\b', message))
-    colors.update(value for name, value in NAMED_COLORS.items()
-                  if re.search(rf'\b{name}\b', message))
-    return colors
+    return set(_color_mentions(message))
 
 
 def validate_requested_colors(actions, message):
@@ -75,12 +104,7 @@ def validate_requested_layers(actions, context):
 
 
 def _clause_color(clause):
-    names = '|'.join(map(re.escape, NAMED_COLORS))
-    match = re.search(rf'#[0-9a-f]{{6}}\b|\b(?:{names})\b', clause)
-    if not match:
-        return None
-    value = match.group()
-    return value if value.startswith('#') else NAMED_COLORS[value]
+    return next(_color_mentions(clause), None)
 
 
 def _clause_target(clause, page):
