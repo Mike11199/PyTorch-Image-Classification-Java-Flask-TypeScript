@@ -49,6 +49,43 @@ class GraphTests(unittest.TestCase):
             {'type': 'set_class_color', 'className': 'dog', 'color': '#444444', 'target': 'both'},
         ])
 
+    def test_mask_color_request_does_not_hide_boxes_or_labels(self):
+        context = {
+            'message': 'Make car masks blue', 'page': 'video',
+            'availableClasses': ['car', 'person'], 'view': {},
+        }
+        model_plan = {'actions': [
+            {'type': 'set_layers', 'boxes': False, 'masks': True},
+            {'type': 'set_class_color', 'className': 'car',
+             'color': '#0000ff', 'target': 'masks'},
+        ]}
+
+        actions = build_workflow(lambda *_: model_plan).invoke({
+            'context': context, 'request_id': 'test'
+        })['result']['actions']
+
+        self.assertEqual(actions, [{
+            'type': 'set_class_color', 'className': 'car',
+            'color': '#0000ff', 'target': 'masks',
+        }])
+
+    def test_color_without_a_target_changes_boxes_labels_and_masks(self):
+        context = {
+            'message': 'Make car purple', 'page': 'video',
+            'availableClasses': ['car'], 'view': {},
+        }
+        model_plan = {'actions': [{
+            'type': 'set_class_color', 'className': 'car',
+            'color': '#5b146e', 'target': 'masks',
+        }]}
+
+        action = build_workflow(lambda *_: model_plan).invoke({
+            'context': context, 'request_id': 'test'
+        })['result']['actions'][0]
+
+        self.assertEqual(action['target'], 'both')
+        self.assertEqual(action['color'], '#5b146e')
+
     def test_invalid_plan_stops_without_partial_actions(self):
         with self.assertRaises(PlanError):
             build_workflow(lambda *_: {'actions': [{'type': 'oops'}]}).invoke({'context': CONTEXT, 'request_id': 'test'})

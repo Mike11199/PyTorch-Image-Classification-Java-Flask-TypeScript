@@ -80,6 +80,7 @@ test('colors boxes and masks independently or together', () => {
   assert.equal(result.view.maskColors.car, '#00ff00');
   assert.equal(result.view.maskColors.person, '#0000ff');
   assert.equal(result.view.boxColors.person, undefined);
+  assert.match(result.trace[2].result, /boxes, labels, and masks/);
 });
 
 test('timeline rows report each class count in the current frame', () => {

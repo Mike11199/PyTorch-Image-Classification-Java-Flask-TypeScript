@@ -4,7 +4,7 @@ import re
 
 NAMED_COLORS = {
     'red': '#ff0000', 'orange': '#ff8800', 'yellow': '#ffff00',
-    'green': '#00ff00', 'blue': '#0000ff', 'purple': '#800080',
+    'green': '#00ff00', 'blue': '#0000ff', 'purple': '#5b146e',
     'gray': '#444444', 'grey': '#444444', 'white': '#ffffff',
     'black': '#000000',
 }
@@ -86,6 +86,17 @@ def _clause_target(clause, page):
     return 'both'
 
 
+def _requests_layer_visibility(message):
+    layer = r'(?:box(?:es)?|masks?)'
+    command = r'(?:show|hide|keep|enable|disable)'
+    state = r'(?:on|off|only|visible|hidden)'
+    message = message.lower()
+    return bool(
+        re.search(rf'\b{command}\b[^.]*\b{layer}\b', message)
+        or re.search(rf'\b{layer}\b[^.]*\b{state}\b', message)
+    )
+
+
 def normalize_explicit_styles(plan, context):
     if not isinstance(plan, dict) or not isinstance(plan.get('actions'), list):
         return plan
@@ -101,4 +112,7 @@ def normalize_explicit_styles(plan, context):
     actions = [action for action in plan['actions']
                if not (isinstance(action, dict) and action.get('type') == 'set_class_color'
                        and action.get('className') in styled_classes)]
+    if not _requests_layer_visibility(context['message']):
+        actions = [action for action in actions
+                   if not (isinstance(action, dict) and action.get('type') == 'set_layers')]
     return {**plan, 'actions': [*actions, *styles]}

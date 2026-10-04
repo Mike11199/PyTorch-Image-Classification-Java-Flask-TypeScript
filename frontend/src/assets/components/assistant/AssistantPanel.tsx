@@ -10,10 +10,9 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
   const category = assistant.classes.includes("car") ? "car" : assistant.classes[0];
   const examples = category ? [
     `Only show ${category}`,
-    `Make ${category} boxes red`,
+    `Make ${category} purple`,
     ...(assistant.page === "boxes" ? [] : [
       `Make ${category} masks blue`,
-      `Make ${category} boxes red and masks blue`,
       "Show masks only",
       "Show boxes only",
     ]),
@@ -28,6 +27,7 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
       ? "filters, colors, mask and box layers, counts, and highlights"
       : "filters, colors, confidence, counts, and highlights";
   const disabled = assistant.busy || !assistant.ready;
+  const secondaryButton = "rounded-md border border-[#386077] bg-[#0c2c46] px-3 py-2 font-semibold text-gray-100 shadow-sm hover:border-[#39b9d2] hover:bg-[#114d7e] focus:outline-none focus:ring-2 focus:ring-[#39b9d2] disabled:cursor-not-allowed disabled:opacity-30";
   return (
     <section className="my-4 bg-black bg-opacity-60 p-6 text-left text-gray-200 shadow-md shadow-black md:rounded-md" aria-labelledby={id}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -37,11 +37,11 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
           <p className="mt-1 max-w-3xl text-xs text-gray-400">Runs on this website’s Flask server using a small local LLM—there is no ChatGPT or external LLM API call. Java forwards scene data to Qwen; LangGraph validates its tool choices, then the browser updates the viewer.</p>
           <p className="mt-1 text-xs text-gray-500">Local model: Qwen3-0.6B Q4 · Tools: {capabilities}.</p>
         </div>
-        <div className="flex gap-3 text-xs">
+        <div className="flex gap-2 text-xs">
           <button type="button" onClick={assistant.undo} disabled={disabled || !assistant.canUndo}
-            className="text-gray-300 disabled:opacity-30 hover:text-white hover:underline">Undo</button>
+            className={secondaryButton}>Undo</button>
           <button type="button" onClick={assistant.reset} disabled={disabled}
-            className="text-gray-300 disabled:opacity-30 hover:text-white hover:underline">Reset view</button>
+            className={secondaryButton}>Reset view</button>
         </div>
       </div>
       <form className="flex flex-col sm:flex-row gap-2" onSubmit={(event) => { event.preventDefault(); void assistant.submit(input); }}>

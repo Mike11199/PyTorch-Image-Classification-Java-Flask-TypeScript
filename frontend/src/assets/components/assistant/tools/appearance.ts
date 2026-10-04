@@ -10,7 +10,8 @@ export function setVisibleClasses({ view }: ToolContext, action: ToolAction<"set
 export function setClassColor({ view }: ToolContext, action: ToolAction<"set_class_color">) {
   if (action.target !== "masks") view.boxColors[action.className] = action.color;
   if (action.target !== "boxes") view.maskColors[action.className] = action.color;
-  const target = action.target === "both" ? "boxes and masks" : action.target;
+  const target = action.target === "both" ? "boxes, labels, and masks"
+    : action.target === "boxes" ? "boxes and labels" : "masks";
   return `${action.className} ${target}: ${action.color}.`;
 }
 
