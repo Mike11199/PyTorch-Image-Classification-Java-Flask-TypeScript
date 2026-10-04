@@ -49,9 +49,9 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
         </button>
       </form>
       <div className="mt-3 flex flex-wrap gap-2">
-        {examples.map((example) => <button type="button" key={example} disabled={disabled}
+        {examples.map((example, index) => <button type="button" key={example} disabled={disabled}
           onClick={() => { setInput(example); void assistant.submit(example); }}
-          className="rounded-md border border-[#386077] bg-[#111111] px-3 py-1.5 text-xs text-gray-300 hover:bg-[#222222] disabled:opacity-30">{example}</button>)}
+          className={`${index >= 3 ? "hidden md:block" : "block"} w-full rounded-md border border-[#386077] bg-[#111111] px-3 py-2.5 text-xs text-gray-300 hover:bg-[#222222] disabled:opacity-30 md:w-auto md:py-1.5`}>{example}</button>)}
       </div>
       {assistant.busy
         ? <AssistantLoading seconds={elapsed} />
