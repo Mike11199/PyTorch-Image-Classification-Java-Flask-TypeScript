@@ -153,3 +153,32 @@ test('image renderers respect separate layers, filters, mask color and opacity',
     { type: 'set_layer_enabled', layer: 'labels', enabled: true }), {});
   assert.deepEqual(calls, ['label']);
 });
+
+const { toggleVisibleClass } = loadTypescript(path.resolve(folder, '../viewer-controls/controlsLogic.ts'));
+
+test('deselecting the only Faster R-CNN class hides its boxes and labels', () => {
+  const selection = toggleVisibleClass([], ['dog'], 'dog', false);
+  assert.equal(selection, null);
+  const state = viewerControlsReducer(imageBoxesDefaults(), { type: 'set_visible_classes', classes: selection });
+  const dog = { label: 'dog', score: 0.99, box: [0, 0, 10, 10] };
+  assert.equal(detectionVisible(dog, state), false);
+  const calls = [];
+  drawBoxes({ strokeRect: () => calls.push('box'), fillText: () => calls.push('label') }, [dog], state, {});
+  assert.deepEqual(calls, []);
+  const restored = viewerControlsReducer(state, { type: 'set_visible_classes', classes: [] });
+  assert.equal(detectionVisible(dog, restored), true);
+});
+
+test('class selection can reach none, reselect one, and return to all', () => {
+  const available = ['dog', 'person'];
+  const partial = toggleVisibleClass([], available, 'person', false);
+  assert.deepEqual(partial, ['dog']);
+  const none = toggleVisibleClass(partial, available, 'dog', false);
+  assert.equal(none, null);
+  const one = toggleVisibleClass(none, available, 'person', true);
+  assert.deepEqual(one, ['person']);
+  assert.deepEqual(toggleVisibleClass(one, available, 'dog', true), []);
+  const state = viewerControlsReducer(imageBoxesDefaults(), { type: 'set_visible_classes', classes: none });
+  assert.equal(viewerControlsReducer(state, { type: 'reconcile_classes', available }).filters.visibleClasses, null);
+  assert.deepEqual(undoHistory(recordHistory(createViewerHistory(imageBoxesDefaults()), state)).present, imageBoxesDefaults());
+});

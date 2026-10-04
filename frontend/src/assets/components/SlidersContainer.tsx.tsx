@@ -29,7 +29,7 @@ export const SlidersContainer = ({
   );
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row bg-black bg-opacity-60 md:rounded-xl gap-16 pl-12 pr-12 pb-2 pt-4 shadow-md shadow-black">
+    <div className="grid grid-cols-1 gap-x-8 gap-y-4 pb-3 pt-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
       {isMobile ? (
         <div className="w-full flex flex-col items-center pt-2">
           {/* Mobile: Show slider dropdown */}

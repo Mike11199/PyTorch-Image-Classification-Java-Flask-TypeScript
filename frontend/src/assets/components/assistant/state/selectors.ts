@@ -3,7 +3,7 @@ import type { ViewerControlsState, ViewerLayer } from "./viewerControls";
 
 export function detectionVisible(detection: Detection, state: ViewerControlsState) {
   const classes = state.filters.visibleClasses;
-  return (!classes.length || classes.includes(detection.label))
+  return classes !== null && (!classes.length || classes.includes(detection.label))
     && detection.score >= state.filters.minConfidence;
 }
 

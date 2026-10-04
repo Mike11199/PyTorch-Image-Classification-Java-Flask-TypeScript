@@ -1,6 +1,7 @@
 export interface ViewerControlsState {
   filters: {
-    visibleClasses: string[];
+    // [] shows all classes; null hides all classes.
+    visibleClasses: string[] | null;
     minConfidence: number;
   };
   layers: {
@@ -23,7 +24,7 @@ export type ViewerControlDefaults = ViewerControlsState;
 export type ViewerLayer = "boxes" | "masks" | "labels";
 
 export type ViewerControlsAction =
-  | { type: "set_visible_classes"; classes: string[] }
+  | { type: "set_visible_classes"; classes: string[] | null }
   | { type: "reconcile_classes"; available: string[] }
   | { type: "set_min_confidence"; value: number }
   | { type: "set_layer_enabled"; layer: ViewerLayer; enabled: boolean }
@@ -63,11 +64,12 @@ export function viewerControlsReducer(state: ViewerControlsState,
   action: ViewerControlsAction): ViewerControlsState {
   switch (action.type) {
     case "set_visible_classes":
-      return { ...state, filters: { ...state.filters, visibleClasses: [...new Set(action.classes)] }, highlight: null };
+      return { ...state, filters: { ...state.filters,
+        visibleClasses: action.classes === null ? null : [...new Set(action.classes)] }, highlight: null };
     case "reconcile_classes": {
       const available = new Set(action.available);
       return { ...state, filters: { ...state.filters,
-        visibleClasses: state.filters.visibleClasses.filter((name) => available.has(name)) } };
+        visibleClasses: state.filters.visibleClasses?.filter((name) => available.has(name)) ?? null } };
     }
     case "set_min_confidence":
       return { ...state, filters: { ...state.filters, minConfidence: clamp(action.value, 0, 1) }, highlight: null };

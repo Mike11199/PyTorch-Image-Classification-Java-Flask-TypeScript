@@ -27,15 +27,11 @@ export default function ViewerControlsPanel({ page, classes, controls }: {
       setter: (value: number) => controls.preview({ type: "set_label_offset", axis: "y", value }) },
   ].map((slider) => ({ ...slider, onChangeCommitted: controls.commitPreview }));
 
-  return <section aria-label="Viewer controls">
-    <SlidersContainer slidersConfig={sliders} />
-    <div className="mt-4 space-y-5 bg-black bg-opacity-60 px-6 py-4 text-left text-gray-200 shadow-md shadow-black md:rounded-xl md:px-12">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-bold text-orange-600">View controls</h2>
-        <p className="text-xs text-gray-400">These controls and the LangGraph assistant update the same view.</p>
-      </div>
+  return <section aria-label="Viewer controls" className="mt-4 bg-black bg-opacity-60 px-6 text-left text-gray-200 shadow-md shadow-black md:rounded-xl md:px-12">
+    <div className="flex flex-col gap-4 border-b border-slate-700/50 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
       <LayersControls page={page} controls={controls} />
       <FilterControls classes={classes} controls={controls} />
     </div>
+    <SlidersContainer slidersConfig={sliders} />
   </section>;
 }
