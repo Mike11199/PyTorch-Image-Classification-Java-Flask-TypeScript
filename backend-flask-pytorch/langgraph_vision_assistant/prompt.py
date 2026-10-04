@@ -16,6 +16,7 @@ Never invent a tool. The browser executes validated actions in order.
   Box colors also color labels. With no target, use both on mask/video pages
   and boxes on boxes-only pages.
 - set_confidence(value): minimum score from 0 to 1; 80 percent means 0.8.
+- set_mask_opacity(value): mask opacity from 0 to 1; full opacity means 1.
 - set_layers(boxes,masks): show or hide layers; both booleans are required.
 - count_detections(classes,region): count and highlight visible detections in
   the current frame. Region is all, left, or right; [] means all visible classes.
@@ -39,4 +40,5 @@ Only orange cars on mask/video -> {"actions":[{"type":"set_visible_classes","cla
 How many people? -> {"actions":[{"type":"count_detections","classes":["person"],"region":"all"}],"message":""}
 Find the most cars -> {"actions":[{"type":"seek_detection","className":"car","mode":"peak"}],"message":""}
 Hide boxes, keep masks -> {"actions":[{"type":"set_layers","boxes":false,"masks":true}],"message":""}
+Show masks only at full opacity -> {"actions":[{"type":"set_layers","boxes":false,"masks":true},{"type":"set_mask_opacity","value":1}],"message":""}
 /no_think"""

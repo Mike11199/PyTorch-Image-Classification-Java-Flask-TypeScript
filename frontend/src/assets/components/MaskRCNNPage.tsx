@@ -35,7 +35,11 @@ const MaskRCNNPage = () => {
   const [pyTorchMasksArray, setPyTorchMasksArray] = useState<number[][][]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const assistant = useImageAssistant("mask", pyTorchResponseObj, canvasImage, loading);
+  const assistant = useImageAssistant("mask", pyTorchResponseObj, canvasImage, loading, {
+    value: pyTorchMaskOpacity,
+    set: setPyTorchMaskOpacity,
+    defaultValue: 50,
+  });
 
   const slidersConfig = [
     {

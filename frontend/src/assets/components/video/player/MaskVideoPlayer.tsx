@@ -12,16 +12,19 @@ import { useMaskPlayback } from "./useMaskPlayback";
 interface MaskVideoPlayerProps {
   manifest: VideoManifest;
   appearance: VideoAppearance;
+  setMaskOpacity: (value: number) => void;
 }
 
-const MaskVideoPlayer = ({ manifest, appearance }: MaskVideoPlayerProps) => {
+const MaskVideoPlayer = ({ manifest, appearance, setMaskOpacity }: MaskVideoPlayerProps) => {
   const fullscreen = useVideoFullscreen();
   const [selected, setSelected] = useState<string | null>(null);
   const playbackRef = useRef<ReturnType<typeof useMaskPlayback> | null>(null);
   const scene = useMemo<Scene>(() => ({ page: "video", width: manifest.width, frames: manifest.frames }), [manifest]);
   const assistant = useViewerAssistant(scene,
     () => playbackRef.current?.video.current?.currentTime || 0,
-    (time) => { setSelected(null); playbackRef.current?.seekAndPause(time); });
+    (time) => { setSelected(null); playbackRef.current?.seekAndPause(time); },
+    undefined,
+    { value: appearance.maskOpacity, set: setMaskOpacity, defaultValue: 50 });
   const hasAssistantColors = Object.keys(assistant.view.boxColors).length || Object.keys(assistant.view.maskColors).length;
   const colorRotation = hasAssistantColors ? 0 : appearance.colorRotation;
   const viewerAppearance = useMemo(() => ({ ...appearance, assistantView: assistant.view }), [appearance, assistant.view]);

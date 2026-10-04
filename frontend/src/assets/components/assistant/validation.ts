@@ -13,6 +13,7 @@ const fields: Record<Action["type"], Record<string, Check>> = {
   set_visible_classes: { classes: isClassList },
   set_class_color: { className: isText, color: isColor, target: oneOf("boxes", "masks", "both") },
   set_confidence: { value: isConfidence },
+  set_mask_opacity: { value: isConfidence },
   set_layers: { boxes: isBoolean, masks: isBoolean },
   count_detections: { classes: isClassList, region: oneOf("all", "left", "right") },
   select_detection: { className: isText, mode: oneOf("leftmost", "rightmost", "largest", "least_confident") },
@@ -38,6 +39,7 @@ function validateSceneAction(action: Action, page: Scene["page"], classes: Set<s
   if (requested.some((name) => !classes.has(name))) throw new Error("The requested category is not in this scene.");
   if (action.type === "seek_detection" && page !== "video") throw new Error("This viewer has no video playback.");
   if (action.type === "set_layers" && action.masks && page === "boxes") throw new Error("This viewer has no masks.");
+  if (action.type === "set_mask_opacity" && page === "boxes") throw new Error("This viewer has no masks.");
   if (action.type === "set_class_color" && action.target !== "boxes" && page === "boxes")
     throw new Error("This viewer has no masks.");
 }

@@ -28,6 +28,7 @@ TOOLS = {
         'target': _enum('boxes', 'masks', 'both'),
     },
     'set_confidence': {'value': {'type': 'number', 'minimum': 0, 'maximum': 1}},
+    'set_mask_opacity': {'value': {'type': 'number', 'minimum': 0, 'maximum': 1}},
     'set_layers': {'boxes': {'type': 'boolean'}, 'masks': {'type': 'boolean'}},
     'count_detections': {'classes': CLASS_LIST, 'region': _enum('all', 'left', 'right')},
     'select_detection': {
@@ -90,6 +91,8 @@ def _validate_action(action, context):
     if name == 'seek_detection' and context['page'] != 'video':
         raise ValueError('Seeking is only available for video.')
     if name == 'set_layers' and action['masks'] and context['page'] == 'boxes':
+        raise ValueError('This viewer has no masks.')
+    if name == 'set_mask_opacity' and context['page'] == 'boxes':
         raise ValueError('This viewer has no masks.')
     if name == 'set_class_color' and action['target'] != 'boxes' and context['page'] == 'boxes':
         raise ValueError('This viewer has no masks.')

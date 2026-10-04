@@ -15,7 +15,7 @@ const MaskVideoPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [maskQuality, setMaskQuality] = useState<VideoMaskQuality>(DEFAULT_MASK_QUALITY);
   const video = useVideoJob();
-  const { appearance, slidersConfig, regenerateColors } = useVideoAppearance(video.defaultVideo);
+  const { appearance, slidersConfig, setMaskOpacity, regenerateColors } = useVideoAppearance(video.defaultVideo);
 
   return (
     <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-8">
@@ -56,7 +56,8 @@ const MaskVideoPage = () => {
       )}
       <div className="mt-4 bg-black md:rounded-md shadow-md shadow-black text-gray-200">
         {video.manifest ? (
-          <MaskVideoPlayer key={video.manifest.videoUrl} manifest={video.manifest} appearance={appearance} />
+          <MaskVideoPlayer key={video.manifest.videoUrl} manifest={video.manifest}
+            appearance={appearance} setMaskOpacity={setMaskOpacity} />
         ) : (
           <VideoProcessingPreview
             status={video.status}

@@ -21,15 +21,19 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
       : `Highlight the leftmost ${category}`,
     "Hide detections below 80% confidence",
   ] : ["Hide detections below 80% confidence", "Show all categories"];
-  const examples = assistant.page === "video" && category === "car" ? [
+  const orderedExamples = assistant.page === "video" && category === "car" ? [
     "Make car purple and person red",
     ...standardExamples.filter((example) => example !== "Only show car"),
     "Only show car",
   ] : standardExamples;
+  const examples = assistant.page === "boxes" ? orderedExamples : [
+    "Show masks only at full opacity",
+    ...orderedExamples.filter((example) => example !== "Show masks only"),
+  ];
   const capabilities = assistant.page === "video"
-    ? "filters, colors, layers, counts, highlights, and video seeking"
+    ? "filters, colors, layers, opacity, counts, highlights, and video seeking"
     : assistant.page === "mask"
-      ? "filters, colors, mask and box layers, counts, and highlights"
+      ? "filters, colors, mask and box layers, opacity, counts, and highlights"
       : "filters, colors, confidence, counts, and highlights";
   const disabled = assistant.busy || !assistant.ready;
   const secondaryButton = "rounded-md border border-[#386077] bg-[#0c2c46] px-3 py-2 font-semibold text-gray-100 shadow-sm hover:border-[#39b9d2] hover:bg-[#114d7e] focus:outline-none focus:ring-2 focus:ring-[#39b9d2] disabled:cursor-not-allowed disabled:opacity-30";
@@ -53,7 +57,9 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
         <label htmlFor={`${id}-input`} className="sr-only">Ask the vision assistant</label>
         <input id={`${id}-input`} value={input} onChange={(event) => setInput(event.target.value)}
           maxLength={1000} disabled={disabled} autoComplete="off"
-          placeholder={assistant.ready ? "Only show cars and make them orange…" : "Analyze an image or load a video to begin"}
+          placeholder={assistant.ready
+            ? assistant.page === "boxes" ? "Only show cars and make them orange…" : "Show masks only at full opacity"
+            : "Analyze an image or load a video to begin"}
           className="min-w-0 flex-1 rounded-md border border-[#386077] bg-[#0c1522] px-3 py-3 text-sm text-gray-100 outline-none focus:border-[#39b9d2] disabled:opacity-50" />
         <button type="submit" disabled={disabled || !input.trim()}
           className="flex min-w-28 items-center justify-center gap-2 rounded-md bg-[#0c2c46] px-5 py-3 text-sm font-bold text-gray-100 hover:bg-[#114d7e] disabled:opacity-40">

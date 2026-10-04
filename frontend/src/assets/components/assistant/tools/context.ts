@@ -6,6 +6,8 @@ export interface ToolContext {
   scene: Scene;
   time: number;
   seek?: number;
+  maskOpacity?: number;
+  defaultMaskOpacity?: number;
 }
 
 export type ToolAction<Name extends Action["type"]> = Extract<Action, { type: Name }>;

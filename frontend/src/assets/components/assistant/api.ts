@@ -15,7 +15,8 @@ function currentSelection(scene: Scene, view: ViewerState, time: number) {
   return [...new Set(labels)];
 }
 
-function requestBody(message: string, scene: Scene, classes: string[], view: ViewerState, time: number) {
+function requestBody(message: string, scene: Scene, classes: string[], view: ViewerState,
+  time: number, maskOpacity?: number) {
   return {
     message,
     page: scene.page,
@@ -27,6 +28,7 @@ function requestBody(message: string, scene: Scene, classes: string[], view: Vie
       minConfidence: view.minConfidence,
       showBoxes: view.showBoxes,
       showMasks: scene.page !== "boxes" && view.showMasks,
+      maskOpacity,
       selectedClasses: currentSelection(scene, view, time),
     },
   };
@@ -39,12 +41,13 @@ export async function requestActions(
   view: ViewerState,
   time: number,
   signal: AbortSignal,
+  maskOpacity?: number,
 ): Promise<AssistantResponse> {
   const response = await fetch("/api-java-spring-boot/vision-assistant", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal,
-    body: JSON.stringify(requestBody(message, scene, classes, view, time)),
+    body: JSON.stringify(requestBody(message, scene, classes, view, time, maskOpacity)),
   });
   const data = await response.json().catch(() => {
     throw new Error("The assistant service returned an invalid response.");

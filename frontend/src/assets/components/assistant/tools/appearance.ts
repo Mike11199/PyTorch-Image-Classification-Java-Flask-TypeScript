@@ -21,6 +21,11 @@ export function setConfidence({ view }: ToolContext, action: ToolAction<"set_con
   return `Showing detections with confidence ≥ ${Math.round(action.value * 100)}%.`;
 }
 
+export function setMaskOpacity(context: ToolContext, action: ToolAction<"set_mask_opacity">) {
+  context.maskOpacity = Math.round(action.value * 100);
+  return `Mask opacity: ${context.maskOpacity}%.`;
+}
+
 export function setLayers({ view, scene }: ToolContext, action: ToolAction<"set_layers">) {
   view.showBoxes = action.boxes;
   view.showMasks = action.masks;
@@ -31,5 +36,6 @@ export function setLayers({ view, scene }: ToolContext, action: ToolAction<"set_
 
 export function resetView(context: ToolContext) {
   context.view = defaultView();
+  context.maskOpacity = context.defaultMaskOpacity;
   return "Assistant filters, colors, and highlights reset.";
 }

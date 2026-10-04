@@ -64,6 +64,7 @@ export const useVideoAppearance = (defaultVideo = false) => {
       colorRotation,
       defaultVideo,
     },
+    setMaskOpacity,
     regenerateColors: () => setColorRotation((value) => value + 67),
   };
 };

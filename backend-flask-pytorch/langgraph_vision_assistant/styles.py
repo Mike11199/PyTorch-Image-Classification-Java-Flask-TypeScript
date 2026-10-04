@@ -130,6 +130,15 @@ def _requests_layer_visibility(message):
     )
 
 
+def _requests_full_mask_opacity(message):
+    """Return whether the request explicitly asks for fully opaque masks."""
+    message = message.lower()
+    return bool(
+        re.search(r'\bmasks?\b[^.]*\b(?:full|100\s*%)\b[^.]*\bopacity\b', message)
+        or re.search(r'\b(?:full|100\s*%)\b[^.]*\b(?:mask\s+)?opacity\b', message)
+    )
+
+
 def apply_explicit_style_requests(plan, context):
     """Correct Qwen's plan using explicit class, color, and box/mask wording.
 
@@ -146,7 +155,8 @@ def apply_explicit_style_requests(plan, context):
         if color:
             styles.append({'type': 'set_class_color', 'className': category,
                            'color': color, 'target': _clause_target(clause, context['page'])})
-    if not styles:
+    full_mask_opacity = _requests_full_mask_opacity(context['message'])
+    if not styles and not full_mask_opacity:
         return plan
     styled_classes = {action['className'] for action in styles}
     actions = [action for action in plan['actions']
@@ -155,4 +165,9 @@ def apply_explicit_style_requests(plan, context):
     if not _requests_layer_visibility(context['message']):
         actions = [action for action in actions
                    if not (isinstance(action, dict) and action.get('type') == 'set_layers')]
+    if full_mask_opacity:
+        actions = [action for action in actions
+                   if not (isinstance(action, dict)
+                           and action.get('type') == 'set_mask_opacity')]
+        actions.append({'type': 'set_mask_opacity', 'value': 1})
     return {**plan, 'actions': [*actions, *styles]}
