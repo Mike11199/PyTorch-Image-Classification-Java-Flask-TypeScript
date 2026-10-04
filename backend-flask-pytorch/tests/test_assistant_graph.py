@@ -6,12 +6,25 @@ from flask import Flask
 from langgraph_vision_assistant.workflow import PlanError, build_workflow
 from langgraph_vision_assistant.workflow_state import AssistantState
 from langgraph_vision_assistant import register_langgraph_vision_assistant
+from langgraph_vision_assistant.tools import validate_plan
 
 
 CONTEXT = {'message': 'only cars', 'page': 'boxes', 'availableClasses': ['car'], 'view': {}}
 
 
 class GraphTests(unittest.TestCase):
+    def test_layer_tool_requires_explicit_label_visibility(self):
+        context = {'message': 'show masks only', 'page': 'mask',
+                   'availableClasses': ['car'], 'view': {}}
+        with self.assertRaises(ValueError):
+            validate_plan({'actions': [{
+                'type': 'set_layers', 'boxes': False, 'masks': True,
+            }]}, context)
+        result = validate_plan({'actions': [{
+            'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': False,
+        }]}, context)
+        self.assertFalse(result['actions'][0]['labels'])
+
     def test_workflow_state_names_explain_the_request_lifecycle(self):
         self.assertEqual(set(AssistantState.__annotations__), {
             'context', 'request_id', 'plan', 'validation_error', 'attempt', 'result'
@@ -61,7 +74,7 @@ class GraphTests(unittest.TestCase):
             'availableClasses': ['car', 'person'], 'view': {},
         }
         model_plan = {'actions': [
-            {'type': 'set_layers', 'boxes': False, 'masks': True},
+            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': True},
             {'type': 'set_class_color', 'className': 'car',
              'color': '#0000ff', 'target': 'masks'},
         ]}
@@ -74,6 +87,24 @@ class GraphTests(unittest.TestCase):
             'type': 'set_class_color', 'className': 'car',
             'color': '#0000ff', 'target': 'masks',
         }])
+
+    def test_explicit_class_filter_discards_unrequested_style_changes(self):
+        context = {
+            'message': 'Only show car', 'page': 'video',
+            'availableClasses': ['car', 'person'], 'view': {},
+        }
+        noisy_plan = {'actions': [
+            {'type': 'set_visible_classes', 'classes': ['car']},
+            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': True},
+            {'type': 'set_class_color', 'className': 'car',
+             'color': '#ff0000', 'target': 'both'},
+        ]}
+        actions = build_workflow(lambda *_: noisy_plan).invoke({
+            'context': context, 'request_id': 'test',
+        })['result']['actions']
+        self.assertEqual(actions, [
+            {'type': 'set_visible_classes', 'classes': ['car']},
+        ])
 
     def test_color_without_a_target_changes_boxes_labels_and_masks(self):
         context = {
@@ -131,7 +162,10 @@ class RouteTests(unittest.TestCase):
         with patch('langgraph_vision_assistant.routes.workflow', graph):
             result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.json, {'actions': [{'type': 'reset_view'}], 'message': ''})
+        self.assertEqual(result.json, {
+            'actions': [{'type': 'set_visible_classes', 'classes': ['car']}],
+            'message': '',
+        })
 
     def test_busy_model_returns_retryable_response_and_releases_slot(self):
         graph = build_workflow(lambda *_: (_ for _ in ()).throw(TimeoutError()))

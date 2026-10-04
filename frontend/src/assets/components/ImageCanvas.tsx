@@ -1,210 +1,101 @@
-import { useEffect, useState, useMemo } from "react";
-import { PyTorchImageResponseType } from "./types";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClassColorMap } from "./FunctionUtils";
 import NeuralNetworkSpinner from "./NeuralNetworkSpinner";
-import type { ViewerState } from "./assistant/types";
-import { detectionAlpha, detectionVisible, hexRgb } from "./assistant/viewState";
+import type { ViewerControlsState } from "./assistant/state/viewerControls";
+import type { Detection } from "./assistant/types";
+import { buildMaskOverlay } from "./image/rendering/buildMaskOverlay";
+import { drawBoxes } from "./image/rendering/drawBoxes";
+import type { PyTorchImageResponseType } from "./types";
 
 interface ImageCanvasProps {
-  assistantView?: ViewerState;
+  controls: ViewerControlsState;
   loading: boolean;
   image?: HTMLImageElement | null;
   boundingBoxData?: PyTorchImageResponseType | null;
-  pyTorchBoxLineWidth: number;
-  pyTorchBoxFontSize: number;
-  pyTorchBoxXOffset: number;
-  pyTorchBoxYOffset: number;
-  colorMapCounter: number;
-  pyTorchOpacity: number;
-  pyTorchMaskOpacity?: number;
-  pyTorchMasksArray?: number[][][];
+  masks?: number[][][];
   isError?: boolean;
   errorMessage?: any;
 }
 
+function detectionsFrom(data?: PyTorchImageResponseType | null): Detection[] {
+  if (!data) return [];
+  return data.boxes.map((box, index) => ({
+    box,
+    label: data.classes[index],
+    score: data.scores[index],
+  }));
+}
+
 const ImageCanvas = ({
-  assistantView,
+  controls,
   loading,
   image,
   boundingBoxData,
-  pyTorchBoxLineWidth,
-  pyTorchBoxFontSize,
-  pyTorchBoxXOffset,
-  pyTorchBoxYOffset,
-  colorMapCounter,
-  pyTorchOpacity,
-  pyTorchMaskOpacity = 50,
-  pyTorchMasksArray,
+  masks = [],
   isError,
   errorMessage,
 }: ImageCanvasProps) => {
-  const classColorMap = useMemo(
-    () => createClassColorMap(boundingBoxData),
-    [boundingBoxData, colorMapCounter]
-  );
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const detections = useMemo(() => detectionsFrom(boundingBoxData), [boundingBoxData]);
+  // Keep each generated palette for this image so Undo restores the same colors.
+  const palettes = useMemo(() => new Map<number, Record<string, string>>(), [boundingBoxData]);
+  const classColorMap = useMemo(() => {
+    const version = controls.appearance.paletteVersion;
+    let palette = palettes.get(version);
+    if (!palette) {
+      palette = createClassColorMap(boundingBoxData);
+      palettes.set(version, palette);
+    }
+    return palette;
+  }, [boundingBoxData, controls.appearance.paletteVersion, palettes]);
+  const [cachedMaskImage, setCachedMaskImage] = useState<HTMLCanvasElement | null>(null);
 
-  const [cachedMaskImage, setCachedMaskImage] = useState<HTMLCanvasElement | null>(
-    null
-  );
-
-  // Function to render masks onto a canvas
   useEffect(() => {
-    const generateMaskBitmap = () => {
-      if (
-        !pyTorchMasksArray ||
-        !pyTorchMasksArray.length ||
-        !image ||
-        !boundingBoxData?.boxes || assistantView?.showMasks === false
-      ) {
-        setCachedMaskImage(null);
-        return;
-      }
+    const overlay = buildMaskOverlay(masks, detections, controls, classColorMap);
+    if (!overlay || !image) {
+      setCachedMaskImage(null);
+      return;
+    }
+    const maskCanvas = document.createElement("canvas");
+    maskCanvas.width = overlay.width;
+    maskCanvas.height = overlay.height;
+    const context = maskCanvas.getContext("2d");
+    if (!context) {
+      setCachedMaskImage(null);
+      return;
+    }
+    const imageData = context.createImageData(overlay.width, overlay.height);
+    imageData.data.set(overlay.pixels);
+    context.putImageData(imageData, 0, 0);
+    setCachedMaskImage(maskCanvas);
+  }, [masks, detections, controls, classColorMap, image]);
 
-      const maskCanvas = document.createElement("canvas");
-      // Masks may be computed at lower resolution than the uploaded image.
-      const maskHeight = pyTorchMasksArray[0].length;
-      const maskWidth = pyTorchMasksArray[0][0]?.length ?? 0;
-      if (!maskWidth || !maskHeight) {
-        setCachedMaskImage(null);
-        return;
-      }
-      maskCanvas.width = maskWidth;
-      maskCanvas.height = maskHeight;
-      const maskCtx = maskCanvas.getContext("2d");
-      if (!maskCtx) return;
-
-      const maskData = maskCtx.createImageData(maskWidth, maskHeight);
-      const data = maskData.data;
-
-      // Batch update pixels for all masks
-      pyTorchMasksArray.forEach((mask, index) => {
-        const className = boundingBoxData.classes[index];
-        if (!detectionVisible({ label: className, score: boundingBoxData.scores[index], box: boundingBoxData.boxes[index] }, assistantView)) return;
-        const classColor = classColorMap[className] || "rgb(0, 0, 0)";
-        const override = assistantView?.maskColors[className];
-        const [r, g, b] = override ? hexRgb(override) : classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
-        const alpha = Math.round((pyTorchMaskOpacity / 100) * 255 * detectionAlpha(index, 0, assistantView));
-
-        mask.forEach((row, y) => {
-          row.forEach((pixel, x) => {
-            if (pixel === 1) {
-              const offset = (y * maskWidth + x) * 4;
-              data[offset] = r; // Red
-              data[offset + 1] = g; // Green
-              data[offset + 2] = b; // Blue
-              data[offset + 3] = alpha; // Alpha
-            }
-          });
-        });
-      });
-
-      maskCtx.putImageData(maskData, 0, 0);
-      setCachedMaskImage(maskCanvas);
-    };
-
-    generateMaskBitmap();
-  }, [
-    assistantView,
-    pyTorchMasksArray,
-    boundingBoxData,
-    classColorMap,
-    image,
-    pyTorchMaskOpacity,
-  ]);
-
-  // Draw bounding boxes and masks
   useEffect(() => {
-    const drawBoundingBoxes = () => {
-      if (!image || !boundingBoxData) return;
+    if (!image || !boundingBoxData) return;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0);
+    if (cachedMaskImage) {
+      context.imageSmoothingEnabled = false;
+      context.drawImage(cachedMaskImage, 0, 0, image.width, image.height);
+    }
+    drawBoxes(context, detections, controls, classColorMap);
+  }, [image, boundingBoxData, cachedMaskImage, detections, controls, classColorMap, loading, isError]);
 
-      const canvas = document.getElementById(
-        "boundingBoxCanvas"
-      ) as HTMLCanvasElement;
-      const ctx = canvas?.getContext("2d");
-      if (!ctx) return;
-
-      canvas.width = image.width;
-      canvas.height = image.height;
-
-      // Draw base image
-      ctx.drawImage(image, 0, 0);
-
-      // Draw cached mask image
-      if (cachedMaskImage) {
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(cachedMaskImage, 0, 0, image.width, image.height);
-      }
-
-      // Draw bounding boxes
-      boundingBoxData.boxes.forEach((box, i) => {
-        if (assistantView?.showBoxes === false || !detectionVisible({ label: boundingBoxData.classes[i], score: boundingBoxData.scores[i], box }, assistantView)) return;
-        const [x, y, width, height] = box.map(Math.round);
-        const className = boundingBoxData.classes[i];
-        const accuracy = (boundingBoxData.scores[i] * 100).toFixed(1);
-
-        // Get class color and apply opacity
-        const classColor = classColorMap[className] || "rgb(0, 0, 0)";
-        const override = assistantView?.boxColors[className];
-        const [r, g, b] = override ? hexRgb(override) : classColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
-        const rgbaColor = `rgba(${r}, ${g}, ${b}, ${pyTorchOpacity / 100 * detectionAlpha(i, 0, assistantView)})`;
-
-        // Set styles
-        ctx.strokeStyle = rgbaColor;
-        ctx.lineWidth = pyTorchBoxLineWidth;
-        ctx.strokeRect(x, y, width - x, height - y);
-
-        const formattedClassName =
-          className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
-
-        ctx.font = `bold ${pyTorchBoxFontSize}px Arial`;
-        ctx.fillStyle = rgbaColor;
-        ctx.fillText(
-          `${formattedClassName} ${accuracy}%`,
-          x + pyTorchBoxXOffset,
-          y + pyTorchBoxYOffset
-        );
-      });
-    };
-
-    drawBoundingBoxes();
-  }, [
-    assistantView,
-    image,
-    boundingBoxData,
-    cachedMaskImage,
-    pyTorchBoxLineWidth,
-    pyTorchBoxFontSize,
-    pyTorchBoxXOffset,
-    pyTorchBoxYOffset,
-    pyTorchOpacity,
-    classColorMap,
-  ]);
-
-  return (
-    <div
-      id="boundingBoxCanvasDiv"
-      className="h-full flex md:rounded-md shadow-md shadow-black"
-      style={{ backgroundColor: "#000000" }}
-    >
-      {loading && (
-        <div className="w-full flex justify-center">
-         < NeuralNetworkSpinner />
-        </div>
-      )}
-      {!loading && !isError && (
-        <canvas
-          className="object-contain h-full w-full"
-          id="boundingBoxCanvas"
-        ></canvas>
-      )}
-      {isError && (
-        <div className="w-full flex justify-center text-red-500 font-bold mt-6 mx-12">
-          {errorMessage?.error ??
-            "An error occurred while reaching the Java API. Please try again later."}
-        </div>
-      )}
-    </div>
-  );
+  return <div id="boundingBoxCanvasDiv"
+    className="h-full flex md:rounded-md shadow-md shadow-black"
+    style={{ backgroundColor: "#000000" }}>
+    {loading && <div className="w-full flex justify-center"><NeuralNetworkSpinner /></div>}
+    {!loading && !isError && <canvas ref={canvasRef}
+      className="object-contain h-full w-full" id="boundingBoxCanvas" />}
+    {isError && <div className="w-full flex justify-center text-red-500 font-bold mt-6 mx-12">
+      {errorMessage?.error
+        ?? "An error occurred while reaching the Java API. Please try again later."}
+    </div>}
+  </div>;
 };
 
 export default ImageCanvas;

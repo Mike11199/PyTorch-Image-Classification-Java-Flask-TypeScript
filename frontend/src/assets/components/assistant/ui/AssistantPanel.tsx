@@ -1,8 +1,8 @@
 import { useId, useState } from "react";
 import AssistantLoading, { LoadingSpinner } from "./AssistantLoading";
 import { assistantExamples } from "./examples";
-import { useElapsedSeconds } from "./useElapsedSeconds";
-import type { ViewerAssistant } from "./useViewerAssistant";
+import { useElapsedSeconds } from "../useElapsedSeconds";
+import type { ViewerAssistant } from "../useViewerAssistant";
 
 export default function AssistantPanel({ assistant }: { assistant: ViewerAssistant }) {
   const [input, setInput] = useState("");

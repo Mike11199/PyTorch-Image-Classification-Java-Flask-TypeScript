@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import type { VideoAppearance, VideoManifest } from "../types";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import type { VideoManifest } from "../types";
 import { createMaskRenderer } from "./maskRenderer";
 
 export const useMaskPlayback = (
   manifest: VideoManifest,
-  appearance: VideoAppearance,
-  selected: string | null
+  controls: ViewerControlsState,
+  selected: string | null,
+  defaultVideo: boolean,
 ) => {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const wantsPlay = useRef(false);
   const redraw = useRef<() => void>(() => undefined);
-  const settings = useRef({ appearance, selected });
+  const settings = useRef({ controls, selected, defaultVideo });
   const [playing, setPlaying] = useState(false);
   const [buffering, setBuffering] = useState(true);
   const [error, setError] = useState("");
@@ -20,9 +22,9 @@ export const useMaskPlayback = (
   const [volume, setVolume] = useState(0);
 
   useEffect(() => {
-    settings.current = { appearance, selected };
+    settings.current = { controls, selected, defaultVideo };
     redraw.current();
-  }, [appearance, selected]);
+  }, [controls, selected, defaultVideo]);
 
   useEffect(() => {
     const element = video.current!;

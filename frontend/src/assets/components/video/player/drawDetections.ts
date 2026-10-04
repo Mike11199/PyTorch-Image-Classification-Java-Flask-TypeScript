@@ -1,57 +1,53 @@
+import { detectionAlpha, detectionVisible } from "../../assistant/state/selectors";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import { rgbFromCss } from "../../image/rendering/colors";
 import { categoryColor, recolorMask } from "../helpers/defaultVideoColors";
-import type { VideoAppearance, VideoDetection, MaskFrames } from "../types";
-import { detectionVisible, detectionAlpha, hexRgb } from "../../assistant/viewState";
+import type { MaskFrames, VideoDetection } from "../types";
 
-const drawMask = (
-  context: CanvasRenderingContext2D,
-  image: ImageBitmap,
-  manifest: MaskFrames,
-  index: number,
-  opacity: number
-) => {
-  const { width, height, columns, chunkFrames } = manifest;
-  const slot = index % chunkFrames;
-  context.clearRect(0, 0, width, height);
-  context.globalAlpha = opacity / 100;
-  context.drawImage(
-    image,
-    (slot % columns) * width,
-    Math.floor(slot / columns) * height,
-    width,
-    height,
-    0,
-    0,
-    width,
-    height
-  );
-};
+export function detectionRgb(
+  detection: VideoDetection,
+  controls: ViewerControlsState,
+  target: "boxes" | "masks",
+  defaultVideo: boolean,
+) {
+  const override = target === "boxes"
+    ? controls.appearance.boxColors[detection.label]
+    : controls.appearance.maskColors[detection.label];
+  return override ? rgbFromCss(override) : categoryColor(detection, defaultVideo);
+}
 
 export const drawBoxes = (
   context: CanvasRenderingContext2D,
   detections: VideoDetection[],
-  appearance: VideoAppearance,
+  controls: ViewerControlsState,
   selected: string | null,
-  time = 0
+  defaultVideo: boolean,
+  time = 0,
 ) => {
-  const view = appearance.assistantView;
-  if (appearance.boxOpacity === 0 || view?.showBoxes === false) return;
-  context.font = `bold ${appearance.fontSize}px Arial`;
+  const boxes = controls.layers.boxes.enabled;
+  const labels = controls.layers.labels.enabled;
+  if (!boxes && !labels) return;
+
   for (const [index, detection] of detections.entries()) {
-    if (!detectionVisible(detection, view)) continue;
-    const matches = !selected || detection.label === selected;
+    if (!detectionVisible(detection, controls)) continue;
+    const focused = !selected || detection.label === selected;
     const [x1, y1, x2, y2] = detection.box;
-    context.globalAlpha = (appearance.boxOpacity / 100) * (matches ? 1 : 0.15) * detectionAlpha(index, time, view);
-    context.lineWidth = appearance.lineWidth + (selected && matches ? 2 : 0);
-    const override = view?.boxColors[detection.label];
-    const color = override ? hexRgb(override) : categoryColor(detection, appearance.defaultVideo);
+    context.globalAlpha = controls.layers.boxes.opacity / 100
+      * (focused ? 1 : 0.15) * detectionAlpha(index, time, controls);
+    context.lineWidth = controls.appearance.lineWidth + (selected && focused ? 2 : 0);
+    const color = detectionRgb(detection, controls, "boxes", defaultVideo);
     context.strokeStyle = context.fillStyle = `rgb(${color.join(",")})`;
-    context.strokeRect(x1, y1, x2 - x1, y2 - y1);
-    context.fillText(
-      `${detection.label} ${Math.round(detection.score * 100)}%`,
-      x1 + appearance.xOffset,
-      y1 + appearance.yOffset
-    );
+    if (boxes) context.strokeRect(x1, y1, x2 - x1, y2 - y1);
+    if (labels) {
+      context.font = `bold ${controls.layers.labels.fontSize}px Arial`;
+      context.fillText(
+        `${detection.label} ${Math.round(detection.score * 100)}%`,
+        x1 + controls.appearance.labelXOffset,
+        y1 + controls.appearance.labelYOffset,
+      );
+    }
   }
+  context.globalAlpha = 1;
 };
 
 export const drawDetections = (
@@ -59,15 +55,42 @@ export const drawDetections = (
   image: ImageBitmap,
   manifest: MaskFrames,
   index: number,
-  appearance: VideoAppearance,
-  selected: string | null
+  controls: ViewerControlsState,
+  selected: string | null,
+  defaultVideo: boolean,
 ) => {
-  drawMask(context, image, manifest, index, appearance.defaultVideo ? 100 : appearance.maskOpacity);
-  if (appearance.defaultVideo) {
+  const { width, height, columns, chunkFrames } = manifest;
+  const slot = index % chunkFrames;
+  context.clearRect(0, 0, width, height);
+  if (controls.layers.masks.enabled && controls.layers.masks.opacity > 0) {
+    context.globalAlpha = 1;
+    context.drawImage(
+      image,
+      (slot % columns) * width,
+      Math.floor(slot / columns) * height,
+      width,
+      height,
+      0,
+      0,
+      width,
+      height,
+    );
     recolorMask(
-      context, manifest.frames[index].detections,
-      manifest.width, manifest.height, appearance.maskOpacity
+      context,
+      manifest.frames[index].detections,
+      width,
+      height,
+      controls,
+      defaultVideo,
+      manifest.frames[index].time,
     );
   }
-  drawBoxes(context, manifest.frames[index].detections, appearance, selected);
+  drawBoxes(
+    context,
+    manifest.frames[index].detections,
+    controls,
+    selected,
+    defaultVideo,
+    manifest.frames[index].time,
+  );
 };

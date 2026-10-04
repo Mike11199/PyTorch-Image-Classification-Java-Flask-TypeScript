@@ -42,35 +42,38 @@ interface PyTorchSliderProps {
   minValue: number;
   maxValue: number;
   sliderName: string;
-  setterValue: number;
-  setterFunction: React.Dispatch<React.SetStateAction<number>>;
+  value: number;
+  onChange: (value: number) => void;
+  onChangeCommitted?: () => void;
   hideLabels?: boolean;
 }
 
 const PyTorchSlider = ({
   sliderName,
-  setterValue,
-  setterFunction,
+  value,
+  onChange,
+  onChangeCommitted,
   minValue,
   maxValue,
   hideLabels=false,
 }: PyTorchSliderProps) => {
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
-    setterFunction(newValue as number);
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
+    onChange(newValue as number);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue =
       event.target.value === "" ? 0 : Number(event.target.value);
-    setterFunction(inputValue);
+    onChange(inputValue);
   };
 
   const handleBlur = () => {
-    if (setterValue < minValue) {
-      setterFunction(minValue);
-    } else if (setterValue > maxValue) {
-      setterFunction(maxValue);
+    if (value < minValue) {
+      onChange(minValue);
+    } else if (value > maxValue) {
+      onChange(maxValue);
     }
+    onChangeCommitted?.();
   };
 
   return (
@@ -79,7 +82,7 @@ const PyTorchSlider = ({
       <div className="flex justify-between ">
         <span className="">{sliderName}</span>
         <Input
-          value={setterValue}
+          value={value}
           size="small"
           onChange={handleInputChange}
           onBlur={handleBlur}
@@ -95,9 +98,10 @@ const PyTorchSlider = ({
       }
       <CustomSlider
         color="secondary"
-        value={setterValue}
+        value={value}
         onChange={handleSliderChange}
-        aria-labelledby="input-slider"
+        onChangeCommitted={onChangeCommitted}
+        aria-label={sliderName}
         min={minValue}
         max={maxValue}
       />

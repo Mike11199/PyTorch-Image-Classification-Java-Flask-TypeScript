@@ -12,7 +12,7 @@ interface DropzoneContainerProps {
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   uploadedImages: Blob[];
   setUploadedImages: React.Dispatch<React.SetStateAction<Blob[]>>;
-  setColorMapCounter: React.Dispatch<React.SetStateAction<number>>;
+  regenerateColors: () => void;
 }
 
 export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
@@ -23,7 +23,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
   setInputValue,
   uploadedImages,
   setUploadedImages,
-  setColorMapCounter,
+  regenerateColors,
 }) => {
   const location = useLocation();
   const currentPage = location.pathname;
@@ -72,7 +72,7 @@ export const DropzoneContainer: React.FC<DropzoneContainerProps> = ({
         <Button
           color="bg-[#000000]"
           hoverColor="hover:bg-[#111111]"
-          buttonOnClick={() => setColorMapCounter((prev) => prev + 1)}
+          buttonOnClick={regenerateColors}
           buttonText="Regenerate Colors 🎨"
           loading={loading}
         />

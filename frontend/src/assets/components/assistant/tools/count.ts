@@ -18,13 +18,13 @@ function describeCount(count: number, action: CountAction, context: ToolContext)
 }
 
 export function countDetections(context: ToolContext, action: CountAction) {
-  const { scene, view, time } = context;
-  const matches = visibleDetections(scene, time, view).filter(({ detection }) => {
+  const { scene, state, time } = context;
+  const matches = visibleDetections(scene, time, state).filter(({ detection }) => {
     const matchesClass = !action.classes.length || action.classes.includes(detection.label);
     return matchesClass && matchesRegion(detection, action.region, scene.width);
   });
   const frame = frameForTime(scene, time);
-  view.highlight = { indices: matches.map(({ index }) => index), time: frame.time };
+  context.state = { ...state, highlight: { indices: matches.map(({ index }) => index), time: frame.time } };
   pauseAt(context, frame.time);
   return describeCount(matches.length, action, context);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { elapsedSeconds } from "./loadingState";
+import { elapsedSeconds } from "./ui/loadingState";
 
 export function useElapsedSeconds(active: boolean) {
   const [seconds, setSeconds] = useState(0);

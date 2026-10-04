@@ -53,6 +53,7 @@ export const useVideoJob = () => {
     !!result.status &&
     ["uploading", "queued", "running"].includes(result.status.state);
   return {
+    sceneKey: job?.id ?? null,
     config,
     defaultVideo: isDefaultVideo(result.status),
     status: submission.busy || discardRestoredJob ? null : result.status,

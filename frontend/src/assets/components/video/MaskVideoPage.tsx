@@ -1,11 +1,12 @@
 import { useState } from "react";
 import VideoProcessingPreview from "./components/VideoProcessingPreview";
-import SlidersContainer from "../SlidersContainer.tsx";
+import { useViewerControls } from "../assistant/state/useViewerControls";
+import { videoMaskDefaults } from "../assistant/state/viewerControls";
+import ViewerControlsPanel from "../viewer-controls/ViewerControlsPanel";
 import VideoDescription from "./components/VideoDescription";
 import VideoProgress from "./components/VideoProgress";
 import VideoUpload from "./upload/VideoUpload";
 import MaskVideoPlayer from "./player/MaskVideoPlayer";
-import { useVideoAppearance } from "./hooks/useVideoAppearance";
 import { useVideoJob } from "./hooks/useVideoJob";
 import { DEFAULT_MASK_QUALITY, DEFAULT_VIDEO } from "./helpers/videoSource";
 import type { VideoMaskQuality } from "./types";
@@ -15,7 +16,12 @@ const MaskVideoPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [maskQuality, setMaskQuality] = useState<VideoMaskQuality>(DEFAULT_MASK_QUALITY);
   const video = useVideoJob();
-  const { appearance, slidersConfig, setMaskOpacity, regenerateColors } = useVideoAppearance(video.defaultVideo);
+  const controls = useViewerControls(videoMaskDefaults(), video.sceneKey);
+  const classes = [...new Set(
+    video.manifest?.frames.flatMap((frame) => frame.detections.map((item) => item.label))
+      ?? video.status?.previewDetections?.map((item) => item.label)
+      ?? [],
+  )].sort();
 
   return (
     <div className="flex flex-col bg-[linear-gradient(#1c2a3f_0%,#223146_5%,#223146_95%,#1c2a3f_100%)] md:p-12 pb-8">
@@ -37,11 +43,11 @@ const MaskVideoPage = () => {
           submitFile={() =>
             video.submit({ input: "upload", url, file, maskQuality })
           }
-          regenerateColors={regenerateColors}
+          regenerateColors={() => controls.apply({ type: "regenerate_palette" })}
           onError={video.setError}
         />
       </div>
-      <SlidersContainer slidersConfig={slidersConfig} />
+      <ViewerControlsPanel page="video" classes={classes} controls={controls} />
       {video.status && (
         <VideoProgress
           status={video.status}
@@ -57,12 +63,13 @@ const MaskVideoPage = () => {
       <div className="mt-4 bg-black md:rounded-md shadow-md shadow-black text-gray-200">
         {video.manifest ? (
           <MaskVideoPlayer key={video.manifest.videoUrl} manifest={video.manifest}
-            appearance={appearance} setMaskOpacity={setMaskOpacity} />
+            controls={controls} defaultVideo={video.defaultVideo} />
         ) : (
           <VideoProcessingPreview
             status={video.status}
             loading={video.loading}
-            appearance={appearance}
+            controls={controls.state}
+            defaultVideo={video.defaultVideo}
           />
         )}
       </div>

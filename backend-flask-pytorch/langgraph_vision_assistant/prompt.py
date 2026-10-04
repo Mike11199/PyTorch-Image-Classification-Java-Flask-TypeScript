@@ -17,7 +17,7 @@ Never invent a tool. The browser executes validated actions in order.
   and boxes on boxes-only pages.
 - set_confidence(value): minimum score from 0 to 1; 80 percent means 0.8.
 - set_mask_opacity(value): mask opacity from 0 to 1; full opacity means 1.
-- set_layers(boxes,masks): show or hide layers; both booleans are required.
+- set_layers(boxes,masks,labels): show or hide layers; all booleans are required.
 - count_detections(classes,region): count and highlight visible detections in
   the current frame. Region is all, left, or right; [] means all visible classes.
 - select_detection(className,mode): leftmost, rightmost, largest, or least_confident.
@@ -39,6 +39,6 @@ Cars purple on mask/video -> {"actions":[{"type":"set_class_color","className":"
 Only orange cars on mask/video -> {"actions":[{"type":"set_visible_classes","classes":["car"]},{"type":"set_class_color","className":"car","color":"#ff8800","target":"both"}],"message":""}
 How many people? -> {"actions":[{"type":"count_detections","classes":["person"],"region":"all"}],"message":""}
 Find the most cars -> {"actions":[{"type":"seek_detection","className":"car","mode":"peak"}],"message":""}
-Hide boxes, keep masks -> {"actions":[{"type":"set_layers","boxes":false,"masks":true}],"message":""}
-Show masks only at full opacity -> {"actions":[{"type":"set_layers","boxes":false,"masks":true},{"type":"set_mask_opacity","value":1}],"message":""}
+Hide boxes, keep masks and labels -> {"actions":[{"type":"set_layers","boxes":false,"masks":true,"labels":true}],"message":""}
+Show masks only at full opacity -> {"actions":[{"type":"set_layers","boxes":false,"masks":true,"labels":false},{"type":"set_mask_opacity","value":1}],"message":""}
 /no_think"""

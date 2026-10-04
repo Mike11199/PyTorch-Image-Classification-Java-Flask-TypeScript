@@ -1,13 +1,12 @@
-import type { Action, Scene, ViewerState } from "../types";
+import type { Action, Scene } from "../types";
+import type { ViewerControlsState } from "../state/viewerControls";
 
 /** A transaction-local draft. The viewer changes only when the whole plan succeeds. */
 export interface ToolContext {
-  view: ViewerState;
+  state: ViewerControlsState;
   scene: Scene;
   time: number;
   seek?: number;
-  maskOpacity?: number;
-  defaultMaskOpacity?: number;
 }
 
 export type ToolAction<Name extends Action["type"]> = Extract<Action, { type: Name }>;

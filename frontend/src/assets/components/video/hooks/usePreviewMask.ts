@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { drawDetections } from "../player/drawDetections";
-import type { VideoAppearance, VideoStatus } from "../types";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import type { VideoStatus } from "../types";
 
 export const usePreviewMask = (
   status: VideoStatus | null,
-  appearance: VideoAppearance
+  controls: ViewerControlsState,
+  defaultVideo: boolean,
 ) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [loaded, setLoaded] = useState<{ url: string; image: ImageBitmap } | null>(
@@ -58,8 +60,8 @@ export const usePreviewMask = (
       chunkFrames: 1,
       frames: [frame],
     };
-    drawDetections(context, image, layout, 0, appearance, null);
-  }, [loaded, url, status?.previewDetections, status?.previewTime, appearance]);
+    drawDetections(context, image, layout, 0, controls, null, defaultVideo);
+  }, [loaded, url, status?.previewDetections, status?.previewTime, controls, defaultVideo]);
 
   return { canvas, error };
 };

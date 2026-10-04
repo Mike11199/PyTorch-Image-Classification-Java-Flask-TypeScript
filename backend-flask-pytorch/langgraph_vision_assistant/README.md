@@ -40,6 +40,20 @@ the request. The scene and user sentence are added in `qwen.py`. Qwen predicts a
 JSON plan token by token; the grammar restricts its choices. After Flask returns
 the validated plan, frontend `executor.ts` runs the commands with a `switch`.
 
+## How the browser view changes
+
+Manual controls and Qwen actions use the same state path:
+
+```text
+slider / toggle ─┐
+                 ├─> ViewerControls reducer + history ─> canvas, video, timeline
+Qwen tool plan ──┘
+```
+
+The frontend reducer owns filters, visible layers, opacity, label sizing, colors,
+and highlights. This is why a Qwen action updates the visible controls and why
+Undo works for either a manual edit or a tool plan.
+
 ## Files and debugging
 
 | File | Responsibility |
@@ -55,6 +69,10 @@ the validated plan, frontend `executor.ts` runs the commands with a `switch`.
 | `request.py` | Validate viewer context before Qwen sees it |
 | `telemetry.py` | Request-scoped workflow logs |
 | `../model_runtime.py` | Shared one-model-at-a-time lock |
+
+Frontend counterparts are `assistant/state/` for view state and history,
+`assistant/tools/` for browser tool implementations, and `assistant/ui/` for the
+panel and loading display.
 
 The UI trace lists browser actions that actually ran. Backend graph activity is
 in the Flask logs:

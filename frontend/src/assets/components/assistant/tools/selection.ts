@@ -11,18 +11,18 @@ const ranking: Record<Selection["mode"], (detection: Detection) => number> = {
 };
 
 export function selectDetection(context: ToolContext, action: Selection) {
-  const { scene, time, view } = context;
+  const { scene, time, state } = context;
   const rank = ranking[action.mode];
-  const candidates = visibleDetections(scene, time, view)
+  const candidates = visibleDetections(scene, time, state)
     .filter(({ detection }) => detection.label === action.className)
     .sort((a, b) => rank(a.detection) - rank(b.detection));
   const found = candidates[0];
   if (!found) {
-    view.highlight = null;
+    context.state = { ...state, highlight: null };
     return "No matching visible detection. Try resetting filters.";
   }
   const frame = frameForTime(scene, time);
-  view.highlight = { indices: [found.index], time: frame.time };
+  context.state = { ...state, highlight: { indices: [found.index], time: frame.time } };
   pauseAt(context, frame.time);
   const description = action.mode.replace(/_/g, " ");
   return `Highlighted ${description} ${action.className} (${(found.detection.score * 100).toFixed(1)}% confidence).`;

@@ -1,4 +1,7 @@
 import palette from "./defaultVideoColors.module.css";
+import { detectionAlpha, detectionVisible } from "../../assistant/state/selectors";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import { rgbFromCss } from "../../image/rendering/colors";
 import type { VideoDetection, VideoStatus } from "../types";
 
 const colorCanvas = document.createElement("canvas");
@@ -22,20 +25,32 @@ export const recolorMask = (
   detections: VideoDetection[],
   width: number,
   height: number,
-  opacity: number
+  controls: ViewerControlsState,
+  defaultVideo: boolean,
+  time: number,
 ) => {
-  const replacements = new Map<number, number[]>();
-  for (const detection of detections) {
+  const replacements = new Map<number, { color: number[]; alpha: number }>();
+  for (const [index, detection] of detections.entries()) {
     const [r, g, b] = detection.color;
-    replacements.set((r << 16) | (g << 8) | b, categoryColor(detection, true));
+    const override = controls.appearance.maskColors[detection.label];
+    replacements.set((r << 16) | (g << 8) | b, {
+      color: override ? rgbFromCss(override) : categoryColor(detection, defaultVideo),
+      alpha: detectionVisible(detection, controls)
+        ? controls.layers.masks.opacity / 100 * detectionAlpha(index, time, controls)
+        : 0,
+    });
   }
   const pixels = context.getImageData(0, 0, width, height);
   const data = pixels.data;
   for (let i = 0; i < data.length; i += 4) {
     if (!data[i + 3]) continue;
-    const color = replacements.get((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
-    if (color) [data[i], data[i + 1], data[i + 2]] = color;
-    data[i + 3] *= opacity / 100;
+    const replacement = replacements.get((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+    if (!replacement) {
+      data[i + 3] = 0;
+      continue;
+    }
+    [data[i], data[i + 1], data[i + 2]] = replacement.color;
+    data[i + 3] *= replacement.alpha;
   }
   context.putImageData(pixels, 0, 0);
 };

@@ -24,7 +24,11 @@ TOOLS = {
     },
     'set_confidence': {'value': {'type': 'number', 'minimum': 0, 'maximum': 1}},
     'set_mask_opacity': {'value': {'type': 'number', 'minimum': 0, 'maximum': 1}},
-    'set_layers': {'boxes': {'type': 'boolean'}, 'masks': {'type': 'boolean'}},
+    'set_layers': {
+        'boxes': {'type': 'boolean'},
+        'masks': {'type': 'boolean'},
+        'labels': {'type': 'boolean'},
+    },
     'count_detections': {'classes': CLASS_LIST, 'region': _enum('all', 'left', 'right')},
     'select_detection': {
         'className': {'type': 'string'},

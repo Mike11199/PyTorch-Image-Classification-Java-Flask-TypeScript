@@ -1,5 +1,5 @@
-import type { Action, Scene, ViewerState } from "./types";
-import { copyView } from "./viewState";
+import type { Action, Scene } from "./types";
+import type { ViewerControlsState } from "./state/viewerControls";
 import { parseActions } from "./validation";
 import type { ToolContext } from "./tools/context";
 import { setVisibleClasses, setClassColor, setConfidence, setLayers, setMaskOpacity, resetView } from "./tools/appearance";
@@ -21,10 +21,10 @@ function runTool(context: ToolContext, action: Action): string {
   }
 }
 
-export function executeActions(input: unknown, previous: ViewerState, scene: Scene, time: number,
-  maskOpacity?: number, defaultMaskOpacity?: number) {
+export function executeActions(input: unknown, previous: ViewerControlsState,
+  scene: Scene, time: number) {
   const actions = parseActions(input, scene);
-  const context: ToolContext = { view: copyView(previous), scene, time, maskOpacity, defaultMaskOpacity };
+  const context: ToolContext = { state: structuredClone(previous), scene, time };
   const trace = actions.map((action) => ({ tool: action.type, result: runTool(context, action) }));
-  return { view: context.view, trace, seek: context.seek, maskOpacity: context.maskOpacity };
+  return { state: context.state, trace, seek: context.seek };
 }

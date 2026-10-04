@@ -3,12 +3,13 @@ import { pauseAt, type ToolAction, type ToolContext } from "./context";
 type Search = ToolAction<"seek_detection">;
 interface Match { time: number; indices: number[] }
 
-function findFrame({ scene, time, view }: ToolContext, action: Search): Match | undefined {
+function findFrame({ scene, time, state }: ToolContext, action: Search): Match | undefined {
   let best: Match | undefined;
   for (const frame of scene.frames) {
     if (action.mode === "next" && frame.time <= time + 0.001) continue;
     const indices = frame.detections.flatMap((detection, index) => {
-      const matches = detection.label === action.className && detection.score >= view.minConfidence;
+      const matches = detection.label === action.className
+        && detection.score >= state.filters.minConfidence;
       return matches ? [index] : [];
     });
     if (!indices.length) continue;
@@ -22,9 +23,14 @@ export function seekDetection(context: ToolContext, action: Search) {
   const match = findFrame(context, action);
   if (!match) return "No matching analyzed frame at the current confidence threshold.";
   pauseAt(context, match.time);
-  context.view.visibleClasses = [action.className];
-  context.view.showBoxes = true;
-  context.view.highlight = match;
+  context.state = {
+    ...context.state,
+    filters: { ...context.state.filters, visibleClasses: [action.className] },
+    layers: { ...context.state.layers,
+      boxes: { ...context.state.layers.boxes, enabled: true },
+      labels: { ...context.state.layers.labels, enabled: true } },
+    highlight: match,
+  };
   const count = match.indices.length;
   const peak = action.mode === "peak" ? " (peak in analyzed frames)" : "";
   return `${count} ${action.className} detection${count === 1 ? "" : "s"} at ${match.time.toFixed(2)}s${peak}.`;

@@ -1,34 +1,34 @@
 import { useVideoFullscreen } from "./useVideoFullscreen";
 import layout from "./videoLayout.module.css";
 import { useMemo, useRef, useState } from "react";
-import AssistantPanel from "../../assistant/AssistantPanel";
+import AssistantPanel from "../../assistant/ui/AssistantPanel";
+import type { ViewerControlsController } from "../../assistant/state/useViewerControls";
 import { useViewerAssistant } from "../../assistant/useViewerAssistant";
 import type { Scene } from "../../assistant/types";
 import DetectionTimeline from "../timeline/DetectionTimeline";
-import type { VideoAppearance, VideoManifest } from "../types";
+import type { VideoManifest } from "../types";
 import VideoControls from "./VideoControls";
 import { useMaskPlayback } from "./useMaskPlayback";
 
 interface MaskVideoPlayerProps {
   manifest: VideoManifest;
-  appearance: VideoAppearance;
-  setMaskOpacity: (value: number) => void;
+  controls: ViewerControlsController;
+  defaultVideo: boolean;
 }
 
-const MaskVideoPlayer = ({ manifest, appearance, setMaskOpacity }: MaskVideoPlayerProps) => {
+const MaskVideoPlayer = ({ manifest, controls, defaultVideo }: MaskVideoPlayerProps) => {
   const fullscreen = useVideoFullscreen();
   const [selected, setSelected] = useState<string | null>(null);
   const playbackRef = useRef<ReturnType<typeof useMaskPlayback> | null>(null);
   const scene = useMemo<Scene>(() => ({ page: "video", width: manifest.width, frames: manifest.frames }), [manifest]);
-  const assistant = useViewerAssistant(scene,
+  const assistant = useViewerAssistant(scene, controls,
     () => playbackRef.current?.video.current?.currentTime || 0,
     (time) => { setSelected(null); playbackRef.current?.seekAndPause(time); },
-    undefined,
-    { value: appearance.maskOpacity, set: setMaskOpacity, defaultValue: 50 });
-  const hasAssistantColors = Object.keys(assistant.view.boxColors).length || Object.keys(assistant.view.maskColors).length;
-  const colorRotation = hasAssistantColors ? 0 : appearance.colorRotation;
-  const viewerAppearance = useMemo(() => ({ ...appearance, assistantView: assistant.view }), [appearance, assistant.view]);
-  const playback = useMaskPlayback(manifest, viewerAppearance, selected);
+    "video");
+  const hasCustomColors = Object.keys(controls.state.appearance.boxColors).length
+    || Object.keys(controls.state.appearance.maskColors).length;
+  const colorRotation = hasCustomColors ? 0 : controls.state.appearance.paletteVersion * 67;
+  const playback = useMaskPlayback(manifest, controls.state, selected, defaultVideo);
   playbackRef.current = playback;
   const videoWidth = manifest.videoWidth || manifest.width;
   const videoHeight = manifest.videoHeight || manifest.height;
@@ -131,9 +131,9 @@ const MaskVideoPlayer = ({ manifest, appearance, setMaskOpacity }: MaskVideoPlay
         manifest={manifest}
         duration={playback.duration}
         time={playback.time}
-        defaultVideo={appearance.defaultVideo}
+        defaultVideo={defaultVideo}
         colorRotation={colorRotation}
-        assistantView={assistant.view}
+        controls={controls.state}
         selected={selected}
         onSelect={setSelected}
         onSeek={playback.seek}

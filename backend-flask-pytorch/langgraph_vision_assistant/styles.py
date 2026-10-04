@@ -6,6 +6,8 @@ from .language import (
     class_clauses,
     clause_target,
     color_mentions,
+    explicit_filter_classes,
+    is_filter_only_request,
     requested_colors,
     requests_full_mask_opacity,
     requests_layer_visibility,
@@ -77,6 +79,12 @@ def apply_explicit_style_requests(plan, context):
     if not isinstance(plan, dict) or not isinstance(plan.get('actions'), list):
         return plan
 
+    filtered_classes = explicit_filter_classes(
+        context['message'], context['availableClasses'])
+    if filtered_classes and is_filter_only_request(
+            context['message'], context['availableClasses']):
+        return _filter_only_plan(plan, filtered_classes)
+
     styles = _explicit_color_actions(context)
     full_mask_opacity = requests_full_mask_opacity(context['message'])
     if not styles and not full_mask_opacity:
@@ -93,3 +101,18 @@ def apply_explicit_style_requests(plan, context):
                            and action.get('type') == 'set_mask_opacity')]
         actions.append({'type': 'set_mask_opacity', 'value': 1})
     return {**plan, 'actions': [*actions, *styles]}
+
+
+def _filter_only_plan(plan, classes):
+    """Keep a simple category filter from changing unrelated viewer settings."""
+    known_tools = {
+        'set_visible_classes', 'set_class_color', 'set_confidence',
+        'set_mask_opacity', 'set_layers', 'count_detections',
+        'select_detection', 'seek_detection', 'reset_view',
+    }
+    # Preserve unknown or malformed actions so final validation still rejects them.
+    invalid = [action for action in plan['actions']
+               if not isinstance(action, dict) or action.get('type') not in known_tools]
+    return {**plan, 'actions': [
+        {'type': 'set_visible_classes', 'classes': classes}, *invalid,
+    ]}

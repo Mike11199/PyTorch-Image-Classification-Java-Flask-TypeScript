@@ -14,7 +14,7 @@ const fields: Record<Action["type"], Record<string, Check>> = {
   set_class_color: { className: isText, color: isColor, target: oneOf("boxes", "masks", "both") },
   set_confidence: { value: isConfidence },
   set_mask_opacity: { value: isConfidence },
-  set_layers: { boxes: isBoolean, masks: isBoolean },
+  set_layers: { boxes: isBoolean, masks: isBoolean, labels: isBoolean },
   count_detections: { classes: isClassList, region: oneOf("all", "left", "right") },
   select_detection: { className: isText, mode: oneOf("leftmost", "rightmost", "largest", "least_confident") },
   seek_detection: { className: isText, mode: oneOf("first", "next", "peak") },

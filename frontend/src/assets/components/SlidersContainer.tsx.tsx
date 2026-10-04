@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PyTorchSlider from "./PyTorchSlider";
 
 export type SliderConfig = {
@@ -6,7 +6,8 @@ export type SliderConfig = {
   min: number;
   max: number;
   value: number;
-  setter: React.Dispatch<SetStateAction<number>>;
+  setter: (value: number) => void;
+  onChangeCommitted?: () => void;
 };
 
 export const SlidersContainer = ({
@@ -15,7 +16,7 @@ export const SlidersContainer = ({
   slidersConfig: SliderConfig[];
 }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [activeSlider, setActiveSlider] = useState<string>("Opacity");
+  const [activeSlider, setActiveSlider] = useState(slidersConfig[0]?.name ?? "");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -33,6 +34,7 @@ export const SlidersContainer = ({
         <div className="w-full flex flex-col items-center pt-2">
           {/* Mobile: Show slider dropdown */}
           <select
+            aria-label="Appearance control"
             value={activeSlider}
             onChange={(e) => setActiveSlider(e.target.value)}
             className="mb-4 p-2 bg-[#2c0a09] text-gray-200 w-full text-center font-semibold text-sm shadow-md shadow-black outline-none"
@@ -50,8 +52,9 @@ export const SlidersContainer = ({
               <PyTorchSlider
                 minValue={selectedSlider.min}
                 maxValue={selectedSlider.max}
-                setterValue={selectedSlider.value}
-                setterFunction={selectedSlider.setter}
+                value={selectedSlider.value}
+                onChange={(value) => selectedSlider.setter(value)}
+                onChangeCommitted={selectedSlider.onChangeCommitted}
                 sliderName={selectedSlider.name}
                 hideLabels={true}
               />
@@ -68,8 +71,9 @@ export const SlidersContainer = ({
             <PyTorchSlider
               minValue={slider.min}
               maxValue={slider.max}
-              setterValue={slider.value}
-              setterFunction={slider.setter}
+              value={slider.value}
+              onChange={(value) => slider.setter(value)}
+              onChangeCommitted={slider.onChangeCommitted}
               sliderName={slider.name}
             />
           </div>

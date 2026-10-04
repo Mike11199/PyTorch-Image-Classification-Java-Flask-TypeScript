@@ -1,19 +1,25 @@
 import NeuralNetworkSpinner from "../../NeuralNetworkSpinner";
-import type { VideoAppearance, VideoStatus } from "../types";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import type { VideoStatus } from "../types";
 import { usePreviewMask } from "../hooks/usePreviewMask";
 
 interface VideoProcessingPreviewProps {
   status: VideoStatus | null;
   loading: boolean;
-  appearance: VideoAppearance;
+  controls: ViewerControlsState;
+  defaultVideo: boolean;
 }
 
 const VideoProcessingPreview = ({
   status,
   loading,
-  appearance,
+  controls,
+  defaultVideo,
 }: VideoProcessingPreviewProps) => {
-  const overlay = usePreviewMask(status, appearance);
+  const overlay = usePreviewMask(status, controls, defaultVideo);
+  const colorRotation = controls.appearance.paletteVersion * 67;
+  const hasOverrides = Object.keys(controls.appearance.boxColors).length
+    || Object.keys(controls.appearance.maskColors).length;
   const ratio = (status?.previewWidth || 16) / (status?.previewHeight || 9);
   let content = (
     <p className="text-gray-500 text-sm">Your analyzed video will appear here.</p>
@@ -41,7 +47,7 @@ const VideoProcessingPreview = ({
             <canvas
               ref={overlay.canvas}
               className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ filter: `hue-rotate(${appearance.colorRotation}deg)` }}
+              style={{ filter: `hue-rotate(${hasOverrides ? 0 : colorRotation}deg)` }}
             />
           </div>
         </div>

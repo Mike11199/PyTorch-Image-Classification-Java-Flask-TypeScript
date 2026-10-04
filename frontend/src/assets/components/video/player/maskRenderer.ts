@@ -1,12 +1,13 @@
 /** Follow the video's presented frame and draw its indexed masks. */
-import type { VideoAppearance, VideoManifest } from "../types";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import type { VideoManifest } from "../types";
 import { drawBoxes } from "./drawDetections";
 import { frameAtTime, observeVideoFrames } from "./frameTiming";
 import { createMaskCache } from "./maskCache";
 import { createIdMaskPainter } from "./idMaskPainter";
 
 interface MaskRendererOptions {
-  settings: () => { appearance: VideoAppearance; selected: string | null };
+  settings: () => { controls: ViewerControlsState; selected: string | null; defaultVideo: boolean };
   shouldPlay: () => boolean;
   onBuffering: (buffering: boolean) => void;
   onError: (message: string) => void;
@@ -61,11 +62,13 @@ export const createMaskRenderer = (
       if (disposed || current !== generation) return;
       const image = cache.get(chunk);
       if (!image) return;
-      const { appearance, selected } = options.settings();
+      const { controls, selected, defaultVideo } = options.settings();
       const detections = manifest.frames[index].detections;
       const offset = index % manifest.chunkFrames * frameBytes;
-      paint(image.subarray(offset, offset + frameBytes), detections, appearance.maskOpacity, appearance.defaultVideo, appearance.assistantView, manifest.frames[index].time);
-      drawBoxes(context, detections, appearance, selected, manifest.frames[index].time);
+      paint(image.subarray(offset, offset + frameBytes), detections, controls, defaultVideo,
+        manifest.frames[index].time);
+      drawBoxes(context, detections, controls, selected, defaultVideo,
+        manifest.frames[index].time);
       buffering = false;
       options.onBuffering(false);
 

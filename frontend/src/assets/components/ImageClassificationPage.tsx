@@ -1,5 +1,7 @@
 import { useState } from "react";
-import AssistantPanel from "./assistant/AssistantPanel";
+import AssistantPanel from "./assistant/ui/AssistantPanel";
+import { useViewerControls } from "./assistant/state/useViewerControls";
+import { imageBoxesDefaults } from "./assistant/state/viewerControls";
 import { useImageAssistant } from "./assistant/useImageAssistant";
 import ImageCanvas from "./ImageCanvas";
 import {
@@ -12,7 +14,7 @@ import { fetchPyTorchAnalysis } from "./FunctionUtils";
 import { Toaster } from "react-hot-toast";
 import { showErrorToast } from "./FunctionUtils";
 import { DropzoneContainer } from "./DropzoneContainer";
-import { SliderConfig, SlidersContainer } from "./SlidersContainer.tsx";
+import ViewerControlsPanel from "./viewer-controls/ViewerControlsPanel";
 
 const ImageClassificationPage = () => {
   const [inputValue, setInputValue] = useState(
@@ -25,53 +27,12 @@ const ImageClassificationPage = () => {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<Blob[]>([]);
   const [canvasImage, setCanvasImage] = useState<HTMLImageElement | null>(null);
-  const [pyTorchBoxLineWidth, setPyTorchBoxLineWidth] = useState<number>(3);
-  const [pyTorchBoxFontSize, setPyTorchBoxFontSize] = useState<number>(12);
-  const [pyTorchBoxXOffset, setPyTorchBoxXOffset] = useState<number>(5);
-  const [pyTorchBoxYOffset, setPyTorchBoxYOffset] = useState<number>(15);
-  const [pyTorchOpacity, setPyTorchOpacity] = useState<number>(100);
-  const [colorMapCounter, setColorMapCounter] = useState(0);
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const assistant = useImageAssistant("boxes", pyTorchResponseObj, canvasImage, loading);
-
-  const slidersConfig: SliderConfig[] = [
-    {
-      name: "Box Opacity",
-      min: 0,
-      max: 100,
-      value: pyTorchOpacity,
-      setter: setPyTorchOpacity,
-    },
-    {
-      name: "Box Line Width",
-      min: 1,
-      max: 20,
-      value: pyTorchBoxLineWidth,
-      setter: setPyTorchBoxLineWidth,
-    },
-    {
-      name: "Label Font Size",
-      min: 1,
-      max: 65,
-      value: pyTorchBoxFontSize,
-      setter: setPyTorchBoxFontSize,
-    },
-    {
-      name: "Label X Offset",
-      min: -200,
-      max: 200,
-      value: pyTorchBoxXOffset,
-      setter: setPyTorchBoxXOffset,
-    },
-    {
-      name: "Label Y Offset",
-      min: -200,
-      max: 200,
-      value: pyTorchBoxYOffset,
-      setter: setPyTorchBoxYOffset,
-    },
-  ];
+  const controls = useViewerControls(imageBoxesDefaults(), canvasImage);
+  const assistant = useImageAssistant(
+    "boxes", pyTorchResponseObj, canvasImage, loading, controls,
+  );
 
   const pyTorchResultsFromImageBlob = async (imageBlob: Blob) => {
     try {
@@ -133,11 +94,11 @@ const ImageClassificationPage = () => {
             setInputValue={setInputValue}
             uploadedImages={uploadedImages}
             setUploadedImages={setUploadedImages}
-            setColorMapCounter={setColorMapCounter}
+            regenerateColors={() => controls.apply({ type: "regenerate_palette" })}
           />
         </div>
 
-        <SlidersContainer {...{ slidersConfig }} />
+        <ViewerControlsPanel page="boxes" classes={assistant.classes} controls={controls} />
         <AssistantPanel assistant={assistant} />
 
         {/* JSONBox and ImageCanvas */}
@@ -150,16 +111,10 @@ const ImageClassificationPage = () => {
           </div>
           <div className="w-full md:w-10/12 h-[25rem] md:h-full">
             <ImageCanvas
-              assistantView={assistant.view}
-              pyTorchBoxXOffset={pyTorchBoxXOffset}
-              pyTorchBoxYOffset={pyTorchBoxYOffset}
-              pyTorchBoxFontSize={pyTorchBoxFontSize}
-              pyTorchBoxLineWidth={pyTorchBoxLineWidth}
+              controls={controls.state}
               loading={loading}
               image={canvasImage}
               boundingBoxData={pyTorchResponseObj}
-              colorMapCounter={colorMapCounter}
-              pyTorchOpacity={pyTorchOpacity}
               isError={isError}
               errorMessage={errorMessage}
             />

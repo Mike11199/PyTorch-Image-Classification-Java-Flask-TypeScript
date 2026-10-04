@@ -61,6 +61,38 @@ def requested_colors(message):
     return set(color_mentions(message))
 
 
+def explicit_filter_classes(message, classes):
+    """Return classes from an explicit "only show" filter clause."""
+    match = re.search(
+        r'\b(?:only\s+show|show\s+only|only)\b(?P<body>.*?)(?='
+        r'\b(?:and|then)\s+(?:make|color|paint|set|hide|show|count|find|jump|highlight)\b'
+        r'|[.;]|$)',
+        message.lower(),
+    )
+    if not match:
+        return []
+    found = [category for category, _ in class_clauses(match.group('body'), classes)]
+    return list(dict.fromkeys(found))
+
+
+def is_filter_only_request(message, classes):
+    """Return whether an explicit class filter contains no second instruction."""
+    remainder = re.sub(r'^\s*(?:only\s+show|show\s+only|only)\s+', '',
+                       message.lower(), count=1)
+    for category in classes:
+        remainder = re.sub(rf'\b{re.escape(category.lower())}(?:s)?\b', '', remainder)
+    available = set(classes)
+    for alias, category in CLASS_ALIASES.items():
+        if category in available:
+            remainder = re.sub(rf'\b{alias}\b', '', remainder)
+    remainder = re.sub(
+        r'\b(?:please|the|detected|detection|detections|object|objects|'
+        r'class|classes|category|categories|and|or)\b|[^a-z0-9]+',
+        '', remainder,
+    )
+    return not remainder
+
+
 def clause_target(clause, page):
     """Map explicit box and mask words to a color-action target."""
     boxes = bool(re.search(r'\bbox(?:es)?\b', clause))

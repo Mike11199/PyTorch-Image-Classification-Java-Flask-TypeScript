@@ -1,6 +1,6 @@
-import type { AssistantPage } from "./types";
+import type { AssistantPage } from "../types";
 
-export function assistantExamples(page: AssistantPage, classes: string[]) {
+export function assistantExamples(page: AssistantPage | undefined, classes: string[]) {
   const category = classes.includes("car") ? "car" : classes[0];
   const standard = category ? [
     `Only show ${category}`,

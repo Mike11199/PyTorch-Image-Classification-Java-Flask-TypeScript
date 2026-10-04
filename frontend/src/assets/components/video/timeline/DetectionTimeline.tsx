@@ -3,12 +3,12 @@ import { useMemo } from "react";
 import DetectionRow from "./DetectionRow";
 import { detectionSegments } from "./detectionSegments";
 import type { VideoManifest } from "../types";
-import type { ViewerState } from "../../assistant/types";
-import { detectionVisible } from "../../assistant/viewState";
+import type { ViewerControlsState } from "../../assistant/state/viewerControls";
+import { detectionVisible } from "../../assistant/state/selectors";
 import { detectionCounts } from "../../assistant/scene";
 
 interface DetectionTimelineProps {
-  assistantView?: ViewerState;
+  controls: ViewerControlsState;
   manifest: VideoManifest;
   duration: number;
   time: number;
@@ -20,7 +20,7 @@ interface DetectionTimelineProps {
 }
 
 const DetectionTimeline = ({
-  assistantView,
+  controls,
   manifest,
   duration,
   time,
@@ -34,13 +34,16 @@ const DetectionTimeline = ({
     duration || (manifest.frames[manifest.frames.length - 1]?.time || 0) + 0.033;
   const rows = useMemo(
     () => detectionSegments(manifest.frames.map((frame) => ({ ...frame,
-      detections: frame.detections.filter((d) => detectionVisible(d, assistantView)),
-    })), end, defaultVideo).map((row) => ({ ...row, color: assistantView?.boxColors[row.label] || row.color })),
-    [manifest, end, defaultVideo, assistantView]
+      detections: frame.detections.filter((d) => detectionVisible(d, controls)),
+    })), end, defaultVideo).map((row) => ({
+      ...row,
+      color: controls.appearance.boxColors[row.label] || row.color,
+    })),
+    [manifest, end, defaultVideo, controls]
   );
   const counts = useMemo(() => detectionCounts(
-    { page: "video", width: manifest.width, frames: manifest.frames }, time, assistantView
-  ), [manifest, time, assistantView]);
+    { page: "video", width: manifest.width, frames: manifest.frames }, time, controls
+  ), [manifest, time, controls]);
 
   return (
     <section
@@ -54,7 +57,7 @@ const DetectionTimeline = ({
         </div>
         {selected && (
           <button className={styles.clear} onClick={() => onSelect(null)}>
-            Show all categories
+            Clear focus
           </button>
         )}
       </div>
