@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import AssistantLoading, { LoadingSpinner } from "./AssistantLoading";
+import { assistantExamples } from "./examples";
 import { useElapsedSeconds } from "./useElapsedSeconds";
 import type { ViewerAssistant } from "./useViewerAssistant";
 
@@ -7,29 +8,7 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
   const [input, setInput] = useState("");
   const id = useId();
   const elapsed = useElapsedSeconds(assistant.busy);
-  const category = assistant.classes.includes("car") ? "car" : assistant.classes[0];
-  const standardExamples = category ? [
-    `Only show ${category}`,
-    `Make ${category} purple`,
-    ...(assistant.page === "boxes" ? [] : [
-      `Make ${category} masks blue`,
-      "Show masks only",
-      "Show boxes only",
-    ]),
-    `How many ${category} detections are visible?`,
-    assistant.page === "video" ? `Jump to the frame with the most ${category} detections`
-      : `Highlight the leftmost ${category}`,
-    "Hide detections below 80% confidence",
-  ] : ["Hide detections below 80% confidence", "Show all categories"];
-  const orderedExamples = assistant.page === "video" && category === "car" ? [
-    "Make car purple and person red",
-    ...standardExamples.filter((example) => example !== "Only show car"),
-    "Only show car",
-  ] : standardExamples;
-  const examples = assistant.page === "boxes" ? orderedExamples : [
-    "Show masks only at full opacity",
-    ...orderedExamples.filter((example) => example !== "Show masks only"),
-  ];
+  const examples = assistantExamples(assistant.page, assistant.classes);
   const capabilities = assistant.page === "video"
     ? "filters, colors, layers, opacity, counts, highlights, and video seeking"
     : assistant.page === "mask"

@@ -30,12 +30,10 @@ A tool is a JSON command understood by the browser, for example:
 {"type":"set_class_color","className":"car","color":"#5b146e","target":"both"}
 ```
 
-`tools.py` has two jobs:
-
-1. `plan_schema()` lists every allowed command and argument. `qwen.py` converts
-   it into a llama.cpp grammar, so Qwen cannot generate an unknown command shape.
-2. `validate_plan()` checks the completed plan again: exact fields, valid types,
-   detected class names, page capabilities, colors, and action count.
+`tool_schema.py` lists every allowed command and argument. `qwen.py` converts the
+schema into a llama.cpp grammar, so Qwen cannot generate an unknown command shape.
+`tools.py` validates the completed plan again: exact fields, valid types, detected
+class names, page capabilities, colors, and action count.
 
 The tool descriptions and examples in `prompt.py` teach Qwen which command fits
 the request. The scene and user sentence are added in `qwen.py`. Qwen predicts a
@@ -50,8 +48,10 @@ the validated plan, frontend `executor.ts` runs the commands with a `switch`.
 | `workflow.py` | LangGraph nodes and retry routing |
 | `workflow_state.py` | Values carried between graph nodes |
 | `qwen.py` / `prompt.py` | Local model call and instructions |
-| `tools.py` | Allowed action grammar and final plan validation |
-| `styles.py` | Enforce colors and box/mask targets explicitly named by the user |
+| `tool_schema.py` | JSON grammar for allowed Qwen tool calls |
+| `tools.py` | Final plan and page-capability validation |
+| `language.py` | Recognize explicit colors, class aliases, layers, and opacity |
+| `styles.py` | Correct and validate Qwen plans using that explicit wording |
 | `request.py` | Validate viewer context before Qwen sees it |
 | `telemetry.py` | Request-scoped workflow logs |
 | `../model_runtime.py` | Shared one-model-at-a-time lock |

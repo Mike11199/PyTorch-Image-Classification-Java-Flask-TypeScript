@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { PyTorchImageResponseType } from "../types";
 import { useViewerAssistant } from "./useViewerAssistant";
-import type { MaskOpacityControl } from "./useViewerAssistant";
+import type { MaskOpacityControl } from "./appearanceControl";
 import type { AssistantPage, Scene } from "./types";
 
 export function useImageAssistant(page: AssistantPage, data: PyTorchImageResponseType | null,

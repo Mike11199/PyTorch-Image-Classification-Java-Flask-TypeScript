@@ -6,7 +6,7 @@ from time import perf_counter
 
 from .prompt import SYSTEM_PROMPT
 from .telemetry import log_event
-from .tools import plan_schema
+from .tool_schema import plan_schema
 
 
 @lru_cache(maxsize=1)

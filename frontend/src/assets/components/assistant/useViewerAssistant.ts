@@ -3,15 +3,11 @@ import { executeActions } from "./executor";
 import { requestActions } from "./api";
 import { sceneClasses } from "./scene";
 import { defaultView } from "./viewState";
-import type { AssistantPage, Scene, ToolTrace, ViewerState } from "./types";
+import { applyMaskOpacity, resetMaskOpacity } from "./appearanceControl";
+import type { MaskOpacityControl } from "./appearanceControl";
+import { useAssistantHistory } from "./useAssistantHistory";
+import type { AssistantPage, Scene, ToolTrace } from "./types";
 
-export interface MaskOpacityControl {
-  value: number;
-  set: (value: number) => void;
-  defaultValue: number;
-}
-
-type Snapshot = { view: ViewerState; time: number; maskOpacity?: number };
 export function useViewerAssistant(
   scene: Scene | null,
   getTime = () => 0,
@@ -24,7 +20,7 @@ export function useViewerAssistant(
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [trace, setTrace] = useState<ToolTrace[]>([]);
-  const [history, setHistory] = useState<Snapshot[]>([]);
+  const history = useAssistantHistory();
   const request = useRef<AbortController | null>(null);
   const source = useRef(scene);
   source.current = scene;
@@ -32,7 +28,7 @@ export function useViewerAssistant(
 
   useEffect(() => {
     setView(defaultView());
-    setHistory([]);
+    history.clear();
     setTrace([]);
     setMessage("");
     setError("");
@@ -59,11 +55,11 @@ export function useViewerAssistant(
       const result = executeActions(data.actions, view, scene, time,
         maskOpacity?.value, maskOpacity?.defaultValue);
       if (data.actions.length) {
-        setHistory((previous) => [...previous.slice(-9), {
+        history.record({
           view, time, maskOpacity: maskOpacity?.value,
-        }]);
+        });
         setView(result.view);
-        if (result.maskOpacity !== undefined) maskOpacity?.set(result.maskOpacity);
+        applyMaskOpacity(maskOpacity, result.maskOpacity);
         if (result.seek !== undefined) seek?.(result.seek);
       }
       setTrace(result.trace);
@@ -82,12 +78,12 @@ export function useViewerAssistant(
   };
 
   const undo = () => {
-    const previous = history[history.length - 1];
-    if (!previous || busy) return;
+    if (busy) return;
+    const previous = history.takePrevious();
+    if (!previous) return;
     setView(previous.view);
-    if (previous.maskOpacity !== undefined) maskOpacity?.set(previous.maskOpacity);
+    applyMaskOpacity(maskOpacity, previous.maskOpacity);
     seek?.(previous.time);
-    setHistory(history.slice(0, -1));
     setTrace([]);
     setMessage("Previous view restored.");
     setError("");
@@ -95,18 +91,18 @@ export function useViewerAssistant(
 
   const reset = () => {
     if (busy) return;
-    setHistory((previous) => [...previous.slice(-9), {
+    history.record({
       view, time: getTime(), maskOpacity: maskOpacity?.value,
-    }]);
+    });
     setView(defaultView());
-    if (maskOpacity) maskOpacity.set(maskOpacity.defaultValue);
+    resetMaskOpacity(maskOpacity);
     setTrace([]);
     setMessage("Assistant filters, colors, and highlights reset.");
     setError("");
   };
 
   return { view, busy, error, message, trace, classes, submit, undo, reset,
-    canUndo: !!history.length, ready: !!scene, page: scene?.page ?? pageHint };
+    canUndo: history.canUndo, ready: !!scene, page: scene?.page ?? pageHint };
 }
 
 export type ViewerAssistant = ReturnType<typeof useViewerAssistant>;
