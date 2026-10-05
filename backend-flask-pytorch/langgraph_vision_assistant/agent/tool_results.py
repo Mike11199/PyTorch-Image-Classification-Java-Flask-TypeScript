@@ -1,5 +1,6 @@
-"""Turn completed tool results into the edits sent to the browser.
+"""Package viewer commands for LangGraph and collect completed tool results.
 
+Tool wrappers use prepared to pair model feedback with browser commands.
 After ToolNode runs the requested functions, collect_browser_commands in
 agent/nodes.py calls browser_commands here. Its inputs are the conversation and
 the IDs of the tools just requested. Each ToolMessage holds feedback for Qwen
@@ -13,7 +14,14 @@ browser applies the returned edits after receiving the HTTP reply.
 
 from langchain_core.messages import AnyMessage, ToolMessage
 
-from ..types import ViewerCommand
+from ..viewer.commands import ViewerCommand
+
+PreparedCommand = tuple[str, list[ViewerCommand]]
+
+
+def prepared(*commands: ViewerCommand) -> PreparedCommand:
+    """Package edits as ToolMessage feedback and artifacts for LangGraph."""
+    return 'Commands prepared; the browser has not applied them yet.', list(commands)
 
 
 class FailedToolBatch(ValueError):

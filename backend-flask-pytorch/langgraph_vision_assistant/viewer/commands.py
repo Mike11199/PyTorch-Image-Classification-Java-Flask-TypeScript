@@ -2,7 +2,7 @@
 
 Each TypedDict lists the fields for one command, such as className, color, and
 target for a class color change. ViewerCommand is the union of these shapes.
-Tools in tools/viewer.py construct them after validating their arguments.
+Plain viewer functions construct them; tool wrappers package them for LangGraph.
 
 The dictionaries travel through tool results into the HTTP response's actions
 list. Keeping the browser's existing field names lets its executor apply them

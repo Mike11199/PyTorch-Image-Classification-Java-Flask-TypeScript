@@ -1,4 +1,4 @@
-"""Convert tool color arguments to the hex format used by the browser.
+"""Convert requested colors to the hex format used by the browser.
 
 Qwen chooses the class and requested color. Pillow resolves standard CSS color
 names, so the model does not have to calculate their RGB codes. Custom hex codes

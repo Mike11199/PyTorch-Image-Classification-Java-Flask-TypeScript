@@ -6,7 +6,7 @@ invalid clarification text. A fresh message ID keeps each attempt separate in
 the conversation when LangGraph merges state updates.
 
 Invalid replies raise ValueError so the node can give Qwen correction feedback.
-Tool argument values are checked later by Pydantic and tools/checks.py; a reply
+Tool argument values are checked later by Pydantic and viewer/checks.py; a reply
 passing these format checks does not prove Qwen understood the user.
 """
 

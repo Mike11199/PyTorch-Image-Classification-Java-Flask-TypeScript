@@ -1,36 +1,12 @@
-"""Define the dictionaries shared by the HTTP layer and the workflow.
+"""Describe replies shared by the HTTP endpoint and assistant workflow.
 
-ViewerContext carries validated user text and viewer settings into the graph.
-AssistantResult carries edits or clarification text back to the route.
-PreparedCommand pairs a tool's feedback with its list of browser edits.
-
-These TypedDicts describe field names for type checking. Runtime validation lives
-in api/schemas.py and tools/inputs.py; graph-specific fields live in agent/state.py.
-The individual browser edit shapes are defined in commands.py.
+AssistantResult carries browser commands, clarification text, and timings.
+Viewer input and validated state live in viewer/state.py; browser command
+shapes live in viewer/commands.py. These types do not depend on LangGraph.
 """
 
-from typing import Literal, TypeAlias
 from typing_extensions import NotRequired, TypedDict
-from pydantic import JsonValue
-
-from .commands import ViewerCommand as ViewerCommand
-
-Page: TypeAlias = Literal['boxes', 'mask', 'video']
-PreparedCommand: TypeAlias = tuple[str, list[ViewerCommand]]
-
-
-class ViewerSnapshot(TypedDict):
-    """Detected classes and settings supplied by the browser."""
-
-    page: Page
-    availableClasses: list[str]
-    view: dict[str, JsonValue]
-
-
-class ViewerContext(ViewerSnapshot):
-    """Validated user request together with its viewer snapshot."""
-
-    message: str
+from .viewer.commands import ViewerCommand
 
 
 class AssistantTiming(TypedDict):

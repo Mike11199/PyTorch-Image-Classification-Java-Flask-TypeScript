@@ -16,7 +16,8 @@ from langchain_core.messages import AIMessage, AnyMessage
 from langchain_core.tools import BaseTool
 from langgraph.graph.message import add_messages
 
-from ..types import AssistantResult, ViewerContext
+from ..types import AssistantResult
+from ..viewer.state import ViewerContext
 
 # A model receives conversation, available tools, and a logging ID, then replies.
 ModelCall: TypeAlias = Callable[[list[AnyMessage], Sequence[BaseTool], str], AIMessage]

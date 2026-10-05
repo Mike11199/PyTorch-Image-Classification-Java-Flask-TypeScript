@@ -15,7 +15,7 @@ from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
 
 from .examples import example_messages
 
-from ..types import ViewerContext
+from ..viewer.state import ViewerContext
 
 SYSTEM_PROMPT = '''You edit an object-detection viewer by calling tools.
 Make only the requested changes. Use exact detected class names from the context.
@@ -35,12 +35,12 @@ for the actual request, not the sample objects.
 
 def initial_messages(context: ViewerContext) -> list[AnyMessage]:
     """Keep the user's request separate from instructions and the viewer snapshot."""
-    snapshot = {key: context[key] for key in ('page', 'availableClasses', 'view')}
+    snapshot = context.prompt_snapshot()
     return [
         SystemMessage(SYSTEM_PROMPT),
         *example_messages(),
         SystemMessage('Current viewer context: ' + json.dumps(snapshot) +
                       '\nOnly act on the next user request. Keep each object paired with its own color word; '
                       'copy misspelled color words rather than guessing or swapping them.'),
-        HumanMessage(context['message']),
+        HumanMessage(context.message),
     ]

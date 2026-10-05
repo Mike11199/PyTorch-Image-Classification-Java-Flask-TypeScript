@@ -2,21 +2,41 @@
 
 routes.py registers these handlers on the assistant blueprint. Flask calls the
 matching handler when request validation, the service, or inference raises an
-exception. Each handler chooses a status and message for responses.failure.
+exception. Each handler chooses a status and message; json_response adds the
+same request ID and completion logging to successful and failed responses.
 
 Expected failures tell the user whether to correct input or retry. Unexpected
 failures are logged with details while the browser receives a generic message.
 """
 
-from flask import Blueprint, Response, current_app
+from flask import Blueprint, Response, current_app, g, jsonify, make_response
+from pydantic import ValidationError
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
 from ..agent.state import PlanError
 from ..service import AssistantBusyError
-from .responses import failure
+from ..telemetry import log_event
+from ..types import AssistantResult, ErrorResponse
 
 
-def invalid_request(error: BadRequest) -> Response:
+def json_response(payload: AssistantResult | ErrorResponse, status: int) -> Response:
+    """Log completion and attach the request ID to the JSON response."""
+    request_id = g.assistant_request_id
+    if status < 400:
+        log_event('request_completed', request_id, status=status, timing=payload.get('timing'))
+    else:
+        log_event('request_failed', request_id, status=status, error=payload.get('error'))
+    response = make_response(jsonify(payload), status)
+    response.headers['X-Request-ID'] = request_id
+    return response
+
+
+def failure(message: str, status: int) -> Response:
+    """Return a user-facing error without exposing exception details."""
+    return json_response({'error': message}, status)
+
+
+def invalid_request(error: BadRequest | ValidationError) -> Response:
     """Report malformed JSON or unsupported request fields."""
     return failure('Invalid request. Use a supported viewer and a message of 1–1,000 characters.', 400)
 
@@ -53,6 +73,7 @@ def unexpected_failure(error: Exception) -> Response:
 def register_error_handlers(blueprint: Blueprint) -> None:
     """Attach this endpoint's exception mapping to its Flask blueprint."""
     blueprint.register_error_handler(BadRequest, invalid_request)
+    blueprint.register_error_handler(ValidationError, invalid_request)
     blueprint.register_error_handler(RequestEntityTooLarge, request_too_large)
     blueprint.register_error_handler(TimeoutError, assistant_busy)
     blueprint.register_error_handler(FileNotFoundError, model_unavailable)

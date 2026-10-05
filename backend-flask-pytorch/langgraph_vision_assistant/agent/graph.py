@@ -17,7 +17,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode
 
 from ..model.client import call_model
-from ..tools.results import tool_error
+from .tool_results import tool_error
 from ..tools.registry import VIEWER_TOOLS
 from .nodes import ask_qwen, collect_browser_commands
 from .state import AssistantState, ModelCall, PlanError

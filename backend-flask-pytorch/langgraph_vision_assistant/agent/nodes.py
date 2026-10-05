@@ -14,7 +14,7 @@ from langchain_core.messages import HumanMessage
 
 from ..model.validation import validate_model_reply
 from ..telemetry import log_event
-from ..tools.results import FailedToolBatch, browser_commands
+from .tool_results import FailedToolBatch, browser_commands
 from ..tools.registry import VIEWER_TOOLS
 from .turn import prepare_turn, retry_turn, accept_reply
 from .state import AssistantState, ModelCall, PlanError
@@ -50,7 +50,7 @@ def collect_browser_commands(state: AssistantState) -> AssistantState:
         log_event('tool_batch_failed', state['request_id'], attempt=state['attempt'], error=str(error))
         return {'messages': [HumanMessage(
             'No commands were applied. Correct the tool errors and resend every '
-            'requested command together. The user request is: ' + state['context']['message']
+            'requested command together. The user request is: ' + state['context'].message
         )]}
 
     log_event('tool_batch_completed', state['request_id'], attempt=state['attempt'], action_count=len(commands))

@@ -18,7 +18,8 @@ from .agent.graph import WORKFLOW_RECURSION_LIMIT, build_workflow
 from .agent.state import AssistantState
 from .telemetry import log_event
 from .model.timing import measure_inference
-from .types import AssistantResult, ViewerContext
+from .types import AssistantResult
+from .viewer.state import ViewerContext, ViewerRequest
 
 workflow = build_workflow()
 _request_slot = threading.BoundedSemaphore(1)
@@ -28,11 +29,12 @@ class AssistantBusyError(TimeoutError):
     """Another assistant request already owns the single request slot."""
 
 
-def run_assistant(context: ViewerContext, request_id: str) -> AssistantResult:
+def run_assistant(request: ViewerRequest, request_id: str) -> AssistantResult:
     """Run the agent once; fail promptly when busy and release the slot on any error."""
     started = perf_counter()
-    log_event('request_started', request_id, page=context['page'],
-              message=context['message'][:200], available_class_count=len(context['availableClasses']))
+    context = ViewerContext.from_request(request)
+    log_event('request_started', request_id, page=context.page,
+              message=context.message[:200], available_class_count=len(context.available_classes))
     if not _request_slot.acquire(blocking=False):
         raise AssistantBusyError('The assistant is busy. Please try again shortly.')
     try:

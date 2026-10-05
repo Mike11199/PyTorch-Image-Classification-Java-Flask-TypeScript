@@ -1,5 +1,8 @@
 # How the viewer assistant works
 
+**Viewer** means the image/video display and its boxes, masks, labels, and controls.
+The Python `viewer/` folder contains rules for changing that display; the browser draws it.
+
 **Qwen chooses an action, LangGraph runs the steps, and the browser applies the edit.**
 For example, “make cats red” becomes a call to our `set_class_colors` function.
 The backend receives detected class names and viewer settings. The browser owns
@@ -95,7 +98,7 @@ and showing masks at full opacity is one `set_layers` call that prepares two edi
 Qwen can also reply with clarification text instead of requesting tools.
 Each request allows at most three model calls and six tool calls per attempt.
 
-## What `results.py` does
+## What `tool_results.py` does
 
 LangGraph wraps each tool's output in a **ToolMessage**:
 
@@ -106,7 +109,7 @@ LangGraph wraps each tool's output in a **ToolMessage**:
 | `content` | Feedback Qwen can read. |
 | `artifact` | A list of browser edits, or `None` for an information-only result. |
 
-[tools/results.py](tools/results.py) takes the latest results, restores call
+[agent/tool_results.py](agent/tool_results.py) packages commands for tools, then takes completed results, restores call
 order, checks that all succeeded, and returns their edit dictionaries. This
 prevents a failed request from applying only some of its edits.
 
@@ -124,18 +127,17 @@ See [agent/state.py](agent/state.py) for the fields. State starts fresh per HTTP
 
 | Location | Responsibility |
 | --- | --- |
-| [api/routes.py](api/routes.py), [service.py](service.py) | Receive a request and start the workflow. |
-| [agent/graph.py](agent/graph.py), [agent/nodes.py](agent/nodes.py) | Step order and the work each step performs. |
-| `agent/turn.py`, `agent/prompt.py`, `agent/examples.py` | Attempt bookkeeping, instructions, and sample tool conversations. |
-| [tools/viewer.py](tools/viewer.py), `tools/registry.py` | Tool functions and which ones Qwen can use. |
-| `tools/inputs.py`, `tools/checks.py` | Argument validation and viewer capability checks. |
-| `tools/commands.py`, [tools/results.py](tools/results.py) | Package a tool's edits, then collect successful results. |
-| `api/schemas.py`, `commands.py` | Accepted request fields and browser command shapes. |
-| `model/client.py`, `model/validation.py` | Call Qwen and check its reply format. |
-| `model/` runtime, settings, server, transport modules | Own, configure, start, and communicate with the local model. |
+| [api/routes.py](api/routes.py) | Receives the browser's request. |
+| [service.py](service.py) | Validates display settings and starts the assistant. |
+| [agent/](agent/) | Prompts, LangGraph steps, retries, and tool results. |
+| [tools/viewer.py](tools/viewer.py) | Functions Qwen can call; each delegates to a display rule. |
+| [viewer/](viewer/) | Rules for hiding objects, changing colors, and other display edits. |
+| [model/](model/) | Starts local Qwen and sends it requests. |
 
-Pydantic checks external input. TypedDicts describe dictionary fields without
-changing their JSON shape. Dataclasses hold internal settings and turn data.
+For example: `tools/viewer.py` exposes **hide** to Qwen; `viewer/visibility.py`
+decides which objects stay visible. Keeping those jobs separate lets us test
+display behavior without running the model. `viewer/state.py` gives these rules
+typed settings, so missing values are handled explicitly.
 
 ## Running it
 

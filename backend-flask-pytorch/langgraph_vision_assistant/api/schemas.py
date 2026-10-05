@@ -1,11 +1,11 @@
 """Describe the JSON fields accepted from the browser.
 
-request.py validates parsed JSON with AssistantRequest. Pydantic checks field
+routes.py validates parsed JSON with AssistantRequest. Pydantic checks field
 types and limits; the validators trim text, deduplicate class names, and bound
 the viewer settings. Invalid data raises a validation error before inference.
 
-to_context returns the dictionary used by the graph, preserving the browser's
-field names. HTTP body limits and error responses are handled by request.py.
+to_request preserves the browser's field names. The service then validates
+viewer settings once into ViewerContext. HTTP body limits live in routes.py.
 """
 
 import json
@@ -13,7 +13,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, StringConstraints, field_validator
 
-from ..types import Page, ViewerContext
+from ..viewer.state import Page, ViewerRequest
 
 Message = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
 Category = Annotated[str, StringConstraints(pattern=r'^[a-z][a-z -]{0,39}$')]
@@ -43,7 +43,7 @@ class AssistantRequest(BaseModel):
             raise ValueError('Invalid viewer state.')
         return view
 
-    def to_context(self) -> ViewerContext:
+    def to_request(self) -> ViewerRequest:
         """Keep the existing browser field names when entering the graph."""
         return {'message': self.message, 'page': self.page,
                 'availableClasses': self.availableClasses, 'view': self.view}
