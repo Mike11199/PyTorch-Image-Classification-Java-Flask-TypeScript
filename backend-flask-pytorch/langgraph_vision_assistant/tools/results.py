@@ -3,7 +3,7 @@
 After ToolNode runs the requested functions, collect_browser_commands in
 agent/nodes.py calls browser_commands here. Its inputs are the conversation and
 the IDs of the tools just requested. Each ToolMessage holds feedback for Qwen
-in content and an optional browser edit dictionary in artifact.
+in content and an optional list of browser edits in artifact.
 
 We select the latest results, match their request order, reject the whole set
 if any tool failed, and return the edit dictionaries. Information-only tools
@@ -58,15 +58,15 @@ def require_success(results: list[ToolMessage]) -> None:
     """Reject every edit if one failed, so a request is never partly applied."""
     for result in results:
         if result.status == 'error':
-            raise FailedToolBatch()
+            raise FailedToolBatch(str(result.content))
 
 
 def extract_commands(results: list[ToolMessage]) -> list[ViewerCommand]:
-    """Collect edit dictionaries from artifacts; skip information-only results."""
+    """Combine each tool's edits; skip information-only results."""
     commands: list[ViewerCommand] = []
     for result in results:
         if result.artifact is not None:
-            commands.append(result.artifact)
+            commands.extend(result.artifact)
     return commands
 
 

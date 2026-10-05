@@ -32,7 +32,7 @@ def call_model(messages: list[AnyMessage], tools: Sequence[BaseTool], request_id
     with model_session('llm', request_id=request_id) as model:
         response = model.create_chat_completion(**completion_payload(messages, tools))
     message = assistant_message(response)
-    log_event('model_completed', request_id, model='qwen3-0.6b',
+    log_event('model_completed', request_id, model=model.name,
               duration_ms=round((perf_counter() - started) * 1000),
               tool_count=len(message.tool_calls))
     return message
@@ -44,7 +44,8 @@ def completion_payload(messages: list[AnyMessage], tools: Sequence[BaseTool]) ->
         'messages': convert_to_openai_messages(messages),
         'tools': [convert_to_openai_tool(tool) for tool in tools],
         'tool_choice': 'auto', 'parallel_tool_calls': True,
-        'temperature': 0, 'max_tokens': 768,
+        'temperature': 0, 'top_p': 0.8, 'top_k': 20, 'min_p': 0,
+        'max_tokens': 768,
         'chat_template_kwargs': {'enable_thinking': False},
     }
 

@@ -46,8 +46,8 @@ def collect_browser_commands(state: AssistantState) -> AssistantState:
     """
     try:
         commands = browser_commands(state['messages'], state['tool_call_ids'])
-    except FailedToolBatch:
-        log_event('tool_batch_failed', state['request_id'], attempt=state['attempt'])
+    except FailedToolBatch as error:
+        log_event('tool_batch_failed', state['request_id'], attempt=state['attempt'], error=str(error))
         return {'messages': [HumanMessage(
             'No commands were applied. Correct the tool errors and resend every '
             'requested command together.'

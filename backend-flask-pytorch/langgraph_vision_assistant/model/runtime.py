@@ -26,6 +26,7 @@ class LocalModel:
     def __init__(self) -> None:
         """Load settings, start the private server, and wait for readiness."""
         settings = ModelSettings.from_environment()
+        self.name = Path(settings.model_path).stem
         if not Path(settings.model_path).is_file():
             raise FileNotFoundError(settings.model_path)
         port, key = unused_loopback_port(), uuid.uuid4().hex

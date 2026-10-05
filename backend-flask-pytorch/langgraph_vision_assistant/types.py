@@ -2,7 +2,7 @@
 
 ViewerContext carries validated user text and viewer settings into the graph.
 AssistantResult carries edits or clarification text back to the route.
-PreparedCommand describes the feedback-and-edit pair returned by a tool.
+PreparedCommand pairs a tool's feedback with its list of browser edits.
 
 These TypedDicts describe field names for type checking. Runtime validation lives
 in api/schemas.py and tools/inputs.py; graph-specific fields live in agent/state.py.
@@ -16,7 +16,7 @@ from pydantic import JsonValue
 from .commands import ViewerCommand as ViewerCommand
 
 Page: TypeAlias = Literal['boxes', 'mask', 'video']
-PreparedCommand: TypeAlias = tuple[str, ViewerCommand]
+PreparedCommand: TypeAlias = tuple[str, list[ViewerCommand]]
 
 
 class ViewerSnapshot(TypedDict):

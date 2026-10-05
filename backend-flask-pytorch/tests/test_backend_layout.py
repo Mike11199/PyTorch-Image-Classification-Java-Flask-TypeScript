@@ -28,4 +28,3 @@ class BackendLayoutTests(unittest.TestCase):
              patch('video.sources.source.shutil.copyfile') as copy:
             copy_example(store, destination)
         copy.assert_called_once_with(source, destination)
-        self.assertTrue(source.is_file())

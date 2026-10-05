@@ -1,8 +1,8 @@
 """Define the accepted arguments for the tools in viewer.py.
 
 LangChain turns these annotations into schemas describing each tool to Qwen.
-Pydantic uses the same constraints to check values before execution, including
-hex colors, numeric ranges, and allowed selection modes.
+Pydantic uses the same constraints to check types, numeric ranges, and selection
+modes. colors.py converts accepted color names or hex strings to browser colors.
 
 Context is different: LangGraph supplies it from the request's state. Qwen does
 not choose it. It contains the actual viewer page and detected classes, which
@@ -12,15 +12,30 @@ tools/checks.py uses to validate whether an operation is available.
 from typing import Annotated, Literal
 
 from langgraph.prebuilt import InjectedState
-from pydantic import Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
 from ..types import ViewerContext
 
 Context = Annotated[ViewerContext, InjectedState('context')]
 Classes = Annotated[list[StrictStr], Field(strict=True, max_length=80)]
-Color = Annotated[str, Field(strict=True, pattern=r'^#[0-9a-fA-F]{6}$', max_length=7)]
+Color = Annotated[str, Field(strict=True, min_length=1, max_length=80,
+                              description='Requested CSS color name (such as red or teal), or a hex color.')]
 Fraction = Annotated[float, Field(strict=True, ge=0, le=1, allow_inf_nan=False)]
 Target = Literal['boxes', 'masks', 'both']
+ColorLayers = Annotated[list[Literal['boxes', 'masks']], Field(min_length=1, max_length=2)]
+Layers = Annotated[list[Literal['boxes', 'masks', 'labels']], Field(max_length=3)]
 Region = Literal['all', 'left', 'right']
 Selection = Literal['leftmost', 'rightmost', 'largest', 'least_confident']
 Seek = Literal['first', 'next', 'peak']
+
+
+class ClassColor(BaseModel):
+    """One object's requested color and optional layer selection."""
+
+    model_config = ConfigDict(extra='forbid')
+    className: StrictStr
+    color: Color
+    layers: ColorLayers | None = None
+
+
+ClassColors = Annotated[list[ClassColor], Field(min_length=1, max_length=80)]

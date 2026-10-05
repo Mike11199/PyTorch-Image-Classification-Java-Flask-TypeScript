@@ -10,14 +10,14 @@ ignoring them. Add a new tool here after defining its function in viewer.py.
 
 from pydantic import BaseModel
 from .viewer import (
-    get_viewer_context, set_visible_classes, set_class_color, set_confidence,
-    set_mask_opacity, set_layers, count_detections, select_detection,
+    set_visible_classes, set_class_colors, set_confidence,
+    set_layers, count_detections, select_detection,
     seek_detection, reset_view,
 )
 
 VIEWER_TOOLS = [
-    get_viewer_context, set_visible_classes, set_class_color, set_confidence,
-    set_mask_opacity, set_layers, count_detections, select_detection, seek_detection, reset_view,
+    set_visible_classes, set_class_colors, set_confidence,
+    set_layers, count_detections, select_detection, seek_detection, reset_view,
 ]
 
 # LangChain's inferred models otherwise ignore misspelled/extra arguments.
