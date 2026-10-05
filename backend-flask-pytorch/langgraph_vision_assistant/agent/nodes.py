@@ -1,22 +1,13 @@
-"""Ask Qwen what to do, then prepare the browser reply after its tools finish.
+"""Perform the assistant's steps before and after tool execution.
 
-graph.py runs these steps in this order:
+ask_qwen sends the conversation to the local model and saves its reply. When
+that reply requests tools, graph.py sends it to LangGraph's ToolNode, which calls
+the functions in tools/viewer.py. collect_browser_commands then reads their
+results and prepares either the browser reply or feedback for another attempt.
 
-    ask_qwen -> LangGraph's ToolNode -> collect_browser_commands
-
-For "make cats red", ask_qwen saves Qwen's request to call set_class_color.
-ToolNode calls that Python function from tools/viewer.py and saves its result.
-collect_browser_commands uses tools/results.py to extract the prepared edit,
-then returns {'result': {'actions': [the edit], 'message': ''}}.
-The service reads that result and the HTTP route sends it to the browser.
-
-These functions are called "nodes" because they are steps in the graph.
-Each receives state: a dictionary containing this request's conversation and
-progress. Each returns the fields LangGraph should update. Message updates
-are merged into the conversation; omitted fields keep their existing values.
-
-If tools fail or only return information, there is no final result yet.
-graph.py sends the updated conversation back to ask_qwen for another attempt.
+Each function receives state, the dictionary shared between steps, and returns
+only the fields it changes. graph.py chooses the next step from that updated
+state; these functions do not call each other directly.
 """
 
 from langchain_core.messages import HumanMessage

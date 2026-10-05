@@ -1,7 +1,11 @@
-"""List the tools exposed to Qwen and reject unexpected arguments.
+"""Choose which tools Qwen may request and LangGraph may execute.
 
-This is the single place to register a new tool. viewer.py contains the actual
-functions; graph.py gives this list to LangGraph's ToolNode.
+VIEWER_TOOLS contains the functions defined in viewer.py. model/client.py sends
+their names, descriptions, and argument schemas to Qwen; agent/graph.py gives
+the same list to ToolNode so it can execute the chosen calls.
+
+The schema configuration below rejects unexpected arguments rather than silently
+ignoring them. Add a new tool here after defining its function in viewer.py.
 """
 
 from pydantic import BaseModel

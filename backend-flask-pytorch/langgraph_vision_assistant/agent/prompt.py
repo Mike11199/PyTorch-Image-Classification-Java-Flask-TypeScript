@@ -1,4 +1,13 @@
-"""Instructions for interpreting requests; tool declarations supply the argument schemas."""
+"""Build the conversation sent to Qwen at the start of a request.
+
+initial_messages combines our instructions and the current viewer settings in
+a SystemMessage, then adds the user's text as a separate HumanMessage. The
+instructions explain how to choose colors, preserve settings, and handle errors.
+
+agent/turn.py uses these messages for the first call. Later calls reuse the
+conversation with tool results and correction feedback. Tool argument schemas
+come from tools/registry.py and are supplied separately by model/client.py.
+"""
 
 import json
 

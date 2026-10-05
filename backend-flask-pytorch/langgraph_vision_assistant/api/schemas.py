@@ -1,8 +1,11 @@
-"""Validate the browser's JSON before starting an assistant request.
+"""Describe the JSON fields accepted from the browser.
 
-AssistantRequest describes accepted fields and their limits. Its validators
-normalize text and class names. to_context supplies the dictionary LangGraph
-uses; Flask body reading and HTTP errors belong in request.py.
+request.py validates parsed JSON with AssistantRequest. Pydantic checks field
+types and limits; the validators trim text, deduplicate class names, and bound
+the viewer settings. Invalid data raises a validation error before inference.
+
+to_context returns the dictionary used by the graph, preserving the browser's
+field names. HTTP body limits and error responses are handled by request.py.
 """
 
 import json

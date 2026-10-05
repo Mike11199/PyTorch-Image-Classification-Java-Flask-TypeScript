@@ -1,30 +1,14 @@
-"""Collect the browser edits prepared by the tools that just finished.
+"""Turn completed tool results into the edits sent to the browser.
 
-Example: the user asks "make cats red" on the mask page.
+After ToolNode runs the requested functions, collect_browser_commands in
+agent/nodes.py calls browser_commands here. Its inputs are the conversation and
+the IDs of the tools just requested. Each ToolMessage holds feedback for Qwen
+in content and an optional browser edit dictionary in artifact.
 
-1. Qwen requests set_class_color(cat, #ff0000, both), with a call ID.
-2. LangGraph runs that function in tools/viewer.py. The function prepares a
-   dictionary describing the edit. It has not changed the displayed image yet.
-3. LangGraph wraps the function's output in a ToolMessage:
-       tool_call_id = the ID from step 1
-       status       = 'success' or 'error'
-       content      = text Qwen can read
-       artifact     = {'type': 'set_class_color', 'className': 'cat',
-                       'color': '#ff0000', 'target': 'both'}
-   "Artifact" is LangChain's name for extra data attached to a tool result.
-   In this application, that data is the browser edit dictionary.
-4. collect_browser_commands in agent/nodes.py calls browser_commands below.
-   We extract the edit dictionaries and return them as a list.
-5. The node puts that list in the HTTP reply's 'actions' field. The browser
-   receives the reply and applies the edits.
-
-Start reading at browser_commands. Its four helpers select this attempt's
-results, restore request order, check for failures, and extract the edits.
-Old results stay in the conversation for Qwen, but are never applied again.
-
-If any tool failed, we raise FailedToolBatch. The caller asks Qwen to correct
-the whole attempt; none of its edits are sent. If tools only read information,
-their artifacts are None, so we return an empty list and Qwen gets another turn.
+We select the latest results, match their request order, reject the whole set
+if any tool failed, and return the edit dictionaries. Information-only tools
+have no edit. The caller decides whether to finish or ask Qwen again; the
+browser applies the returned edits after receiving the HTTP reply.
 """
 
 from langchain_core.messages import AnyMessage, ToolMessage
@@ -37,12 +21,10 @@ class FailedToolBatch(ValueError):
 
 
 def browser_commands(messages: list[AnyMessage], call_ids: list[str]) -> list[ViewerCommand]:
-    """Return edits from the latest tool calls, or raise FailedToolBatch.
+    """Return this attempt's edits, or raise FailedToolBatch if any tool failed.
 
-    messages is the conversation after ToolNode has appended its results.
-    call_ids lists the calls Qwen requested in this attempt, in request order.
-    An empty return value means these tools prepared no browser edits.
-    """
+    messages includes the completed tool results; call_ids gives their request
+    order. An empty list means the tools prepared no browser edits."""
     results = latest_tool_results(messages, len(call_ids))
     ordered_results = in_call_order(results, call_ids)
     require_success(ordered_results)
@@ -50,11 +32,7 @@ def browser_commands(messages: list[AnyMessage], call_ids: list[str]) -> list[Vi
 
 
 def latest_tool_results(messages: list[AnyMessage], count: int) -> list[ToolMessage]:
-    """Take the last count messages: one result per tool that just ran.
-
-    Earlier messages may contain edits from a failed attempt. Selecting only
-    this final group prevents those old edits from reaching the browser.
-    """
+    """Take the last count messages, excluding results from earlier attempts."""
     if count == 0:
         return []
     if len(messages) < count:
@@ -69,11 +47,7 @@ def latest_tool_results(messages: list[AnyMessage], count: int) -> list[ToolMess
 
 
 def in_call_order(results: list[ToolMessage], call_ids: list[str]) -> list[ToolMessage]:
-    """Put results in Qwen's call order, even if tools finished out of order.
-
-    Order matters when two commands change the same setting: the later edit
-    should win. Missing, duplicate, or unexpected results are internal errors.
-    """
+    """Match results to call IDs so later edits still override earlier ones."""
     by_id = {result.tool_call_id: result for result in results}
     if len(by_id) != len(results) or set(by_id) != set(call_ids):
         raise RuntimeError('Tool results do not match the requested calls.')
@@ -81,22 +55,14 @@ def in_call_order(results: list[ToolMessage], call_ids: list[str]) -> list[ToolM
 
 
 def require_success(results: list[ToolMessage]) -> None:
-    """Raise if any result failed, before the caller can return any edits.
-
-    For 'cats red and dogs blue', a failed dog edit also withholds the cat edit.
-    The next model turn must provide the complete corrected set.
-    """
+    """Reject every edit if one failed, so a request is never partly applied."""
     for result in results:
         if result.status == 'error':
             raise FailedToolBatch()
 
 
 def extract_commands(results: list[ToolMessage]) -> list[ViewerCommand]:
-    """Take each result's edit dictionary, stored in its artifact field.
-
-    get_viewer_context only returns information to Qwen. Its artifact is None,
-    so it contributes no browser edit. The caller checks success beforehand.
-    """
+    """Collect edit dictionaries from artifacts; skip information-only results."""
     commands: list[ViewerCommand] = []
     for result in results:
         if result.artifact is not None:

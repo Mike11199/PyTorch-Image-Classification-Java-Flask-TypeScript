@@ -1,8 +1,12 @@
-"""Strict tool argument types used by the functions in viewer.py.
+"""Define the accepted arguments for the tools in viewer.py.
 
-LangChain derives JSON schemas from these annotations. Pydantic checks values
-before a tool runs. Context is injected by LangGraph and hidden from the model;
-it is not an argument the model can choose or replace.
+LangChain turns these annotations into schemas describing each tool to Qwen.
+Pydantic uses the same constraints to check values before execution, including
+hex colors, numeric ranges, and allowed selection modes.
+
+Context is different: LangGraph supplies it from the request's state. Qwen does
+not choose it. It contains the actual viewer page and detected classes, which
+tools/checks.py uses to validate whether an operation is available.
 """
 
 from typing import Annotated, Literal

@@ -1,7 +1,11 @@
-"""Translate backend exceptions into stable, user-facing HTTP errors.
+"""Map failures during an assistant request to HTTP error responses.
 
-Flask calls these handlers when routes.py or service.py raises. Keeping this
-mapping here lets the route show only the successful request path.
+routes.py registers these handlers on the assistant blueprint. Flask calls the
+matching handler when request validation, the service, or inference raises an
+exception. Each handler chooses a status and message for responses.failure.
+
+Expected failures tell the user whether to correct input or retry. Unexpected
+failures are logged with details while the browser receives a generic message.
 """
 
 from flask import Blueprint, Response, current_app

@@ -1,12 +1,13 @@
-"""Reject malformed model replies before any tool is allowed to run.
+"""Check a model reply before allowing its requested tools to run.
 
-Called by agent/nodes.py after asking Qwen for its next step. For example, a
-reply containing broken JSON must go back to Qwen for correction, rather than
-reach ToolNode. A valid reply is still LangChain's typed AIMessage object.
+ask_qwen in agent/nodes.py calls validate_model_reply after inference. We reject
+broken tool-call JSON, missing or duplicate call IDs, excessive calls, and
+invalid clarification text. A fresh message ID keeps each attempt separate in
+the conversation when LangGraph merges state updates.
 
-This is format validation, not language interpretation. We check call IDs,
-response size, and whether JSON tool arguments were parsed successfully.
-Argument values (colors, class names, and ranges) are checked by the tools.
+Invalid replies raise ValueError so the node can give Qwen correction feedback.
+Tool argument values are checked later by Pydantic and tools/checks.py; a reply
+passing these format checks does not prove Qwen understood the user.
 """
 
 from uuid import uuid4

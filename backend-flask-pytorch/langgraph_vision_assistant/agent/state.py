@@ -1,13 +1,12 @@
-"""The data LangGraph passes from one step to the next during a request.
+"""Describe the data shared by the steps of one assistant request.
 
-State is an ordinary dictionary with named fields, not a separate service.
-Each node returns a dictionary containing only the fields it wants to update.
-Most fields are replaced. messages uses add_messages so new chat messages are
-added to the conversation, preserving the tool results Qwen needs on later turns.
+The service starts this dictionary with context (user text and viewer settings)
+and a request ID. As the graph runs, nodes add conversation messages, an attempt
+count, tool-call IDs, and finally result: the reply returned to the browser.
 
-The service initially supplies context and request_id. ask_qwen fills in the
-conversation and call IDs. A completed request has result, which the service
-returns to the browser. A fresh state is created for every HTTP request.
+Nodes return partial dictionaries. LangGraph replaces ordinary fields and uses
+add_messages to merge conversation entries by message ID. This preserves the
+tool feedback needed for another model call. Each HTTP request starts fresh.
 """
 
 from collections.abc import Callable, Sequence

@@ -1,10 +1,12 @@
-"""Give a tool's output two parts: feedback for Qwen and an edit for the browser.
+"""Package a browser edit in the form LangGraph expects from a tool.
 
-viewer.py calls prepared with an edit dictionary, such as a set_class_color
-command. It returns (feedback text, edit dictionary). LangGraph's ToolNode puts
-those into ToolMessage.content and ToolMessage.artifact respectively.
-tools/results.py later collects the artifact dictionaries for the HTTP reply.
-The browser applies them only after every tool in the attempt succeeds.
+A tool in viewer.py calls prepared with an edit dictionary, such as a color
+change. We pair it with feedback explaining that the edit has been prepared.
+ToolNode stores the feedback in ToolMessage.content and the edit in artifact.
+
+That split lets Qwen read tool feedback while tools/results.py collects the
+structured edits for the browser. Preparing an edit does not apply it; all tools
+in the attempt must succeed before their edits can be returned.
 """
 
 from ..commands import ViewerCommand

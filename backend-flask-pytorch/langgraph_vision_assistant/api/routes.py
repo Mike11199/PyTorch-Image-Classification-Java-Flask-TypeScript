@@ -1,7 +1,11 @@
-"""HTTP entry point for the viewer assistant.
+"""Receive POST /api-pytorch/vision-assistant from the browser.
 
-This file only connects HTTP input to the assistant service and formats success.
-Read service.py next for request coordination, then agent/graph.py for LangGraph.
+ask_assistant assigns a request ID, reads validated input through request.py,
+and passes it to service.run_assistant. The returned edits or clarification
+are formatted as JSON by responses.py.
+
+Flask dispatches failures to the handlers in errors.py. Follow service.py next
+to see how the request starts the LangGraph workflow.
 """
 
 import uuid

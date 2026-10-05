@@ -1,4 +1,12 @@
-"""Read local model configuration once, before starting llama.cpp."""
+"""Read the configuration needed to start a local Qwen process.
+
+runtime.py calls ModelSettings.from_environment before creating the server.
+The resulting dataclass holds the model path, server executable, and CPU thread
+count, using container defaults when environment overrides are absent.
+
+server.py consumes these values when building the launch command. Keeping them
+together makes configuration visible without searching through process code.
+"""
 
 from dataclasses import dataclass
 import os

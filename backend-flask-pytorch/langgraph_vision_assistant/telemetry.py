@@ -1,4 +1,12 @@
-"""Small, searchable log events for tracing one assistant request."""
+"""Write consistent log events for an assistant request.
+
+The route creates a request ID that the service, graph steps, and model client
+pass to log_event. Events include that ID, a name, and JSON-encoded details such
+as attempt counts, durations, or errors.
+
+Searching logs for the request ID shows what happened across those modules.
+The HTTP response exposes the same ID in its X-Request-ID header.
+"""
 
 import json
 import logging

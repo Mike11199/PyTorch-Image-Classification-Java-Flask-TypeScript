@@ -1,25 +1,13 @@
-"""Choose which assistant step runs next, from a user request to a final reply.
+"""Define the order of steps for one assistant request.
 
-service.py starts this workflow with the user's text and viewer settings.
-The normal path for "make cats red" is:
+A LangGraph graph connects Python functions called nodes. Here the path is
+ask_qwen -> run_tools -> collect_browser_commands. service.py starts it with
+the user's text and viewer settings; nodes.py implements our two custom steps.
 
-    ask_qwen                 Qwen requests the set_class_color tool.
-        |
-    run_tools                ToolNode calls the Python tool in tools/viewer.py.
-        |
-    collect_browser_commands Collect the edit it prepared (tools/results.py).
-        |
-    END                      Return the edit to the service, then the browser.
-
-There are two decisions, implemented by the functions below build_workflow:
-    after_qwen: run requested tools, finish a text reply, or retry invalid output.
-    after_tools: finish with edits, or ask Qwen again using tool feedback.
-Retries stop after three model calls; agent/turn.py enforces that limit.
-
-LangGraph calls each step a "node" and each connection an "edge". State is the
-dictionary passed between steps. build_workflow registers the steps and their
-connections, then compile() creates the object that service.py can invoke.
-The step functions themselves live in nodes.py; ToolNode comes from LangGraph.
+The routing functions below decide whether to finish or ask Qwen again. Tool
+errors and information-only results return to Qwen; ready edits or clarification
+text finish the request. build_workflow compiles these connections into the
+workflow object that the service calls.
 """
 
 from functools import partial

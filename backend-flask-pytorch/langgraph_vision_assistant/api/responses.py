@@ -1,7 +1,11 @@
-"""Turn successful results and failures into the frontend's JSON format.
+"""Format the assistant's final result or error as an HTTP response.
 
-Both paths attach the request ID and emit one terminal log event. This module
-contains no workflow or error-classification logic; see errors.py for HTTP codes.
+routes.py calls success with browser edits or clarification text. The exception
+handlers in errors.py call failure with a message and HTTP status. Both paths
+use json_response to serialize the payload and attach the request ID.
+
+The same ID is included in a completion or failure log event, connecting the
+browser response to the model and workflow logs for this request.
 """
 
 from flask import Response, g, jsonify, make_response

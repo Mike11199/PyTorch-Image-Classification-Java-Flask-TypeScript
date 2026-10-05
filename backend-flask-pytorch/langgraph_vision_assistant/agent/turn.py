@@ -1,8 +1,12 @@
-"""Prepare one model turn and translate its outcome into graph state updates.
+"""Prepare one model call and save its outcome in graph state.
 
-nodes.py calls these helpers before and after inference. A ModelTurn contains
-only the data needed for that call. The returned AssistantState dictionaries
-update LangGraph's conversation, attempt counter, and eventual browser reply.
+ask_qwen in nodes.py uses prepare_turn to get the conversation and check the
+three-call limit. ModelTurn holds that call's messages, attempt number, and
+request ID together so the remaining helpers receive the same information.
+
+accept_reply records valid tool calls or a final text reply. retry_turn records
+correction feedback for malformed output. Both return state updates; graph.py
+uses the updated state to decide what happens next.
 """
 
 from dataclasses import dataclass

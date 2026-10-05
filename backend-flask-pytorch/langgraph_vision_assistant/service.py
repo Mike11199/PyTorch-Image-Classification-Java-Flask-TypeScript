@@ -1,10 +1,12 @@
-"""Application entry point: coordinate one assistant request.
+"""Run one assistant request and return its final browser reply.
 
-The HTTP layer calls run_assistant with validated data. This service reserves a
-request slot, runs the graph, and always releases the slot. It knows nothing about
-Flask responses, color interpretation, or model process startup.
+api/routes.py calls run_assistant with validated text and viewer settings. The
+service reserves the single assistant request slot, creates the initial graph
+state, and invokes the workflow built by agent/graph.py.
 
-Read agent/graph.py next to see how the assistant runs.
+When the workflow finishes, its result contains browser edits or clarification
+text. The route formats that result as JSON. The request slot is released even
+when inference or validation fails, so a later request can still run.
 """
 
 import threading

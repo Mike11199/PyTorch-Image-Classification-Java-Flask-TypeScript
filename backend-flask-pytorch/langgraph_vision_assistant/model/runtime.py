@@ -1,8 +1,12 @@
-"""Coordinate the local model's process and HTTP connection.
+"""Keep the local model process and its HTTP connection alive together.
 
-The shared owner in model_runtime.py creates LocalModel when inference needs it
-and closes it when switching to a vision model. Settings, process mechanics,
-and HTTP requests each have their own module; this class owns their lifetime.
+The shared model owner in the backend's model_runtime.py creates LocalModel
+when a request needs Qwen. LocalModel reads settings, starts ModelServer, and
+waits for readiness through ModelTransport before accepting chat requests.
+
+Switching to a vision model closes both resources. Startup failures and stalled
+or disconnected inference also trigger cleanup. server.py handles process
+mechanics; transport.py handles HTTP; this file coordinates their lifetime.
 """
 
 import atexit

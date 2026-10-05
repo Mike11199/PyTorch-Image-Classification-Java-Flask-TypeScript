@@ -1,7 +1,12 @@
-"""Own the llama.cpp child process, including startup checks and cleanup.
+"""Start, monitor, and stop the llama.cpp process that runs Qwen.
 
-LocalModel in runtime.py coordinates this process with the HTTP transport.
-This module does not send chat requests or convert model messages.
+runtime.py creates ModelServer with model settings, a local port, and a temporary
+API key. This class launches the process, captures its logs, and waits for the
+readiness check supplied by the HTTP transport.
+
+If startup fails, the logs explain why. On shutdown, the process is terminated
+and reaped, using a forced stop if needed. Chat requests and response conversion
+belong to transport.py and client.py.
 """
 
 from collections.abc import Callable

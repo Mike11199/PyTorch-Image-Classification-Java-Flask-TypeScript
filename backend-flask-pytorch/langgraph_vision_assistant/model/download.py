@@ -1,4 +1,12 @@
-"""Build-time download, never an inference-time network dependency."""
+"""Download the Qwen model file when building the backend image.
+
+The command-line entry point takes a URL and destination. download streams the
+file to a temporary path, checks the GGUF header, then replaces the destination.
+GGUF is the model file format loaded by llama.cpp.
+
+Inference reads that saved file through model/settings.py and runtime.py;
+serving an assistant request does not invoke this download script.
+"""
 
 import pathlib
 import sys

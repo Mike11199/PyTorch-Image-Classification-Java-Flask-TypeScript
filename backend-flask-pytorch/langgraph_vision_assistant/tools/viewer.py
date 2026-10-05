@@ -1,8 +1,13 @@
-"""The functions Qwen can call, registered in tools/registry.py.
+"""Define the actions Qwen can request for the current viewer.
 
-Each tool checks its arguments and returns a prepared browser command. It does
-not edit viewer state or run arbitrary code. LangGraph executes these functions;
-the browser applies their commands only after the whole batch succeeds.
+The @tool decorator exposes each function's name, description, and arguments
+to the model. Qwen selects a function and supplies arguments; LangGraph's
+ToolNode executes it. tools/registry.py lists the functions available to both.
+
+Most functions validate the request and prepare a browser edit. For example,
+set_class_color prepares a color-change dictionary. get_viewer_context instead
+returns information for Qwen. Edits reach the browser only after results.py
+checks that the entire attempt succeeded.
 """
 
 from langchain_core.tools import tool

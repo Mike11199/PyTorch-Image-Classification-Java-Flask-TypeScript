@@ -1,7 +1,12 @@
-"""Authenticated HTTP communication with the private llama.cpp server.
+"""Communicate with the local model server over authenticated HTTP.
 
-This class owns the HTTP session only. runtime.py decides when a failed request
-requires stopping the process. client.py converts chat messages for this API.
+runtime.py creates one ModelTransport for its server's port and temporary API
+key. The transport owns a requests session, checks server health, and sends chat
+payloads built by client.py to the completion endpoint.
+
+It returns the server's JSON or raises an HTTP/connection error. runtime.py
+handles cleanup when inference stalls or disconnects; client.py converts a
+successful JSON response into the message used by the graph.
 """
 
 from typing import Any

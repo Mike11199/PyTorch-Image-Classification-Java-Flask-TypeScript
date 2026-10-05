@@ -1,9 +1,12 @@
-"""Exact JSON commands understood by the browser's existing executor.
+"""Describe each edit dictionary understood by the browser.
 
-Each TypedDict names the required fields of one command. Tools validate their
-inputs with Pydantic, then construct these typed dictionaries. Keeping commands
-as dictionaries preserves the API and avoids serializing internal model objects
-through LangGraph's tool artifacts.
+Each TypedDict lists the fields for one command, such as className, color, and
+target for a class color change. ViewerCommand is the union of these shapes.
+Tools in tools/viewer.py construct them after validating their arguments.
+
+The dictionaries travel through tool results into the HTTP response's actions
+list. Keeping the browser's existing field names lets its executor apply them
+without another conversion step. These types provide static field checking.
 """
 
 from typing import Literal, TypeAlias

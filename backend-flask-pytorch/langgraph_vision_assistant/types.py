@@ -1,7 +1,12 @@
-"""Shared data contracts using the frontend's existing JSON field names.
+"""Define the dictionaries shared by the HTTP layer and the workflow.
 
-ViewerContext is validated HTTP input; AssistantResult is the browser response.
-Framework-specific graph state is separate, in agent/state.py.
+ViewerContext carries validated user text and viewer settings into the graph.
+AssistantResult carries edits or clarification text back to the route.
+PreparedCommand describes the feedback-and-edit pair returned by a tool.
+
+These TypedDicts describe field names for type checking. Runtime validation lives
+in api/schemas.py and tools/inputs.py; graph-specific fields live in agent/state.py.
+The individual browser edit shapes are defined in commands.py.
 """
 
 from typing import Literal, TypeAlias

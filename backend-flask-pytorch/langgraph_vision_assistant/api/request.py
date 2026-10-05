@@ -1,7 +1,11 @@
-"""Read and validate HTTP input before the assistant service sees it.
+"""Read the browser's request body before starting the assistant.
 
-read_request_context handles Flask/body limits. validate_request is a pure
-validator that returns typed context or raises ValueError for invalid fields.
+routes.py calls read_request_context. We enforce the byte limit before parsing
+JSON, then use AssistantRequest in schemas.py to validate and normalize its
+fields. The result is a ViewerContext dictionary for service.py.
+
+Oversized bodies become HTTP 413 errors; malformed JSON or invalid fields become
+HTTP 400 errors. Keeping these checks here prevents invalid input reaching Qwen.
 """
 
 import json

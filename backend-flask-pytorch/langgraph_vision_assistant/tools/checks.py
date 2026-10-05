@@ -1,7 +1,11 @@
-"""Check viewer capabilities that cannot be expressed by argument types.
+"""Check whether a requested edit makes sense in the current viewer.
 
-The input schemas validate values; these checks compare them with the current
-page and detected classes. Tools call them before preparing any browser edit.
+The argument types in inputs.py check formats and ranges. These functions check
+facts from the request, such as whether a class was detected or masks are
+available on this page. viewer.py calls them before preparing an edit.
+
+A failed check raises ValueError. ToolNode turns that into tool feedback, and
+the graph gives Qwen another attempt without applying any edits from this one.
 """
 
 from collections.abc import Sequence

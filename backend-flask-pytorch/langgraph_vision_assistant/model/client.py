@@ -1,8 +1,12 @@
-"""Inference adapter between the graph and the local Qwen runtime.
+"""Send a conversation and tool definitions to the local Qwen model.
 
-call_model receives chat history and tool definitions, takes the shared inference
-lock, and returns an AIMessage. llama.cpp handles the model's native tool syntax;
-there is no text parser here. Process startup and shutdown live in runtime.py.
+ask_qwen in agent/nodes.py calls call_model. It acquires the shared model session,
+converts LangChain messages and tool definitions to the local chat API format,
+and converts the server's reply back into an AIMessage containing text or calls.
+
+llama.cpp parses Qwen's native tool-call syntax. model/validation.py then checks
+the reply before the graph executes any calls. Local process ownership lives
+in runtime.py; this module handles the conversation crossing that boundary.
 """
 
 from time import perf_counter
