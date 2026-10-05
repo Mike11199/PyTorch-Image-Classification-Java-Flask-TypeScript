@@ -26,5 +26,5 @@ class ModelSettings:
         return cls(
             model_path=os.getenv('LLM_MODEL_PATH', '/opt/models/Qwen_Qwen3-0.6B-Q4_K_M.gguf'),
             server_path=os.getenv('LLM_SERVER_PATH', '/opt/llama/llama-server'),
-            threads=os.getenv('LLM_THREADS', '1'),
+            threads=os.getenv('LLM_THREADS', str(min(4, os.cpu_count() or 1))),
         )

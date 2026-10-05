@@ -34,6 +34,8 @@ class VisionAssistantTest(unittest.TestCase):
         }, request_id=self._testMethodName)
         self.assertCountEqual(separate_color_layers(reply['actions']), separate_color_layers(expected))
         self.assertEqual(reply['message'], '')
+        self.assertGreater(reply['timing']['inference_ms'], 0)
+        self.assertGreaterEqual(reply['timing']['total_ms'], reply['timing']['inference_ms'])
 
     def test_show_masks_only_at_full_opacity(self):
         self.assert_actions('Show masks only at full opacity', [

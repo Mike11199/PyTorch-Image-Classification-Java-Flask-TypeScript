@@ -10,12 +10,14 @@ when inference or validation fails, so a later request can still run.
 """
 
 import threading
+from time import perf_counter
 
 from langchain_core.runnables import RunnableConfig
 
 from .agent.graph import WORKFLOW_RECURSION_LIMIT, build_workflow
 from .agent.state import AssistantState
 from .telemetry import log_event
+from .model.timing import measure_inference
 from .types import AssistantResult, ViewerContext
 
 workflow = build_workflow()
@@ -28,6 +30,7 @@ class AssistantBusyError(TimeoutError):
 
 def run_assistant(context: ViewerContext, request_id: str) -> AssistantResult:
     """Run the agent once; fail promptly when busy and release the slot on any error."""
+    started = perf_counter()
     log_event('request_started', request_id, page=context['page'],
               message=context['message'][:200], available_class_count=len(context['availableClasses']))
     if not _request_slot.acquire(blocking=False):
@@ -35,6 +38,13 @@ def run_assistant(context: ViewerContext, request_id: str) -> AssistantResult:
     try:
         state: AssistantState = {'context': context, 'request_id': request_id}
         config: RunnableConfig = {'recursion_limit': WORKFLOW_RECURSION_LIMIT}
-        return workflow.invoke(state, config)['result']
+        with measure_inference() as timing:
+            completed = workflow.invoke(state, config)
+        result: AssistantResult = completed['result']
+        result['timing'] = {
+            'inference_ms': round(timing.milliseconds),
+            'total_ms': round((perf_counter() - started) * 1000),
+        }
+        return result
     finally:
         _request_slot.release()

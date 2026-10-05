@@ -28,7 +28,7 @@ def json_response(payload: AssistantResult | ErrorResponse, status: int) -> Resp
     """Log completion and attach the same correlation ID to the response."""
     request_id = g.assistant_request_id
     if status < 400:
-        log_event('request_completed', request_id, status=status)
+        log_event('request_completed', request_id, status=status, timing=payload.get('timing'))
     else:
         log_event('request_failed', request_id, status=status, error=payload.get('error'))
     response = make_response(jsonify(payload), status)

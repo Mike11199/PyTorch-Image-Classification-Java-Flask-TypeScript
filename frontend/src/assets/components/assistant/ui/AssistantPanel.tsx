@@ -57,6 +57,11 @@ export default function AssistantPanel({ assistant }: { assistant: ViewerAssista
         ? <AssistantLoading seconds={elapsed} />
         : <div role="status" aria-live="polite" className="mt-3 text-sm leading-6">{assistant.message}</div>}
       {assistant.error && <p role="alert" className="mt-2 text-sm text-red-300">{assistant.error}</p>}
+      {!assistant.busy && assistant.timing && <p className="mt-1 text-xs tabular-nums text-gray-400"
+        title="Total includes network, waiting, model loading, and applying edits. Model time measures inference across all attempts.">
+        Total: {(assistant.timing.totalMs / 1000).toFixed(1)}s
+        {assistant.timing.modelMs !== undefined && ` · Model: ${(assistant.timing.modelMs / 1000).toFixed(1)}s`}
+      </p>}
       {!!assistant.trace.length && <details open className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer">{assistant.trace.length} tool action{assistant.trace.length === 1 ? "" : "s"} performed</summary>
         <ol className="mt-2 space-y-2">

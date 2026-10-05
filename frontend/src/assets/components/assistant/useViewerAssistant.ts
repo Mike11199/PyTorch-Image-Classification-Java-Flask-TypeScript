@@ -16,6 +16,7 @@ export function useViewerAssistant(
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [trace, setTrace] = useState<ToolTrace[]>([]);
+  const [timing, setTiming] = useState<{ totalMs: number; modelMs?: number } | null>(null);
   const request = useRef<AbortController | null>(null);
   const source = useRef(scene);
   source.current = scene;
@@ -28,6 +29,7 @@ export function useViewerAssistant(
     setMessage("");
     setError("");
     setBusy(false);
+    setTiming(null);
     return () => {
       request.current?.abort();
       request.current = null;
@@ -40,6 +42,9 @@ export function useViewerAssistant(
     request.current = controller;
     setBusy(true);
     setError("");
+    setTiming(null);
+    const startedAt = performance.now();
+    let modelMs: number | undefined;
     const time = getTime();
     const timeout = window.setTimeout(() => controller.abort(), 310000);
     try {
@@ -47,6 +52,9 @@ export function useViewerAssistant(
         time, controller.signal);
       // A response for an old upload must never change a new scene.
       if (controller.signal.aborted || source.current !== scene || request.current !== controller) return;
+      const measuredMs = data.timing?.inference_ms;
+      if (typeof measuredMs === "number" && Number.isFinite(measuredMs) && measuredMs >= 0)
+        modelMs = measuredMs;
       // Preserve manual edits made while Qwen was generating its plan.
       const result = executeActions(data.actions, currentControls.current.state, scene, time);
       if (data.actions.length) {
@@ -64,6 +72,7 @@ export function useViewerAssistant(
       if (request.current === controller) {
         request.current = null;
         setBusy(false);
+        setTiming({ totalMs: performance.now() - startedAt, modelMs });
       }
     }
   };
@@ -73,6 +82,7 @@ export function useViewerAssistant(
     controls.undo();
     setTrace([]);
     setMessage("Previous view restored.");
+    setTiming(null);
     setError("");
   };
 
@@ -81,10 +91,11 @@ export function useViewerAssistant(
     controls.reset();
     setTrace([]);
     setMessage("View controls restored to their defaults.");
+    setTiming(null);
     setError("");
   };
 
-  return { view: controls.state, busy, error, message, trace, classes, submit, undo, reset,
+  return { view: controls.state, busy, error, message, trace, timing, classes, submit, undo, reset,
     canUndo: controls.canUndo, ready: !!scene, page: scene?.page ?? pageHint };
 }
 

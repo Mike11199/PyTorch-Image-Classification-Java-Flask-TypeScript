@@ -18,6 +18,7 @@ from langchain_core.tools import BaseTool
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from ..telemetry import log_event
+from .timing import record_inference
 
 
 def call_model(messages: list[AnyMessage], tools: Sequence[BaseTool], request_id: str) -> AIMessage:
@@ -30,10 +31,18 @@ def call_model(messages: list[AnyMessage], tools: Sequence[BaseTool], request_id
 
     started = perf_counter()
     with model_session('llm', request_id=request_id) as model:
-        response = model.create_chat_completion(**completion_payload(messages, tools))
+        inference_started = perf_counter()
+        try:
+            response = model.create_chat_completion(**completion_payload(messages, tools))
+        finally:
+            inference_ms = (perf_counter() - inference_started) * 1000
+            record_inference(inference_ms)
     message = assistant_message(response)
     log_event('model_completed', request_id, model=model.name,
               duration_ms=round((perf_counter() - started) * 1000),
+              setup_ms=round((inference_started - started) * 1000),
+              inference_ms=round(inference_ms), timings=response.get('timings'),
+              usage=response.get('usage'),
               tool_count=len(message.tool_calls))
     return message
 

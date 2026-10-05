@@ -5,6 +5,7 @@ import type { ViewerControlsState } from "./state/viewerControls";
 interface AssistantResponse {
   actions: Action[];
   message: string;
+  timing?: { inference_ms: number; total_ms: number };
 }
 
 function currentSelection(scene: Scene, state: ViewerControlsState, time: number) {

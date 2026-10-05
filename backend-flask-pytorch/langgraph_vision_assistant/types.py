@@ -10,7 +10,7 @@ The individual browser edit shapes are defined in commands.py.
 """
 
 from typing import Literal, TypeAlias
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 from pydantic import JsonValue
 
 from .commands import ViewerCommand as ViewerCommand
@@ -33,11 +33,19 @@ class ViewerContext(ViewerSnapshot):
     message: str
 
 
+class AssistantTiming(TypedDict):
+    """Measured server durations; inference excludes loading and waiting."""
+
+    inference_ms: int
+    total_ms: int
+
+
 class AssistantResult(TypedDict):
     """Existing frontend response: commands to apply, or a clarification."""
 
     actions: list[ViewerCommand]
     message: str
+    timing: NotRequired[AssistantTiming]
 
 
 class ErrorResponse(TypedDict):
