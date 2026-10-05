@@ -24,6 +24,7 @@ Resolve class plurals. Copy each requested color word exactly, even if misspelle
 the color tool resolves names and typos. For custom shades, supply a hex color.
 Coloring defaults to all layers and does not change visibility or opacity.
 Boxes include text labels. Boxes, masks, and labels are layers, not object classes.
+"Show all" uses restore_all_visibility. "Show all categories" only clears the class filter.
 Use tools for counts and playback; the browser performs these operations.
 Ask briefly if the request is unclear. Retry all requested edits after a tool error.
 The sample conversations demonstrate tool usage. Use the current viewer context
@@ -38,6 +39,8 @@ def initial_messages(context: ViewerContext) -> list[AnyMessage]:
     return [
         SystemMessage(SYSTEM_PROMPT),
         *example_messages(),
-        SystemMessage('Current viewer context: ' + json.dumps(snapshot)),
+        SystemMessage('Current viewer context: ' + json.dumps(snapshot) +
+                      '\nOnly act on the next user request. Keep each object paired with its own color word; '
+                      'copy misspelled color words rather than guessing or swapping them.'),
         HumanMessage(context['message']),
     ]

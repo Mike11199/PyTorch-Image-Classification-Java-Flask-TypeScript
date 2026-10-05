@@ -10,7 +10,7 @@ const isColor: Check = (value) => typeof value === "string" && /^#[0-9a-fA-F]{6}
 const oneOf = (...choices: string[]): Check => (value) => typeof value === "string" && choices.includes(value);
 
 const fields: Record<Action["type"], Record<string, Check>> = {
-  set_visible_classes: { classes: isClassList },
+  set_visible_classes: { classes: (value) => value === null || isClassList(value) },
   set_class_color: { className: isText, color: isColor, target: oneOf("boxes", "masks", "both") },
   set_confidence: { value: isConfidence },
   set_mask_opacity: { value: isConfidence },
@@ -36,7 +36,7 @@ function parseAction(input: unknown): Action {
 
 function validateSceneAction(action: Action, page: Scene["page"], classes: Set<string>) {
   const requested = "classes" in action ? action.classes : "className" in action ? [action.className] : [];
-  if (requested.some((name) => !classes.has(name))) throw new Error("The requested category is not in this scene.");
+  if (requested?.some((name) => !classes.has(name))) throw new Error("The requested category is not in this scene.");
   if (action.type === "seek_detection" && page !== "video") throw new Error("This viewer has no video playback.");
   if (action.type === "set_layers" && action.masks && page === "boxes") throw new Error("This viewer has no masks.");
   if (action.type === "set_mask_opacity" && page === "boxes") throw new Error("This viewer has no masks.");

@@ -37,8 +37,11 @@ For example, `set_class_colors` describes recoloring objects and accepts a list
 of color changes. `set_layers` describes changing visible layers and opacity.
 Given “make car purple and person red,” Qwen selects the color tool and fills in
 the two objects. Given “show masks only,” it selects the layer tool instead.
-“Hide masks” uses `hide_layers`: it turns masks off and preserves the browser's
+“Hide masks” uses `hide(targets=["masks"])`: it turns masks off and preserves the browser's
 current boxes and labels settings. `set_layers` instead specifies which layers to show.
+“Hide cars” uses `hide(targets=["car"])` to remove car from the current class selection
+without changing layers or revealing other hidden classes. `restore_all_visibility` clears
+the class filter and enables the available layers, preserving colors and opacity.
 This choice is a model prediction and can be wrong; the tool list defines what
 is available, not a keyword-to-function lookup.
 

@@ -169,6 +169,41 @@ test('deselecting the only Faster R-CNN class hides its boxes and labels', () =>
   assert.equal(detectionVisible(dog, restored), true);
 });
 
+test('hiding cars keeps people visible and leaves layers unchanged', () => {
+  const before = videoMaskDefaults();
+  const result = executeActions([{ type: 'set_visible_classes', classes: ['person'] }], before, scene, 0);
+  assert.equal(detectionVisible(scene.frames[0].detections[0], result.state), false);
+  assert.equal(detectionVisible(scene.frames[0].detections[1], result.state), true);
+  assert.deepEqual(result.state.layers, before.layers);
+});
+
+test('hiding the last class hides all detections without disabling layers', () => {
+  const before = videoMaskDefaults();
+  const result = executeActions([{ type: 'set_visible_classes', classes: null }], before, scene, 0);
+  assert.equal(detectionVisible(scene.frames[0].detections[0], result.state), false);
+  assert.equal(detectionVisible(scene.frames[0].detections[1], result.state), false);
+  assert.deepEqual(result.state.layers, before.layers);
+  assert.match(result.trace[0].result, /All categories hidden/);
+});
+
+test('show all restores classes and layers while preserving colors', () => {
+  const hidden = executeActions([
+    { type: 'set_class_color', className: 'car', color: '#800080', target: 'both' },
+    { type: 'set_visible_classes', classes: null },
+    { type: 'set_layers', boxes: false, masks: false, labels: false },
+  ], videoMaskDefaults(), scene, 0).state;
+  const shown = executeActions([
+    { type: 'set_visible_classes', classes: [] },
+    { type: 'set_layers', boxes: true, masks: true, labels: true },
+  ], hidden, scene, 0).state;
+  assert.equal(detectionVisible(scene.frames[0].detections[0], shown), true);
+  assert.equal(detectionVisible(scene.frames[0].detections[1], shown), true);
+  assert.equal(shown.layers.boxes.enabled, true);
+  assert.equal(shown.layers.masks.enabled, true);
+  assert.equal(shown.layers.labels.enabled, true);
+  assert.deepEqual(shown.appearance, hidden.appearance);
+});
+
 test('class selection can reach none, reselect one, and return to all', () => {
   const available = ['dog', 'person'];
   const partial = toggleVisibleClass([], available, 'person', false);

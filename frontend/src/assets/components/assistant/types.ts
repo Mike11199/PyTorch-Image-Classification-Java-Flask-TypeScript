@@ -6,7 +6,7 @@ export interface Scene {
   frames: { time: number; detections: Detection[] }[];
 }
 export type Action =
-  | { type: "set_visible_classes"; classes: string[] }
+  | { type: "set_visible_classes"; classes: string[] | null }
   | { type: "set_class_color"; className: string; color: string; target: "boxes" | "masks" | "both" }
   | { type: "set_confidence"; value: number }
   | { type: "set_mask_opacity"; value: number }

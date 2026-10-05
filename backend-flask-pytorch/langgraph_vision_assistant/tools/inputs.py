@@ -53,3 +53,9 @@ class ViewerLayers(BaseModel):
     boxes: LayerToggle
     masks: LayerToggle
     labels: LayerToggle
+
+
+class ViewerFilters(BaseModel):
+    """Browser class selection: empty means all; None means none."""
+
+    visibleClasses: list[StrictStr] | None

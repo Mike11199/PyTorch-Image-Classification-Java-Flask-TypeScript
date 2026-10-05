@@ -19,7 +19,7 @@ from .checks import require_classes, require_masks
 from .commands import prepared
 from .colors import color_hex
 from .inputs import Classes, ClassColor, ClassColors, Context, Fraction, Layers, Region, Seek, Selection, Target
-from .inputs import ViewerLayers
+from .inputs import ViewerFilters, ViewerLayers
 
 
 @tool(response_format='content_and_artifact')
@@ -27,6 +27,43 @@ def set_visible_classes(classes: Classes, context: Context) -> PreparedCommand:
     """Filter object classes such as car or person. Never use for boxes, masks, or labels. Empty list shows all classes."""
     require_classes(classes, context)
     return prepared({'type': 'set_visible_classes', 'classes': classes})
+
+
+def hide_classes(classes: list[str], context: ViewerContext) -> PreparedCommand:
+    """Remove selected classes without revealing previously hidden objects."""
+    plurals = {name + 's': name for name in context['availableClasses']}
+    if 'person' in context['availableClasses']:
+        plurals['people'] = 'person'
+    classes = [plurals.get(name, name) for name in classes]
+    require_classes(classes, context)
+    current = ViewerFilters.model_validate(context['view'].get('filters')).visibleClasses
+    if current is None:
+        return prepared({'type': 'set_visible_classes', 'classes': None})
+    visible = current or context['availableClasses']
+    remaining = [name for name in visible if name not in classes]
+    return prepared({'type': 'set_visible_classes', 'classes': remaining or None})
+
+
+@tool(response_format='content_and_artifact')
+def hide(targets: Classes, context: Context) -> PreparedCommand:
+    """Hide named objects or layers. Targets are detected class names, boxes, masks, or labels."""
+    layers = [name for name in targets if name in ('boxes', 'masks', 'labels')]
+    classes = [name for name in targets if name not in ('boxes', 'masks', 'labels')]
+    commands = []
+    if layers:
+        commands.extend(hide_layers(layers, context)[1])
+    if classes:
+        commands.extend(hide_classes(classes, context)[1])
+    return prepared(*commands)
+
+
+@tool(response_format='content_and_artifact')
+def restore_all_visibility(context: Context) -> PreparedCommand:
+    """Restore both layers and classes for 'show all'. For categories only, use set_visible_classes instead."""
+    return prepared(
+        {'type': 'set_visible_classes', 'classes': []},
+        {'type': 'set_layers', 'boxes': True, 'masks': context['page'] != 'boxes', 'labels': True},
+    )
 
 
 @tool(response_format='content_and_artifact')
@@ -73,8 +110,7 @@ def set_layers(context: Context, layers: Layers | None = None,
     return prepared(visibility, {'type': 'set_mask_opacity', 'value': opacity})
 
 
-@tool(response_format='content_and_artifact')
-def hide_layers(layers: Layers, context: Context) -> PreparedCommand:
+def hide_layers(layers: list[str], context: ViewerContext) -> PreparedCommand:
     """Hide the named layers. Preserve the current visibility of every other layer."""
     current = ViewerLayers.model_validate(context['view'].get('layers'))
     return prepared({

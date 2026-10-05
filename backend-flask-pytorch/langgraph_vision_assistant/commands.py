@@ -14,10 +14,10 @@ from typing_extensions import TypedDict
 
 
 class VisibleClassesCommand(TypedDict):
-    """Show only the requested classes."""
+    """Show selected classes; an empty list shows all and None hides all."""
 
     type: Literal['set_visible_classes']
-    classes: list[str]
+    classes: list[str] | None
 
 
 class ClassColorCommand(TypedDict):

@@ -64,11 +64,25 @@ class VisionAssistantTest(unittest.TestCase):
              'color': '#0000ff', 'target': 'masks'},
         ])
 
+    def test_make_cars_purple_and_people_red(self):
+        self.assert_actions('Make cars purple and people red', [
+            {'type': 'set_class_color', 'className': 'car', 'color': '#800080', 'target': 'both'},
+            {'type': 'set_class_color', 'className': 'person', 'color': '#ff0000', 'target': 'both'},
+        ])
+
     def test_hide_masks_preserves_boxes_and_labels(self):
         self.assert_actions('hide masks', [
             {'type': 'set_layers', 'boxes': True, 'masks': False, 'labels': True},
         ], view={'layers': {'boxes': {'enabled': True}, 'masks': {'enabled': True},
                            'labels': {'enabled': True}}})
+
+    def test_hide_boxes_preserves_masks_and_labels(self):
+        self.assert_actions('hide boxes', [
+            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': True},
+        ], classes=['backpack', 'bicycle', 'car', 'handbag', 'motorcycle', 'person', 'traffic light', 'umbrella'],
+            view={'filters': {'visibleClasses': []},
+                  'layers': {'boxes': {'enabled': True}, 'masks': {'enabled': True},
+                             'labels': {'enabled': True}}})
 
     def test_hide_masks_after_show_masks_only(self):
         self.assert_actions('hide masks', [
@@ -156,6 +170,44 @@ class VisionAssistantTest(unittest.TestCase):
         self.assert_actions('Only show car', [
             {'type': 'set_visible_classes', 'classes': ['car']},
         ])
+
+    def test_hide_cars_preserves_other_classes(self):
+        self.assert_actions('hide cars', [
+            {'type': 'set_visible_classes', 'classes': ['person', 'truck']},
+        ], classes=['car', 'person', 'truck'], view={'filters': {'visibleClasses': []}})
+
+    def test_hide_cars_with_browser_settings(self):
+        self.assert_actions('hide cars', [
+            {'type': 'set_visible_classes', 'classes': ['bicycle', 'person']},
+        ], classes=['bicycle', 'car', 'person'], view={
+            'filters': {'visibleClasses': [], 'minConfidence': 0},
+            'layers': {'boxes': {'enabled': False, 'opacity': 78},
+                       'masks': {'enabled': True, 'opacity': 100},
+                       'labels': {'enabled': False, 'fontSize': 9}},
+            'appearance': {'boxColors': {'bicycle': '#008000'}, 'maskColors': {'bicycle': '#008000'}},
+        })
+
+    def test_hide_cars_preserves_existing_filter(self):
+        self.assert_actions('hide cars', [
+            {'type': 'set_visible_classes', 'classes': ['person']},
+        ], classes=['car', 'person', 'truck'], view={'filters': {'visibleClasses': ['car', 'person']}})
+
+    def test_hide_last_visible_class(self):
+        self.assert_actions('hide cars', [
+            {'type': 'set_visible_classes', 'classes': None},
+        ], classes=['car', 'person'], view={'filters': {'visibleClasses': ['car']}})
+
+    def test_show_all_restores_hidden_classes_and_layers(self):
+        for page in ['boxes', 'mask', 'video']:
+            with self.subTest(page=page):
+                self.assert_actions('show all', [
+                    {'type': 'set_visible_classes', 'classes': []},
+                    {'type': 'set_layers', 'boxes': True, 'masks': page != 'boxes', 'labels': True},
+                ], page=page, view={
+                    'filters': {'visibleClasses': None},
+                    'layers': {'boxes': {'enabled': False}, 'masks': {'enabled': False},
+                               'labels': {'enabled': False}},
+                })
 
     # Image defaults use the cats-and-dogs scene. Run the same button text
     # on both image pages because Faster R-CNN has no mask layer.

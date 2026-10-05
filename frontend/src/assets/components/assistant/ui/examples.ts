@@ -17,7 +17,7 @@ export function assistantExamples(page: AssistantPage | undefined, classes: stri
   ] : ["Hide detections below 80% confidence", "Show all categories"];
 
   const videoOrdered = page === "video" && category === "car" ? [
-    "Make car purple and person red",
+    "Make cars purple and people red",
     ...standard.filter((example) => example !== "Only show car"),
     "Only show car",
   ] : standard;

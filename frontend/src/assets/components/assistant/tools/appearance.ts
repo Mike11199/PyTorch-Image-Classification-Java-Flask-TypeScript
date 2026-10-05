@@ -5,6 +5,7 @@ import type { ToolAction, ToolContext } from "./context";
 export function setVisibleClasses(context: ToolContext, action: ToolAction<"set_visible_classes">) {
   context.state = viewerControlsReducer(context.state,
     { type: "set_visible_classes", classes: action.classes });
+  if (action.classes === null) return "All categories hidden.";
   return action.classes.length ? `Showing only ${action.classes.join(", ")}.` : "Showing all categories.";
 }
 
