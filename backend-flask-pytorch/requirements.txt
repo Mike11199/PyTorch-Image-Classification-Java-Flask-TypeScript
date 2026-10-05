@@ -40,4 +40,6 @@ yt-dlp[default]>=2026.3.3
 bgutil-ytdlp-pot-provider==2.0.0
 stem==1.8.2
 langgraph==1.0.10
-llama-cpp-python==0.3.16
+langgraph-prebuilt==1.0.8
+langchain-core==1.6.6
+pydantic==2.13.5

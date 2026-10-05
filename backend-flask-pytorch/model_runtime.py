@@ -34,7 +34,7 @@ def model_session(kind, timeout=120, request_id=None):
         wait_ms=round((acquired_at - waiting_at) * 1000),
     )
     try:
-        if _kind != kind:
+        if _kind != kind or (_kind == 'llm' and not _model.is_alive()):
             previous_kind = _kind
             if _kind == 'llm' and _model is not None:
                 _model.close()
@@ -54,17 +54,9 @@ def model_session(kind, timeout=120, request_id=None):
 
                 _model = model_fn(False).eval()
             else:
-                from llama_cpp import Llama
+                from langgraph_vision_assistant.model.runtime import LocalModel
 
-                model_path = os.getenv('LLM_MODEL_PATH', '/opt/models/Qwen_Qwen3-0.6B-Q4_K_M.gguf')
-                if not os.path.isfile(model_path):
-                    raise FileNotFoundError(model_path)
-                _model = Llama(
-                    model_path=model_path, chat_format='chatml',
-                    n_ctx=4096, n_threads=int(os.getenv('LLM_THREADS', '1')),
-                    n_threads_batch=int(os.getenv('LLM_THREADS', '1')),
-                    n_gpu_layers=0, verbose=False,
-                )
+                _model = LocalModel()
             _kind = kind
             log_event('model_loaded', trace_id, kind=kind)
         with torch.inference_mode():

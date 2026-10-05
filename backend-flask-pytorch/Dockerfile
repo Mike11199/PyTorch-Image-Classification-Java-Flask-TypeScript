@@ -1,7 +1,18 @@
 # Flask/PyTorch backend; the local GPU override selects a CUDA build.
+FROM python:3.11-slim AS llama-runtime
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+ARG LLAMA_CPP_VERSION=b11146
+RUN curl -fsSL "https://github.com/ggml-org/llama.cpp/archive/refs/tags/${LLAMA_CPP_VERSION}.tar.gz" | tar xz -C /tmp && \
+    cmake -S /tmp/llama.cpp-${LLAMA_CPP_VERSION} -B /tmp/llama-build \
+      -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DGGML_OPENMP=OFF \
+      -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF && \
+    cmake --build /tmp/llama-build --target llama-server -j 2
+
 FROM node:22-bookworm-slim AS javascript
 FROM python:3.11-slim
 COPY --from=javascript /usr/local/bin/node /usr/local/bin/node
+COPY --from=llama-runtime /tmp/llama-build/bin/llama-server /opt/llama/llama-server
 
 WORKDIR /app
 
@@ -25,7 +36,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Cache the small assistant model; all models share one runtime owner and mutex.
 ARG LLM_MODEL_URL=https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF/resolve/main/Qwen_Qwen3-0.6B-Q4_K_M.gguf
 ENV LLM_MODEL_PATH=/opt/models/Qwen_Qwen3-0.6B-Q4_K_M.gguf
-COPY backend-flask-pytorch/langgraph_vision_assistant/download_model.py /tmp/download_assistant_model.py
+COPY backend-flask-pytorch/langgraph_vision_assistant/model/download.py /tmp/download_assistant_model.py
 RUN python /tmp/download_assistant_model.py "${LLM_MODEL_URL}" "${LLM_MODEL_PATH}"
 
 # Cache pretrained model weights during the image build to avoid startup downloads.

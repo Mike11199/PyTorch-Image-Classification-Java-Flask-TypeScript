@@ -47,3 +47,6 @@ cdk/cdk.out/
 
 # Local migration plan
 /MIGRATION_README.md
+
+# Local implementation ledger
+.superpowers/

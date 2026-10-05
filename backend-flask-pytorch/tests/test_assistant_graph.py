@@ -2,188 +2,136 @@ import unittest
 from unittest.mock import patch
 
 from flask import Flask
+from langchain_core.messages import AIMessage, ToolMessage
 
-from langgraph_vision_assistant.workflow import PlanError, build_workflow
-from langgraph_vision_assistant.workflow_state import AssistantState
+from langgraph_vision_assistant.agent.graph import PlanError, build_workflow
 from langgraph_vision_assistant import register_langgraph_vision_assistant
-from langgraph_vision_assistant.tools import validate_plan
+
+CONTEXT = {'message': 'only cats', 'page': 'mask', 'availableClasses': ['cat', 'dog'], 'view': {}}
 
 
-CONTEXT = {'message': 'only cars', 'page': 'boxes', 'availableClasses': ['car'], 'view': {}}
+def calls(*actions, content=''):
+    return AIMessage(content=content, tool_calls=[
+        {'name': action['type'], 'args': {k: v for k, v in action.items() if k != 'type'},
+         'id': f'call-{i}', 'type': 'tool_call'}
+        for i, action in enumerate(actions)
+    ])
 
 
 class GraphTests(unittest.TestCase):
-    def test_layer_tool_requires_explicit_label_visibility(self):
-        context = {'message': 'show masks only', 'page': 'mask',
-                   'availableClasses': ['car'], 'view': {}}
-        with self.assertRaises(ValueError):
-            validate_plan({'actions': [{
-                'type': 'set_layers', 'boxes': False, 'masks': True,
-            }]}, context)
-        result = validate_plan({'actions': [{
-            'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': False,
-        }]}, context)
-        self.assertFalse(result['actions'][0]['labels'])
+    def run_graph(self, model):
+        return build_workflow(model).invoke({'context': CONTEXT, 'request_id': 'test'})
 
-    def test_workflow_state_names_explain_the_request_lifecycle(self):
-        self.assertEqual(set(AssistantState.__annotations__), {
-            'context', 'request_id', 'plan', 'validation_error', 'attempt', 'result'
-        })
+    def test_commands_keep_order_and_discard_generated_claims(self):
+        actions = [
+            {'type': 'set_class_color', 'className': 'cat', 'color': '#17a2b8', 'target': 'both'},
+            {'type': 'set_class_color', 'className': 'cat', 'color': '#123456', 'target': 'boxes'},
+        ]
+        result = self.run_graph(lambda *_: calls(*actions, content='99 cats!'))
+        self.assertEqual(result['result'], {'actions': actions, 'message': ''})
+        self.assertEqual(result['attempt'], 1)
 
-    def test_workflow_exposes_planning_style_rules_and_validation_steps(self):
-        workflow = build_workflow(lambda *_: {'actions': []})
-        self.assertEqual(set(workflow.get_graph().nodes), {
-            '__start__', 'generate', 'apply_explicit_styles', 'validate', '__end__'
-        })
+    def test_collector_restores_call_order_from_reversed_results(self):
+        from langgraph_vision_assistant.agent.nodes import collect_results
+        request = calls({'type': 'reset_view'}, {'type': 'set_confidence', 'value': 0.5})
+        result = collect_results({'request_id': 'test', 'attempt': 1, 'messages': [
+            request,
+            ToolMessage(content='prepared', tool_call_id='call-1', artifact={'type': 'set_confidence', 'value': 0.5}),
+            ToolMessage(content='prepared', tool_call_id='call-0', artifact={'type': 'reset_view'}),
+        ]})
+        self.assertEqual(result['result']['actions'], [
+            {'type': 'reset_view'}, {'type': 'set_confidence', 'value': 0.5},
+        ])
 
-    def test_repairs_invalid_plan_once(self):
-        attempts = iter([{'actions': [{'type': 'oops'}]},
-                         {'actions': [{'type': 'set_visible_classes', 'classes': ['car']}]}])
-        result = build_workflow(lambda *_: next(attempts)).invoke({'context': CONTEXT, 'request_id': 'test'})
+    def test_failed_batch_is_discarded_and_errors_reach_model(self):
+        def model(messages, tools, context, request_id):
+            self.assertEqual(request_id, 'test')
+            results = [msg for msg in messages if isinstance(msg, ToolMessage)]
+            if not results:
+                return calls({'type': 'reset_view'}, {'type': 'set_visible_classes', 'classes': ['dragon']})
+            self.assertEqual([result.status for result in results], ['success', 'error'])
+            self.assertIn('dragon', results[-1].content)
+            return calls({'type': 'set_visible_classes', 'classes': ['cat']})
+        result = self.run_graph(model)
+        self.assertEqual(result['result']['actions'], [{'type': 'set_visible_classes', 'classes': ['cat']}])
         self.assertEqual(result['attempt'], 2)
-        self.assertEqual(result['result']['actions'][0]['classes'], ['car'])
 
-    def test_allows_two_repairs_before_stopping(self):
-        attempts = iter([
-            {'actions': [{'type': 'oops'}]},
-            {'actions': [{'type': 'still_wrong'}]},
-            {'actions': [{'type': 'set_visible_classes', 'classes': ['car']}]},
+    def test_read_result_can_drive_the_next_tool_call(self):
+        def model(messages, *_):
+            results = [msg for msg in messages if isinstance(msg, ToolMessage)]
+            if not results:
+                return calls({'type': 'get_viewer_context'})
+            self.assertIn('cat', results[-1].content)
+            return calls({'type': 'reset_view'})
+        result = self.run_graph(model)
+        self.assertEqual(result['attempt'], 2)
+        self.assertEqual(result['result']['actions'], [{'type': 'reset_view'}])
+
+    def test_mixed_read_and_command_returns_only_command(self):
+        result = self.run_graph(lambda *_: calls({'type': 'get_viewer_context'}, {'type': 'reset_view'}))
+        self.assertEqual(result['result']['actions'], [{'type': 'reset_view'}])
+
+    def test_read_loops_and_errors_stop_after_three_model_calls(self):
+        for response in (calls({'type': 'get_viewer_context'}), calls({'type': 'unknown'})):
+            seen = []
+            def model(*args):
+                seen.append(args)
+                return response
+            with self.subTest(response=response), self.assertRaises(PlanError):
+                self.run_graph(model)
+            self.assertEqual(len(seen), 3)
+
+    def test_malformed_and_oversized_responses_never_run_tools(self):
+        duplicate = AIMessage(content='', tool_calls=[
+            {'name': 'reset_view', 'args': {}, 'id': 'same'},
+            {'name': 'reset_view', 'args': {}, 'id': 'same'},
         ])
-        result = build_workflow(lambda *_: next(attempts)).invoke({'context': CONTEXT, 'request_id': 'test'})
-        self.assertEqual(result['attempt'], 3)
-        self.assertEqual(result['result']['actions'][0]['classes'], ['car'])
-
-    def test_enforces_explicit_class_color_and_layer_phrases(self):
-        context = {
-            'message': 'Make cat masks blue and make dog boxes and masks gray',
-            'page': 'mask', 'availableClasses': ['cat', 'dog'], 'view': {},
-        }
-        wrong = {'actions': [
-            {'type': 'set_class_color', 'className': 'cat', 'color': '#ff0000', 'target': 'masks'},
-            {'type': 'set_class_color', 'className': 'dog', 'color': '#800080', 'target': 'boxes'},
-        ]}
-        actions = build_workflow(lambda *_: wrong).invoke({'context': context, 'request_id': 'test'})['result']['actions']
-        self.assertEqual(actions, [
-            {'type': 'set_class_color', 'className': 'cat', 'color': '#0000ff', 'target': 'masks'},
-            {'type': 'set_class_color', 'className': 'dog', 'color': '#444444', 'target': 'both'},
-        ])
-
-    def test_mask_color_request_does_not_hide_boxes_or_labels(self):
-        context = {
-            'message': 'Make car masks blue', 'page': 'video',
-            'availableClasses': ['car', 'person'], 'view': {},
-        }
-        model_plan = {'actions': [
-            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': True},
-            {'type': 'set_class_color', 'className': 'car',
-             'color': '#0000ff', 'target': 'masks'},
-        ]}
-
-        actions = build_workflow(lambda *_: model_plan).invoke({
-            'context': context, 'request_id': 'test'
-        })['result']['actions']
-
-        self.assertEqual(actions, [{
-            'type': 'set_class_color', 'className': 'car',
-            'color': '#0000ff', 'target': 'masks',
+        invalid = AIMessage(content='', invalid_tool_calls=[{
+            'name': 'reset_view', 'args': '{', 'id': 'bad', 'error': 'invalid json',
         }])
+        for response in ({'actions': []}, calls(*[{'type': 'reset_view'}] * 7), duplicate,
+                         invalid, AIMessage(content=''), AIMessage(content='x' * 241)):
+            with self.subTest(response=response), self.assertRaises(PlanError):
+                self.run_graph(lambda *_: response)
 
-    def test_explicit_class_filter_discards_unrequested_style_changes(self):
-        context = {
-            'message': 'Only show car', 'page': 'video',
-            'availableClasses': ['car', 'person'], 'view': {},
-        }
-        noisy_plan = {'actions': [
-            {'type': 'set_visible_classes', 'classes': ['car']},
-            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': True},
-            {'type': 'set_class_color', 'className': 'car',
-             'color': '#ff0000', 'target': 'both'},
-        ]}
-        actions = build_workflow(lambda *_: noisy_plan).invoke({
-            'context': context, 'request_id': 'test',
-        })['result']['actions']
-        self.assertEqual(actions, [
-            {'type': 'set_visible_classes', 'classes': ['car']},
-        ])
-
-    def test_color_without_a_target_changes_boxes_labels_and_masks(self):
-        context = {
-            'message': 'Make car purple', 'page': 'video',
-            'availableClasses': ['car'], 'view': {},
-        }
-        model_plan = {'actions': [{
-            'type': 'set_class_color', 'className': 'car',
-            'color': '#5b146e', 'target': 'masks',
-        }]}
-
-        action = build_workflow(lambda *_: model_plan).invoke({
-            'context': context, 'request_id': 'test'
-        })['result']['actions'][0]
-
-        self.assertEqual(action['target'], 'both')
-        self.assertEqual(action['color'], '#5b146e')
-
-    def test_compound_styles_accept_a_color_typo_and_class_alias(self):
-        context = {
-            'message': 'Make car greeen and bike purple', 'page': 'video',
-            'availableClasses': ['car', 'bicycle'], 'view': {},
-        }
-        model_plan = {'actions': [
-            {'type': 'set_class_color', 'className': 'car',
-             'color': '#00ff00', 'target': 'both'},
-            {'type': 'set_class_color', 'className': 'bicycle',
-             'color': '#ff8800', 'target': 'both'},
-        ]}
-
-        actions = build_workflow(lambda *_: model_plan).invoke({
-            'context': context, 'request_id': 'test'
-        })['result']['actions']
-
-        self.assertEqual(actions, [
-            {'type': 'set_class_color', 'className': 'car',
-             'color': '#00ff00', 'target': 'both'},
-            {'type': 'set_class_color', 'className': 'bicycle',
-             'color': '#5b146e', 'target': 'both'},
-        ])
-
-    def test_invalid_plan_stops_without_partial_actions(self):
-        with self.assertRaises(PlanError):
-            build_workflow(lambda *_: {'actions': [{'type': 'oops'}]}).invoke({'context': CONTEXT, 'request_id': 'test'})
+    def test_plain_clarification_has_no_actions(self):
+        result = self.run_graph(lambda *_: AIMessage(content='Which class should I change?'))
+        self.assertEqual(result['result'], {'actions': [], 'message': 'Which class should I change?'})
 
 
 class RouteTests(unittest.TestCase):
     def setUp(self):
-        self.app = Flask(__name__)
-        register_langgraph_vision_assistant(self.app)
-        self.client = self.app.test_client()
+        app = Flask(__name__)
+        register_langgraph_vision_assistant(app)
+        self.client = app.test_client()
 
-    def test_returns_validated_actions_and_no_generated_count_claims(self):
-        graph = build_workflow(lambda *_: {'actions': [{'type': 'reset_view'}], 'message': '99 cars!'})
-        with patch('langgraph_vision_assistant.routes.workflow', graph):
+    def test_browser_response_shape_and_request_id(self):
+        graph = build_workflow(lambda *_: calls({'type': 'reset_view'}, content='99 cats!'))
+        with patch('langgraph_vision_assistant.service.workflow', graph):
             result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.json, {
-            'actions': [{'type': 'set_visible_classes', 'classes': ['car']}],
-            'message': '',
-        })
+        self.assertEqual(result.json, {'actions': [{'type': 'reset_view'}], 'message': ''})
+        self.assertTrue(result.headers['X-Request-ID'])
 
-    def test_busy_model_returns_retryable_response_and_releases_slot(self):
-        graph = build_workflow(lambda *_: (_ for _ in ()).throw(TimeoutError()))
-        with patch('langgraph_vision_assistant.routes.workflow', graph):
-            for _ in range(2):
-                result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
-                self.assertEqual(result.status_code, 429)
+    def test_errors_release_request_slot(self):
+        for error, status in [(TimeoutError(), 429), (FileNotFoundError(), 503),
+                              (RuntimeError(), 502), (PlanError('invalid'), 422)]:
+            def model(*_):
+                raise error
+            with patch('langgraph_vision_assistant.service.workflow', build_workflow(model)):
+                for _ in range(2):
+                    with self.subTest(error=error):
+                        self.assertEqual(self.client.post('/api-pytorch/vision-assistant', json=CONTEXT).status_code, status)
 
-    def test_three_invalid_plans_return_a_plan_error(self):
-        workflow = build_workflow(lambda *_: {'actions': [{'type': 'unknown'}]})
-        with patch('langgraph_vision_assistant.routes.workflow', workflow):
+    def test_occupied_request_slot_returns_busy_without_calling_model(self):
+        from langgraph_vision_assistant.service import _request_slot
+        _request_slot.acquire()
+        try:
             result = self.client.post('/api-pytorch/vision-assistant', json=CONTEXT)
-        self.assertEqual(result.status_code, 422)
+            self.assertEqual(result.status_code, 429)
+        finally:
+            _request_slot.release()
 
     def test_rejects_malformed_and_large_requests(self):
         self.assertEqual(self.client.post('/api-pytorch/vision-assistant', json=[]).status_code, 400)
         self.assertEqual(self.client.post('/api-pytorch/vision-assistant', data='x' * 16385).status_code, 413)
-
-
-if __name__ == '__main__':
-    unittest.main()

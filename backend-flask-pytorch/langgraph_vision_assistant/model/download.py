@@ -6,7 +6,8 @@ import sys
 import requests
 
 
-def download(url, destination):
+def download(url: str, destination: str) -> None:
+    """Download and check a GGUF file before replacing the destination atomically."""
     target = pathlib.Path(destination)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_suffix('.download')

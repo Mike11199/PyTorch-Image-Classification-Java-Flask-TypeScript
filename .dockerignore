@@ -11,3 +11,4 @@
 **/dist
 frontend/.packed.local
 cdk/cdk.out
+.superpowers
