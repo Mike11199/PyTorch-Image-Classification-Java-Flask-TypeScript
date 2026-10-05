@@ -8,9 +8,9 @@ from typing import Literal, TypeAlias
 from typing_extensions import TypedDict
 from pydantic import JsonValue
 
+from .commands import ViewerCommand as ViewerCommand
+
 Page: TypeAlias = Literal['boxes', 'mask', 'video']
-CommandArgument: TypeAlias = str | float | bool | list[str]
-ViewerCommand: TypeAlias = dict[str, CommandArgument]
 PreparedCommand: TypeAlias = tuple[str, ViewerCommand]
 
 

@@ -5,16 +5,13 @@ validator that returns typed context or raises ValueError for invalid fields.
 """
 
 import json
-import re
-from typing import cast, TypeGuard
 
 from flask import request
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
-from ..types import Page, ViewerContext
+from ..types import ViewerContext
+from .schemas import AssistantRequest
 
-PAGES = {'boxes', 'mask', 'video'}
-CATEGORY = re.compile(r'[a-z][a-z -]{0,39}')
 MAX_REQUEST_BYTES = 16384
 
 
@@ -31,40 +28,7 @@ def read_request_context() -> ViewerContext:
         raise BadRequest() from error
 
 
-def _valid_categories(categories: object) -> TypeGuard[list[str]]:
-    """Accept only a bounded list of ordinary COCO-style class names."""
-    if not isinstance(categories, list) or len(categories) > 80:
-        return False
-    for name in categories:
-        if not isinstance(name, str) or not CATEGORY.fullmatch(name):
-            return False
-    return True
-
 
 def validate_request(body: object) -> ViewerContext:
-    """Validate untrusted JSON and return the normalized graph input.
-
-    Raises ValueError for unsupported pages, oversized input, or malformed fields.
-    """
-    if not isinstance(body, dict):
-        raise ValueError('A JSON object is required.')
-
-    message = body.get('message')
-    page = body.get('page')
-    categories = body.get('availableClasses')
-    view = body.get('view', {})
-
-    if not isinstance(message, str) or not 1 <= len(message.strip()) <= 1000:
-        raise ValueError('Enter a request of 1 to 1,000 characters.')
-    if not isinstance(page, str) or page not in PAGES:
-        raise ValueError('Unknown viewer.')
-    if not _valid_categories(categories):
-        raise ValueError('Invalid detected categories.')
-    if not isinstance(view, dict) or len(json.dumps(view, allow_nan=False)) > 3000:
-        raise ValueError('Invalid viewer state.')
-    return {
-        'message': message.strip(),
-        'page': cast(Page, page),
-        'availableClasses': sorted(set(categories)),
-        'view': view,
-    }
+    """Validate JSON with the request schema and return graph input."""
+    return AssistantRequest.model_validate(body).to_context()

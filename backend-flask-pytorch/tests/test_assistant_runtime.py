@@ -8,9 +8,28 @@ import requests
 
 import model_runtime
 from langgraph_vision_assistant.model.runtime import LocalModel
+from langgraph_vision_assistant.model.server import ModelServer
 
 
 class LocalRuntimeTests(unittest.TestCase):
+    def test_startup_failure_closes_process_and_transport(self):
+        with patch('langgraph_vision_assistant.model.runtime.Path.is_file', return_value=True), \
+             patch('langgraph_vision_assistant.model.runtime.ModelServer') as server, \
+             patch('langgraph_vision_assistant.model.runtime.ModelTransport') as transport:
+            server.return_value.wait_until_ready.side_effect = TimeoutError('not ready')
+            with self.assertRaises(TimeoutError):
+                LocalModel()
+            server.return_value.close.assert_called_once()
+            transport.return_value.close.assert_called_once()
+
+    def test_launch_failure_still_closes_transport(self):
+        with patch('langgraph_vision_assistant.model.runtime.Path.is_file', return_value=True), \
+             patch('langgraph_vision_assistant.model.runtime.ModelServer', side_effect=OSError), \
+             patch('langgraph_vision_assistant.model.runtime.ModelTransport') as transport:
+            with self.assertRaises(OSError):
+                LocalModel()
+            transport.return_value.close.assert_called_once()
+
     def test_dead_cached_process_is_replaced_before_next_inference(self):
         dead_model = Mock()
         dead_model.is_alive.return_value = False
@@ -25,13 +44,13 @@ class LocalRuntimeTests(unittest.TestCase):
 
     def test_inference_timeout_uses_the_routes_retryable_error(self):
         model = LocalModel.__new__(LocalModel)
-        model.url = 'http://127.0.0.1:12345'
-        model.process = None
-        model.log = Mock()
-        model.client = Mock()
-        model.client.post.side_effect = requests.ReadTimeout('inference took too long')
+        model.server = Mock()
+        model.transport = Mock()
+        model.transport.complete.side_effect = requests.ReadTimeout('inference took too long')
         with self.assertRaises(TimeoutError):
             model.create_chat_completion(messages=[])
+        model.server.close.assert_called_once()
+        model.transport.close.assert_called_once()
 
     def test_switching_to_vision_closes_llm_before_loading_detection_model(self):
         events = []
@@ -64,8 +83,7 @@ class LocalRuntimeTests(unittest.TestCase):
 
     def test_close_reaps_a_process_that_ignores_termination(self):
         import subprocess
-        model = LocalModel.__new__(LocalModel)
-        model.client = Mock()
+        model = ModelServer.__new__(ModelServer)
         model.log = Mock()
         process = model.process = Mock()
         process.poll.return_value = None
@@ -74,5 +92,4 @@ class LocalRuntimeTests(unittest.TestCase):
         process.terminate.assert_called_once()
         process.kill.assert_called_once()
         self.assertEqual(process.wait.call_count, 2)
-        model.client.close.assert_called_once()
         model.log.close.assert_called_once()

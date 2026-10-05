@@ -32,9 +32,10 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(result['attempt'], 1)
 
     def test_collector_restores_call_order_from_reversed_results(self):
-        from langgraph_vision_assistant.agent.nodes import collect_results
+        from langgraph_vision_assistant.agent.nodes import collect_browser_commands
         request = calls({'type': 'reset_view'}, {'type': 'set_confidence', 'value': 0.5})
-        result = collect_results({'request_id': 'test', 'attempt': 1, 'messages': [
+        result = collect_browser_commands({'request_id': 'test', 'attempt': 1,
+                                          'tool_call_ids': ['call-0', 'call-1'], 'messages': [
             request,
             ToolMessage(content='prepared', tool_call_id='call-1', artifact={'type': 'set_confidence', 'value': 0.5}),
             ToolMessage(content='prepared', tool_call_id='call-0', artifact={'type': 'reset_view'}),
@@ -43,8 +44,20 @@ class GraphTests(unittest.TestCase):
             {'type': 'reset_view'}, {'type': 'set_confidence', 'value': 0.5},
         ])
 
+    def test_repair_does_not_reuse_commands_from_an_earlier_turn(self):
+        responses = iter([
+            calls({'type': 'reset_view'}, {'type': 'unknown'}),
+            AIMessage(content='', invalid_tool_calls=[{
+                'name': 'set_confidence', 'args': '{', 'id': 'broken', 'error': 'invalid json',
+            }]),
+            calls({'type': 'set_confidence', 'value': 0.75}),
+        ])
+        result = self.run_graph(lambda *_: next(responses))
+        self.assertEqual(result['attempt'], 3)
+        self.assertEqual(result['result']['actions'], [{'type': 'set_confidence', 'value': 0.75}])
+
     def test_failed_batch_is_discarded_and_errors_reach_model(self):
-        def model(messages, tools, context, request_id):
+        def model(messages, tools, request_id):
             self.assertEqual(request_id, 'test')
             results = [msg for msg in messages if isinstance(msg, ToolMessage)]
             if not results:

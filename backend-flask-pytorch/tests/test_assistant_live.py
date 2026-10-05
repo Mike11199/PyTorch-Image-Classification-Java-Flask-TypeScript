@@ -48,7 +48,7 @@ class LiveToolCallingTests(unittest.TestCase):
         from langgraph_vision_assistant.agent.prompt import initial_messages
         response = self.call_model([
             *initial_messages({**self.context, 'message': 'Make cats red and dogs teal.'}),
-        ], self.tools, self.context, 'live-colors')
+        ], self.tools, 'live-colors')
         self.assertEqual(len(response.tool_calls), 2, response)
         self.assertEqual(
             {(call['args']['className'], call['args']['color'].lower()) for call in response.tool_calls},
@@ -61,12 +61,12 @@ class LiveToolCallingTests(unittest.TestCase):
             SystemMessage('Use tools. First read viewer context, then set the selected class to its returned color. Target both.'),
             HumanMessage('Apply the selected color to the selected class.'),
         ]
-        response = self.call_model(messages, [get_viewer_context], self.context, 'live-read')
+        response = self.call_model(messages, [get_viewer_context], 'live-read')
         self.assertEqual([call['name'] for call in response.tool_calls], ['get_viewer_context'])
         call = response.tool_calls[0]
         result = get_viewer_context.invoke(call)
         self.assertIsInstance(result, ToolMessage)
-        response = self.call_model(messages + [response, result], self.tools, self.context, 'live-read')
+        response = self.call_model(messages + [response, result], self.tools, 'live-read')
         self.assertEqual(len(response.tool_calls), 1, response)
         self.assertEqual(response.tool_calls[0]['name'], 'set_class_color')
         self.assertEqual(response.tool_calls[0]['args']['className'], 'dog')
@@ -75,14 +75,14 @@ class LiveToolCallingTests(unittest.TestCase):
     def test_model_repairs_a_real_tool_error(self):
         messages = [SystemMessage('Use the tool. If the color is unavailable, use the alternative in its error.'),
                     HumanMessage('Select red (#ff0000).')]
-        response = self.call_model(messages, [select_palette_color], self.context, 'live-error')
+        response = self.call_model(messages, [select_palette_color], 'live-error')
         graph = StateGraph(dict)
         graph.add_node('tools', ToolNode([select_palette_color], handle_tool_errors=True))
         graph.add_edge(START, 'tools')
         graph.add_edge('tools', END)
         result = graph.compile().invoke({'messages': [response]})['messages'][0]
         self.assertEqual(result.status, 'error', result)
-        repaired = self.call_model(messages + [response, result], [select_palette_color], self.context, 'live-error')
+        repaired = self.call_model(messages + [response, result], [select_palette_color], 'live-error')
         self.assertEqual(len(repaired.tool_calls), 1, repaired)
         result = graph.compile().invoke({'messages': [repaired]})['messages'][0]
         self.assertEqual(result.status, 'success', result)
