@@ -19,6 +19,7 @@ EXAMPLES: list[tuple[str, list[tuple[str, dict[str, JsonValue]]]]] = [
     ]})]),
     ('Only show trucks', [('set_visible_classes', {'classes': ['truck']})]),
     ('Show labels only', [('set_layers', {'layers': ['labels']})]),
+    ('Hide labels', [('hide_layers', {'layers': ['labels']})]),
     ('Show boxes and labels at half opacity', [('set_layers', {'layers': ['boxes', 'labels'], 'opacity': 0.5})]),
     ('Make dog boxes only cyan', [('set_class_colors', {'colors': [
         {'className': 'dog', 'color': 'cyan', 'layers': ['boxes']},

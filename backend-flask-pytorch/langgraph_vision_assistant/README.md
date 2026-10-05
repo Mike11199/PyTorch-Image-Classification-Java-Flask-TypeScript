@@ -37,6 +37,8 @@ For example, `set_class_colors` describes recoloring objects and accepts a list
 of color changes. `set_layers` describes changing visible layers and opacity.
 Given “make car purple and person red,” Qwen selects the color tool and fills in
 the two objects. Given “show masks only,” it selects the layer tool instead.
+“Hide masks” uses `hide_layers`: it turns masks off and preserves the browser's
+current boxes and labels settings. `set_layers` instead specifies which layers to show.
 This choice is a model prediction and can be wrong; the tool list defines what
 is available, not a keyword-to-function lookup.
 
@@ -148,7 +150,10 @@ CPU inference uses up to four detected logical CPUs by default. Set
 `LLM_THREADS` to override that count. This does not enable GPU inference or
 change the model size or the container's resource allocation.
 
-The tests call the real local model, including compound color and layer requests:
+The tests call the real local model. They cover each default button for the
+cats-and-dogs image pages and the traffic video, plus color typos, combined
+layers, and hiding masks without changing boxes or labels. Each test states
+the request and expected browser commands; image tests check both page types.
 
 ```sh
 docker compose exec -T flask python -m unittest discover -s tests -p test_vision_assistant.py -v

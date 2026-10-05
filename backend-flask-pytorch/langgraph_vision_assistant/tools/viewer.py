@@ -19,6 +19,7 @@ from .checks import require_classes, require_masks
 from .commands import prepared
 from .colors import color_hex
 from .inputs import Classes, ClassColor, ClassColors, Context, Fraction, Layers, Region, Seek, Selection, Target
+from .inputs import ViewerLayers
 
 
 @tool(response_format='content_and_artifact')
@@ -70,6 +71,18 @@ def set_layers(context: Context, layers: Layers | None = None,
     if opacity is None:
         return prepared(visibility)
     return prepared(visibility, {'type': 'set_mask_opacity', 'value': opacity})
+
+
+@tool(response_format='content_and_artifact')
+def hide_layers(layers: Layers, context: Context) -> PreparedCommand:
+    """Hide the named layers. Preserve the current visibility of every other layer."""
+    current = ViewerLayers.model_validate(context['view'].get('layers'))
+    return prepared({
+        'type': 'set_layers',
+        'boxes': current.boxes.enabled and 'boxes' not in layers,
+        'masks': current.masks.enabled and 'masks' not in layers,
+        'labels': current.labels.enabled and 'labels' not in layers,
+    })
 
 
 @tool(response_format='content_and_artifact')

@@ -21,16 +21,16 @@ def separate_color_layers(actions):
 
 
 class VisionAssistantTest(unittest.TestCase):
-    def assert_actions(self, message, expected, page='video'):
+    def assert_actions(self, message, expected, page='video', view=None, classes=None):
         """Send a real request and compare its browser commands, ignoring order."""
         reply = run_assistant({
             'message': message,
             'page': page,
-            'availableClasses': [
+            'availableClasses': classes if classes is not None else [
                 'backpack', 'bicycle', 'car', 'handbag',
                 'motorcycle', 'person', 'traffic light', 'truck',
             ],
-            'view': {},
+            'view': view or {},
         }, request_id=self._testMethodName)
         self.assertCountEqual(separate_color_layers(reply['actions']), separate_color_layers(expected))
         self.assertEqual(reply['message'], '')
@@ -63,6 +63,18 @@ class VisionAssistantTest(unittest.TestCase):
             {'type': 'set_class_color', 'className': 'car',
              'color': '#0000ff', 'target': 'masks'},
         ])
+
+    def test_hide_masks_preserves_boxes_and_labels(self):
+        self.assert_actions('hide masks', [
+            {'type': 'set_layers', 'boxes': True, 'masks': False, 'labels': True},
+        ], view={'layers': {'boxes': {'enabled': True}, 'masks': {'enabled': True},
+                           'labels': {'enabled': True}}})
+
+    def test_hide_masks_after_show_masks_only(self):
+        self.assert_actions('hide masks', [
+            {'type': 'set_layers', 'boxes': False, 'masks': False, 'labels': False},
+        ], view={'layers': {'boxes': {'enabled': False}, 'masks': {'enabled': True},
+                           'labels': {'enabled': False}}})
 
     def test_colors_on_mask_image_page(self):
         self.assert_actions('Make car purple and person red', [
@@ -144,3 +156,71 @@ class VisionAssistantTest(unittest.TestCase):
         self.assert_actions('Only show car', [
             {'type': 'set_visible_classes', 'classes': ['car']},
         ])
+
+    # Image defaults use the cats-and-dogs scene. Run the same button text
+    # on both image pages because Faster R-CNN has no mask layer.
+    def test_image_default_cats_red_and_dogs_blue(self):
+        for page, target in [('boxes', 'boxes'), ('mask', 'both')]:
+            with self.subTest(page=page):
+                self.assert_actions('Make cats red and dogs blue', [
+                    {'type': 'set_class_color', 'className': 'cat', 'color': '#ff0000', 'target': target},
+                    {'type': 'set_class_color', 'className': 'dog', 'color': '#0000ff', 'target': target},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_image_default_only_show_cat(self):
+        for page in ['boxes', 'mask']:
+            with self.subTest(page=page):
+                self.assert_actions('Only show cat', [
+                    {'type': 'set_visible_classes', 'classes': ['cat']},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_image_default_make_cat_purple(self):
+        for page, target in [('boxes', 'boxes'), ('mask', 'both')]:
+            with self.subTest(page=page):
+                self.assert_actions('Make cat purple', [
+                    {'type': 'set_class_color', 'className': 'cat', 'color': '#800080', 'target': target},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_image_default_count_cats(self):
+        for page in ['boxes', 'mask']:
+            with self.subTest(page=page):
+                self.assert_actions('How many cat detections are visible?', [
+                    {'type': 'count_detections', 'classes': ['cat'], 'region': 'all'},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_image_default_highlight_leftmost_cat(self):
+        for page in ['boxes', 'mask']:
+            with self.subTest(page=page):
+                self.assert_actions('Highlight the leftmost cat', [
+                    {'type': 'select_detection', 'className': 'cat', 'mode': 'leftmost'},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_image_default_confidence(self):
+        for page in ['boxes', 'mask']:
+            with self.subTest(page=page):
+                self.assert_actions('Hide detections below 80% confidence', [
+                    {'type': 'set_confidence', 'value': 0.8},
+                ], page=page, classes=['cat', 'dog'])
+
+    def test_mask_image_default_blue_cat_masks(self):
+        self.assert_actions('Make cat masks blue', [
+            {'type': 'set_class_color', 'className': 'cat', 'color': '#0000ff', 'target': 'masks'},
+        ], page='mask', classes=['cat', 'dog'])
+
+    def test_mask_image_default_masks_only_at_full_opacity(self):
+        self.assert_actions('Show masks only at full opacity', [
+            {'type': 'set_layers', 'boxes': False, 'masks': True, 'labels': False},
+            {'type': 'set_mask_opacity', 'value': 1},
+        ], page='mask', classes=['cat', 'dog'])
+
+    def test_mask_image_default_boxes_only(self):
+        self.assert_actions('Show boxes only', [
+            {'type': 'set_layers', 'boxes': True, 'masks': False, 'labels': False},
+        ], page='mask', classes=['cat', 'dog'])
+
+    def test_empty_scene_default_show_all_categories(self):
+        for page in ['boxes', 'mask', 'video']:
+            with self.subTest(page=page):
+                self.assert_actions('Show all categories', [
+                    {'type': 'set_visible_classes', 'classes': []},
+                ], page=page, classes=[])
