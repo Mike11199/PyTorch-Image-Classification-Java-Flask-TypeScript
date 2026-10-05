@@ -41,7 +41,7 @@ def copy_example(store, path):
             os.environ["VIDEO_MEDIA_BUCKET"], "videos/ml-video.mp4", str(path)
         )
         return
-    bundled = Path(os.getenv("VIDEO_EXAMPLE_PATH", "/app/examples/ml-video.mp4"))
+    bundled = Path(os.getenv("VIDEO_EXAMPLE_PATH", "/opt/example-media/ml-video.mp4"))
     if not bundled.exists():
         bundled = (
             Path(__file__).resolve().parents[3] / "frontend/src/assets/ml_video.mp4"

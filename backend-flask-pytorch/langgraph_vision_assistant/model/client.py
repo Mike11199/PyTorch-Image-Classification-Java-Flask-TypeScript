@@ -26,7 +26,7 @@ def call_model(messages: list[AnyMessage], tools: Sequence[BaseTool], request_id
     llama.cpp handles Qwen's chat template and tool syntax; this module only
     converts standard API messages. Viewer settings are already in the messages.
     """
-    from model_runtime import model_session
+    from runtime.model_runtime import model_session
 
     started = perf_counter()
     with model_session('llm', request_id=request_id) as model:

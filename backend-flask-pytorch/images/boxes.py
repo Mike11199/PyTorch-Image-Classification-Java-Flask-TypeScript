@@ -10,7 +10,7 @@ from torchvision.models.detection import (
     fasterrcnn_resnet50_fpn_v2,
     FasterRCNN_ResNet50_FPN_V2_Weights,
 )
-from coco_labels import coco_names
+from images.labels import coco_names
 
 DEFAULT_MODEL_FILENAME = "fasterrcnn_resnet50_fpn.pth"
 

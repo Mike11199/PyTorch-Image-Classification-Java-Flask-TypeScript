@@ -46,11 +46,11 @@ def model_session(kind, timeout=120, request_id=None):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             if kind == "mask":
-                from inference_mask import model_fn
+                from images.masks import model_fn
 
                 _model = model_fn().eval()
             elif kind == 'boxes':
-                from inference import model_fn
+                from images.boxes import model_fn
 
                 _model = model_fn(False).eval()
             else:

@@ -1,8 +1,14 @@
+"""Manual image inference demo: run python -m scripts.test_local from the backend.
+
+This downloads its sample image and runs Mask R-CNN. It is a manual utility,
+separate from the automated tests in tests/.
+"""
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
-import inference as inf
-import inference_mask as inf_mask
+from images import boxes as inf
+from images import masks as inf_mask
 import json
 import os
 from io import BytesIO

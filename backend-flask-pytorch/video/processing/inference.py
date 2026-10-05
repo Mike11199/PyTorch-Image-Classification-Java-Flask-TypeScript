@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 import torch
 
-from coco_labels import coco_names
-import model_runtime
+from images.labels import coco_names
+from runtime import model_runtime
 
 
 @contextmanager

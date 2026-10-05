@@ -41,15 +41,15 @@ RUN python /tmp/download_assistant_model.py "${LLM_MODEL_URL}" "${LLM_MODEL_PATH
 
 # Cache pretrained model weights during the image build to avoid startup downloads.
 ENV TORCH_HOME=/opt/torch-cache
-COPY backend-flask-pytorch/prefetch_models.py .
-RUN python prefetch_models.py
+COPY backend-flask-pytorch/scripts/prefetch_models.py /tmp/prefetch_models.py
+RUN python /tmp/prefetch_models.py
 
 # Copy app code (includes model loading scripts)
 COPY backend-flask-pytorch/. .
-COPY frontend/src/assets/ml_video.mp4 /app/examples/ml-video.mp4
+COPY frontend/src/assets/ml_video.mp4 /opt/example-media/ml-video.mp4
 
 EXPOSE 5000
 
 ENV MASK_LOW_RES=true
 
-CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
+CMD ["gunicorn", "-c", "config/gunicorn.conf.py", "app:app"]

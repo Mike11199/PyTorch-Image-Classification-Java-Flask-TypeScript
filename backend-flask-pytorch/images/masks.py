@@ -16,7 +16,7 @@ from torchvision.models.detection import (
 )
 from torchvision.models.detection.mask_rcnn import MaskRCNN
 
-from coco_labels import coco_names
+from images.labels import coco_names
 
 
 # set up logger as global variable

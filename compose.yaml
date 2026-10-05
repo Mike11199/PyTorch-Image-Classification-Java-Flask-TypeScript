@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: backend-flask-pytorch/Dockerfile
     # Apply Python edits with make dev so file changes do not interrupt video jobs.
-    command: ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
+    command: ["gunicorn", "-c", "config/gunicorn.conf.py", "app:app"]
     environment:
       VIDEO_DATA_DIR: /video-data
       VIDEO_YOUTUBE_ENABLED: "true"
@@ -18,7 +18,7 @@ services:
       - ./backend-flask-pytorch:/app
       - video-data:/video-data
       - tor-control:/tor-control:ro
-      - ./frontend/src/assets/ml_video.mp4:/app/examples/ml-video.mp4:ro
+      - ./frontend/src/assets/ml_video.mp4:/opt/example-media/ml-video.mp4:ro
     # Share localhost between containers, matching the production ECS task.
     # Publish ports on the container that owns the network namespace.
     ports:

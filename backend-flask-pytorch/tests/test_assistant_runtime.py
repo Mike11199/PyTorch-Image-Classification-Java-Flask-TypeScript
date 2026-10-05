@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-import model_runtime
+from runtime import model_runtime
 from langgraph_vision_assistant.model.runtime import LocalModel
 from langgraph_vision_assistant.model.server import ModelServer
 
@@ -66,7 +66,7 @@ class LocalRuntimeTests(unittest.TestCase):
         with patch.object(model_runtime, '_model', language_model), \
              patch.object(model_runtime, '_kind', 'llm'), \
              patch.object(model_runtime, '_lock', threading.Lock()), \
-             patch('inference.model_fn', side_effect=load_model):
+             patch('images.boxes.model_fn', side_effect=load_model):
             with model_runtime.model_session('boxes') as model:
                 self.assertIs(model, vision_model)
 

@@ -1,6 +1,6 @@
 """Keep the local model process and its HTTP connection alive together.
 
-The shared model owner in the backend's model_runtime.py creates LocalModel
+The shared model owner in the backend's runtime/model_runtime.py creates LocalModel
 when a request needs Qwen. LocalModel reads settings, starts ModelServer, and
 waits for readiness through ModelTransport before accepting chat requests.
 

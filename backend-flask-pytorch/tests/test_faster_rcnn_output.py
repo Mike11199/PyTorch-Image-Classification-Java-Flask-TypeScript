@@ -3,7 +3,7 @@ import unittest
 
 import torch
 
-from inference import output_fn
+from images.boxes import output_fn
 
 
 class FasterRcnnOutputTests(unittest.TestCase):
