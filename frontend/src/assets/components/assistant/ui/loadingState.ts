@@ -4,7 +4,7 @@ export function elapsedSeconds(startedAt: number, now = Date.now()) {
 
 export function loadingDetails(seconds: number) {
   return {
-    title: "Running local Qwen through LangGraph… (this can take up to 30 seconds)",
+    title: "Running local Qwen through LangGraph… (the first request can take a few minutes)",
     detail: "Generating and validating viewer tool calls.",
     elapsed: seconds < 1 ? "" : `${seconds} second${seconds === 1 ? "" : "s"} elapsed`,
   };

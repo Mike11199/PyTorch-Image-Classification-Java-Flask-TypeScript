@@ -36,6 +36,16 @@ A fresh account needs GitHub AWS credentials and the region configured, plus dom
 
 Nginx serves React and proxies Java and Flask over task-local `localhost`. Model weights are cached during the Flask image build. The ALB checks Nginx `/health`.
 
+Flask reserves 1,600 MiB for ECS placement and can use up to 2,560 MiB while loading
+and running Qwen alongside the resident Python process. The former 1,600 MiB hard
+limit caused the kernel to kill Qwen during startup. Reservations across both ECS
+tasks total 3,396 MiB, leaving room for the OS and ECS agent on the existing host.
+
+The shared ALB must allow a 320-second idle timeout (configured in
+`shared-infra-aws-cdk`). CPU inference allows 240 seconds per model call; Java
+limits the full assistant request to 300 seconds, and Nginx/browser allow 310.
+The former 60-second ALB timeout cut off cold assistant requests before completion.
+
 The ASG keeps exactly one host. Releases stop the old task before starting its replacement; releases and Spot interruptions can cause brief downtime. ECS service creation waits for the listener rule and host capacity.
 
 New hosts make stopped containers and unused images eligible for cleanup after one minute, checking images every ten minutes. Existing hosts need a one-time ECS configuration update; disk sizes and ECR retention are unchanged.

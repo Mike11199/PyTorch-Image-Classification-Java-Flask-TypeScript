@@ -105,7 +105,10 @@ class ApplicationService(Construct):
             "FlaskContainer",
             image=flask_image,
             cpu=512,
-            memory_limit_mib=1600,
+            # Qwen startup shares memory with the resident PyTorch/Flask process.
+            # Reserve the steady-state budget so both tasks still fit one host.
+            memory_reservation_mib=1600,
+            memory_limit_mib=2560,
             essential=True,
             environment={
                 "VIDEO_BUCKET": video_storage.bucket.bucket_name,

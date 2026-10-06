@@ -32,7 +32,9 @@ class ModelTransport:
 
     def complete(self, payload: dict[str, object]) -> dict[str, Any]:
         """Send one chat request and reject unsuccessful HTTP responses."""
-        response = self.session.post(self.url + '/v1/chat/completions', json=payload, timeout=120)
+        # CPU cold prompts can exceed two minutes on the production t3.medium.
+        # Stay below Java's 300-second request deadline.
+        response = self.session.post(self.url + '/v1/chat/completions', json=payload, timeout=(5, 240))
         response.raise_for_status()
         return response.json()
 

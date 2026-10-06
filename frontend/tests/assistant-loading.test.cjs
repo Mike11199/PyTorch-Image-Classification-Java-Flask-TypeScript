@@ -14,7 +14,7 @@ test('assistant elapsed time starts at zero and advances in whole seconds', () =
 
 test('loading copy explains the local Qwen and LangGraph work', () => {
   assert.deepEqual(loadingDetails(0), {
-    title: 'Running local Qwen through LangGraph… (this can take up to 30 seconds)',
+    title: 'Running local Qwen through LangGraph… (the first request can take a few minutes)',
     detail: 'Generating and validating viewer tool calls.',
     elapsed: '',
   });

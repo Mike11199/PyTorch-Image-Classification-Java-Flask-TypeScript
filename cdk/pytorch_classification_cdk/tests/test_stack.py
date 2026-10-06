@@ -58,7 +58,7 @@ def test_container_images_ports_and_memory(application):
     assert len(containers) == 4
     containers = [c for c in containers if c["Name"] != "YouTubeTokenContainer"]
     for container, (name, tag, port, memory) in zip(containers, (
-        ("FlaskContainer", "ImageTagFlask", 5000, 1600),
+        ("FlaskContainer", "ImageTagFlask", 5000, 2560),
         ("JavaContainer", "ImageTagJava", 8080, 700),
         ("NginxContainer", "ImageTagReact", 80, 200),
     )):
@@ -68,6 +68,18 @@ def test_container_images_ports_and_memory(application):
         assert container["Image"] == {"Fn::Join": ["", [
             {"Fn::ImportValue": "PytorchRepositoryUri"}, ":", {"Ref": tag},
         ]]}
+
+
+def test_qwen_memory_headroom_preserves_single_host_placement(application):
+    tasks = application.find_resources("AWS::ECS::TaskDefinition").values()
+    containers = [c for task in tasks for c in task["Properties"]["ContainerDefinitions"]]
+    flask = next(c for c in containers if c["Name"] == "FlaskContainer")
+    # Qwen startup exceeded the old 1600 MiB hard limit in production.
+    assert flask["Memory"] >= 2560
+    assert flask["MemoryReservation"] == 1600
+    # ECS schedules by the reservation when present, otherwise the hard limit.
+    # Leave at least 512 MiB of the 4 GiB host for the OS and ECS agent.
+    assert sum(c.get("MemoryReservation", c["Memory"]) for c in containers) <= 3584
 
 
 def test_shared_alb_routes_to_nginx(application):
