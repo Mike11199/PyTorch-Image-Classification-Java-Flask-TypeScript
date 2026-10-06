@@ -14,10 +14,12 @@ from pathlib import Path
 from typing import Any
 import uuid
 import requests
+import logging
 
 from .server import ModelServer, unused_loopback_port
 from .settings import ModelSettings
 from .transport import ModelTransport
+from .prompt_cache import PromptCache
 
 
 class LocalModel:
@@ -32,9 +34,16 @@ class LocalModel:
         port, key = unused_loopback_port(), uuid.uuid4().hex
         self.transport = ModelTransport(port, key)
         self.server: ModelServer | None = None
+        self.cache = None
         try:
-            self.server = ModelServer(settings, port, key)
+            self.cache = PromptCache(settings)
+        except OSError as error:
+            logging.getLogger(__name__).warning('Prompt cache disabled: %s', error)
+        try:
+            self.server = ModelServer(settings, port, key, self.cache.directory if self.cache else None)
             self.server.wait_until_ready(self.transport.is_ready)
+            if self.cache:
+                self.cache.restore(self.transport)
         except Exception:
             self.close()
             raise
@@ -43,7 +52,10 @@ class LocalModel:
     def create_chat_completion(self, **payload: object) -> dict[str, Any]:
         """Run inference; discard a stalled or disconnected server before retry."""
         try:
-            return self.transport.complete(payload)
+            response = self.transport.complete({**payload, 'cache_prompt': True, 'id_slot': 0})
+            if self.cache:
+                self.cache.save(self.transport)
+            return response
         except requests.Timeout as error:
             self.close()
             raise TimeoutError('Local inference timed out. Please try again.') from error

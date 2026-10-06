@@ -29,10 +29,11 @@ def unused_loopback_port() -> int:
 class ModelServer:
     """One private CPU inference process and its captured diagnostic log."""
 
-    def __init__(self, settings: ModelSettings, port: int, key: str) -> None:
+    def __init__(self, settings: ModelSettings, port: int, key: str, cache_directory=None) -> None:
         """Launch the process, releasing the log if launching fails."""
         self.log = tempfile.TemporaryFile(mode='w+b')
         self.process: subprocess.Popen[bytes] | None = None
+        self.cache_directory = cache_directory
         try:
             self.process = self._launch(settings, port, key)
         except Exception:
@@ -51,6 +52,8 @@ class ModelServer:
             '--threads-batch', settings.threads,
             '--reasoning-budget', '0', '--no-webui',
         ]
+        if self.cache_directory is not None:
+            command += ['--slot-save-path', str(self.cache_directory) + os.sep]
         return subprocess.Popen(
             command, stdout=self.log, stderr=self.log,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0,

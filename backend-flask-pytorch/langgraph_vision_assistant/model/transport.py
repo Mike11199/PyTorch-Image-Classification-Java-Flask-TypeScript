@@ -41,3 +41,12 @@ class ModelTransport:
     def close(self) -> None:
         """Release HTTP connections; safe to call repeatedly."""
         self.session.close()
+
+    def slot(self, action: str, filename: str) -> dict[str, Any]:
+        """Save/restore private slot zero using the same loopback authentication."""
+        response = self.session.post(
+            self.url + '/slots/0', params={'action': action},
+            json={'filename': filename}, timeout=(5, 15),
+        )
+        response.raise_for_status()
+        return response.json()
