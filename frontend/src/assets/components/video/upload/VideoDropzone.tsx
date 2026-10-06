@@ -36,10 +36,10 @@ const VideoDropzone = ({ file, setFile, loading, onError }: VideoDropzoneProps) 
   if (isDragAccept) borderColor = "#00e676";
 
   return (
-    <div className="w-full">
+    <div className="w-full md:flex md:flex-1">
       <div
         {...getRootProps({ style: { borderColor } })}
-        className="flex flex-col gap-4 items-center justify-center border-2 border-dashed rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500 min-h-40 p-4"
+        className="flex w-full flex-col gap-4 items-center justify-center border-2 border-dashed rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-700 border-gray-600 hover:border-gray-500 min-h-40 md:min-h-56 md:flex-1 p-4"
       >
         <input {...getInputProps({ "aria-label": "Upload video" })} />
         <p className="text-gray-200 text-center">{prompt}</p>

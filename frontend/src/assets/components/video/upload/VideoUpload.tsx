@@ -35,7 +35,7 @@ const VideoUpload = ({
   regenerateColors,
   onError,
 }: VideoUploadProps) => (
-  <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:rounded-xl w-full md:w-[40%] gap-5 shadow-md shadow-black">
+  <div className="flex flex-col bg-black bg-opacity-60 p-6 md:p-12 md:pb-8 md:rounded-xl w-full md:w-[40%] gap-5 shadow-md shadow-black">
     <VideoDropzone
       file={file}
       setFile={setFile}
@@ -53,7 +53,7 @@ const VideoUpload = ({
       onChange={setMaskQuality}
       disabled={loading || !qualitySupported}
     />
-    <div className="flex gap-4 w-full flex-col sm:flex-row">
+    <div className="flex gap-4 w-full flex-col sm:flex-row md:mt-auto">
       <Button
         color="bg-[#0c2c46]"
         hoverColor="hover:bg-[#114d7e]"
