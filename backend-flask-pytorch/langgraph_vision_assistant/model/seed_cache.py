@@ -3,6 +3,7 @@
 No viewer tools are executed and no visitor data is included. A second model
 process must restore the snapshot and reuse most prompt tokens for another scene.
 """
+import argparse
 import logging
 import os
 from pathlib import Path
@@ -41,6 +42,11 @@ def build_seed():
             shutil.copyfile(snapshot, destination / snapshot.name)
         finally:
             model.close()
+    verify_seed()
+
+
+def verify_seed():
+    """Require reuse of the bundled seed without generating a replacement seed."""
     with tempfile.TemporaryDirectory() as second:
         os.environ['LLM_PROMPT_CACHE_DIR'] = second
         model = LocalModel()
@@ -58,4 +64,10 @@ def build_seed():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    build_seed()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--verify-only', action='store_true')
+    args = parser.parse_args()
+    if args.verify_only:
+        verify_seed()
+    else:
+        build_seed()

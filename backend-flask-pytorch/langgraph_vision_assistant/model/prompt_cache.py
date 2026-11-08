@@ -22,13 +22,12 @@ class PromptCache:
         ):
             raise PermissionError('Prompt cache directory must be owned by this process user')
         self.directory.chmod(0o700)
-        # Version includes our fixed context/KV settings; file identities invalidate
-        # snapshots after a model or runtime replacement, without hashing GB files.
-        identities = ['v1:ctx8192:kq8_0:vq8_0']
+        # Hash bytes, not filesystem metadata: image export/extraction can change
+        # timestamps without changing model or runtime compatibility.
+        identities = ['v2:ctx8192:kq8_0:vq8_0']
         for value in (settings.model_path, settings.server_path):
-            path = Path(value).resolve()
-            stat = path.stat()
-            identities.append(f'{path}:{stat.st_size}:{stat.st_mtime_ns}')
+            with Path(value).open('rb') as source:
+                identities.append(hashlib.file_digest(source, 'sha256').hexdigest())
         self.filename = hashlib.sha256('|'.join(identities).encode()).hexdigest() + '.bin'
 
     def restore(self, transport):

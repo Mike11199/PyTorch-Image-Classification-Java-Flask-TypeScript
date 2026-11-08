@@ -1,5 +1,6 @@
 """Exercise snapshot persistence, invalidation, and best-effort recovery."""
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -59,6 +60,30 @@ class PromptCacheTests(unittest.TestCase):
         self.assertNotEqual(initial, changed_model)
         self.server.write_bytes(b'different runtime')
         self.assertNotEqual(changed_model, PromptCache(self.settings).filename)
+
+    def test_bundled_seed_survives_timestamp_changes(self):
+        cache = PromptCache(self.settings)
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / cache.filename).write_bytes(b'build-time prefix')
+        for path in (self.model, self.server):
+            stat = path.stat()
+            os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1234567890))
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}):
+            runtime = PromptCache(self.settings)
+            slot = DiskSlot(runtime.directory)
+            slot.state = b'cold'
+            runtime.restore(slot)
+        self.assertEqual(slot.state, b'build-time prefix')
+
+    def test_same_size_content_changes_invalidate_cache_with_preserved_timestamp(self):
+        for path in (self.model, self.server):
+            with self.subTest(path=path.name):
+                initial = PromptCache(self.settings).filename
+                stat = path.stat()
+                path.write_bytes(b'x' * stat.st_size)
+                os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+                self.assertNotEqual(initial, PromptCache(self.settings).filename)
 
     def test_failed_save_preserves_last_good_snapshot(self):
         cache = PromptCache(self.settings)

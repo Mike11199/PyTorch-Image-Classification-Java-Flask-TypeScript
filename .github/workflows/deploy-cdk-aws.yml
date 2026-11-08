@@ -91,6 +91,13 @@ jobs:
           docker build --file backend-flask-pytorch/Dockerfile \
             --tag "$REGISTRY:$FLASK_IMAGE" .
 
+      - name: Verify bundled prompt cache in exported image
+        run: |
+          docker run --rm --network none "$REGISTRY:$FLASK_IMAGE" \
+            python -m unittest discover -s tests -p test_prompt_cache.py -v
+          docker run --rm --network none "$REGISTRY:$FLASK_IMAGE" \
+            python -m langgraph_vision_assistant.model.seed_cache --verify-only
+
       - name: Push Flask/PyTorch image to ECR
         run: docker push "$REGISTRY:$FLASK_IMAGE"
 
