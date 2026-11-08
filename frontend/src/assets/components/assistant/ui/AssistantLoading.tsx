@@ -1,7 +1,7 @@
 import { loadingDetails } from "./loadingState";
 
 export function LoadingSpinner({ small = false }: { small?: boolean }) {
-  return <span aria-hidden="true" className={`${small ? "h-3.5 w-3.5" : "h-5 w-5"} inline-block animate-spin rounded-full border-2 border-gray-500 border-t-orange-500`} />;
+  return <span aria-hidden="true" className={`${small ? "h-3.5 w-3.5" : "h-5 w-5"} inline-block shrink-0 animate-spin rounded-full border-2 border-gray-500 border-t-orange-500`} />;
 }
 
 export default function AssistantLoading({ seconds }: { seconds: number }) {
