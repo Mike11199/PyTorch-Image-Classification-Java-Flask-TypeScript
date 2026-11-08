@@ -1,7 +1,6 @@
 """One model owner shared by image, video, and viewer-assistant requests."""
 
 import gc
-import os
 import threading
 from contextlib import contextmanager
 from time import perf_counter
@@ -13,7 +12,7 @@ from langgraph_vision_assistant.telemetry import log_event
 _lock = threading.Lock()
 _model = None
 _kind = None
-torch.set_num_threads(int(os.getenv("TORCH_NUM_THREADS", "1")))
+
 
 
 @contextmanager

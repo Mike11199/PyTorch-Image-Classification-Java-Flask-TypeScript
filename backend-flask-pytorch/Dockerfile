@@ -48,6 +48,11 @@ RUN python /tmp/prefetch_models.py
 COPY backend-flask-pytorch/. .
 COPY frontend/src/assets/ml_video.mp4 /opt/example-media/ml-video.mp4
 
+# Ship the native-tool prompt KV cache so a replacement container is not cold.
+# The build fails if a fresh model cannot restore and reuse the shared prefix.
+ENV LLM_PROMPT_CACHE_SEED_DIR=/opt/qwen-prompt-cache-seed
+RUN python -m langgraph_vision_assistant.model.seed_cache
+
 EXPOSE 5000
 
 ENV MASK_LOW_RES=true

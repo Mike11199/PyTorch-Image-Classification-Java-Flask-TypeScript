@@ -49,8 +49,10 @@ These are measured results, not latency guarantees.
 
 The cache lives in `/tmp/qwen-prompt-cache` inside the container. Override the
 directory with `LLM_PROMPT_CACHE_DIR`. It survives model switches and worker
-restarts; replacing the container loses the default cache, so its first request
-is cold. Model/runtime identity changes select a new snapshot. Cache failures
+restarts; replacing the container loses this writable cache. Docker images now
+include a starter snapshot for fresh containers (see below). Without a compatible
+starter, the first request is cold. Model/runtime identity changes select a new
+snapshot. Cache failures
 fall back to cold inference. Files can include request text, so the directory is
 restricted to its owner.
 
@@ -81,3 +83,25 @@ docker compose exec -T flask python -m unittest discover -s tests -p test_vision
 Logs include request IDs, tool arguments, cache save/restore times, reused token
 counts, and separate prompt-processing and generation timings. `LLM_THREADS`
 overrides the default of up to four logical CPUs.
+
+### Starter cache for replacement containers
+
+The Docker build now runs `python -m langgraph_vision_assistant.model.seed_cache`
+with the existing native tool schemas, instructions, and examples. It uses only
+synthetic scene data, generates one token, and never executes viewer tools.
+The snapshot is bundled in `/opt/qwen-prompt-cache-seed` and selected through
+`LLM_PROMPT_CACHE_SEED_DIR`. This adds build time and a KV snapshot to the image.
+
+On a fresh container, a compatible starter snapshot is copied into the writable
+runtime cache before restoration. An existing runtime snapshot always wins.
+The model/runtime identity must match; missing or incompatible snapshots fall
+back to cold inference with a diagnostic log. Runtime snapshots still live in
+`/tmp/qwen-prompt-cache` and disappear on container replacement, but the next
+container receives the image's starter snapshot. No EBS volume is required.
+
+The image build launches a second model process with a new runtime-cache directory
+and a different synthetic class. It fails unless at least half of the prompt tokens
+are reused, checking actual restoration rather than only the presence of a file.
+The starter cache avoids repeating shared-prefix work; model startup, changed
+scene/context tokens, and answer generation still take time. Production latency
+must be measured after deployment; this does not guarantee a fixed response time.

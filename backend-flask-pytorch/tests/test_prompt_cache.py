@@ -78,3 +78,61 @@ class PromptCacheTests(unittest.TestCase):
                 raise ValueError('incompatible state')
         cache.restore(BrokenSlot())
         self.assertFalse((cache.directory / cache.filename).exists())
+
+    def test_fresh_container_restores_bundled_seed(self):
+        cache = PromptCache(self.settings)
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / cache.filename).write_bytes(b'shared prompt')
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}):
+            slot = DiskSlot(cache.directory)
+            cache.restore(slot)
+        self.assertEqual(slot.state, b'shared prompt')
+        self.assertEqual((seed / cache.filename).read_bytes(), b'shared prompt')
+
+    def test_existing_runtime_cache_wins_over_seed(self):
+        cache = PromptCache(self.settings)
+        cache.save(DiskSlot(cache.directory))
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / cache.filename).write_bytes(b'shared prompt')
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}):
+            slot = DiskSlot(cache.directory)
+            cache.restore(slot)
+        self.assertEqual(slot.state, b'processed prefix')
+
+    def test_incompatible_seed_is_not_restored(self):
+        cache = PromptCache(self.settings)
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / 'different-model.bin').write_bytes(b'incompatible')
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}):
+            slot = DiskSlot(cache.directory)
+            slot.state = b'cold'
+            cache.restore(slot)
+        self.assertEqual(slot.state, b'cold')
+
+    def test_unreadable_seed_falls_back_to_cold(self):
+        cache = PromptCache(self.settings)
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / cache.filename).write_bytes(b'shared prompt')
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}), \
+                patch('langgraph_vision_assistant.model.prompt_cache.shutil.copyfile', side_effect=OSError('unreadable')):
+            slot = DiskSlot(cache.directory)
+            slot.state = b'cold'
+            cache.restore(slot)
+        self.assertEqual(slot.state, b'cold')
+
+    def test_bad_seed_restore_preserves_bundled_file(self):
+        cache = PromptCache(self.settings)
+        seed = Path(self.temporary.name) / 'seed'
+        seed.mkdir()
+        (seed / cache.filename).write_bytes(b'bad snapshot')
+        class BrokenSlot:
+            def slot(self, *args):
+                raise ValueError('incompatible snapshot')
+        with patch.dict('os.environ', {'LLM_PROMPT_CACHE_SEED_DIR': str(seed)}):
+            cache.restore(BrokenSlot())
+        self.assertFalse((cache.directory / cache.filename).exists())
+        self.assertTrue((seed / cache.filename).exists())

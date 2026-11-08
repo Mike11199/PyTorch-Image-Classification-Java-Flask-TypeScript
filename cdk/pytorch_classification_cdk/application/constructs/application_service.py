@@ -115,7 +115,6 @@ class ApplicationService(Construct):
                 "VIDEO_TABLE": video_storage.table.table_name,
                 "VIDEO_MEDIA_BUCKET": media_bucket.bucket_name,
                 "AWS_DEFAULT_REGION": "us-west-1",
-                "TORCH_NUM_THREADS": "1",
                 "VIDEO_YOUTUBE_ENABLED": "true",
                 "VIDEO_YOUTUBE_TOR": "true",
             } if video_storage else {},

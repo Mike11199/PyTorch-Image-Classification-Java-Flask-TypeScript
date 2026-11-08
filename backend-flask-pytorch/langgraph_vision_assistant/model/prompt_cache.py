@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+import shutil
 import os
 from pathlib import Path
 import tempfile
@@ -33,7 +34,20 @@ class PromptCache:
     def restore(self, transport):
         path = self.directory / self.filename
         if not path.is_file():
-            return
+            seed_directory = os.getenv('LLM_PROMPT_CACHE_SEED_DIR')
+            seed = Path(seed_directory) / self.filename if seed_directory else None
+            if seed is None or not seed.is_file():
+                LOGGER.info('Prompt cache miss: no compatible runtime or starter snapshot')
+                return
+            try:
+                temporary = path.with_suffix('.seed.tmp')
+                shutil.copyfile(seed, temporary)
+                temporary.chmod(0o600)
+                temporary.replace(path)
+                LOGGER.info('Prompt cache initialized from bundled starter snapshot')
+            except OSError as error:
+                LOGGER.warning('Prompt cache starter copy skipped: %s', error)
+                return
         try:
             result = transport.slot('restore', self.filename)
             LOGGER.info('Prompt cache restored: %s', result)
