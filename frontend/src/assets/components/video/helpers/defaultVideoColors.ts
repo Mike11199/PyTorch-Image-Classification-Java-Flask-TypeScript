@@ -56,7 +56,7 @@ export const recolorMask = (
 };
 
 export const isDefaultVideo = (status: VideoStatus | null) => {
-  if (status?.source !== "youtube" || status.startSeconds !== 7572 || !status.url)
+  if (status?.source !== "youtube" || !status.url)
     return false;
   try {
     const url = new URL(status.url);
@@ -64,7 +64,8 @@ export const isDefaultVideo = (status: VideoStatus | null) => {
     const id = url.hostname === "youtu.be"
       ? parts[0]
       : url.searchParams.get("v") || parts[1];
-    return id === "VjmUlxRamwg";
+    return (id === "_rpdUcbkG7A" && status.startSeconds === 52608)
+      || (id === "VjmUlxRamwg" && status.startSeconds === 7572);
   } catch {
     return false;
   }
