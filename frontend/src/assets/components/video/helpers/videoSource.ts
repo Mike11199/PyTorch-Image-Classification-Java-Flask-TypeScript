@@ -4,9 +4,9 @@ export const DEFAULT_MASK_QUALITY: VideoMaskQuality = "detailed";
 
 // Keep this fallback aligned with the server's default example.
 export const DEFAULT_VIDEO: VideoExample = {
-  id: "youtube-_rpdUcbkG7A-52608",
-  name: "Default video",
-  url: "https://youtu.be/_rpdUcbkG7A?t=52608",
+  id: "youtube-_rpdUcbkG7A-52610",
+  name: "Traffic intersection",
+  url: "https://youtu.be/_rpdUcbkG7A?t=52610",
 };
 
 const videoUrlOptions = (url: string, examples: VideoExample[]): VideoOptions => {

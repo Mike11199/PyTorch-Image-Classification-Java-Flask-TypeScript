@@ -11,9 +11,9 @@ TERMINAL = {"completed", "failed", "cancelled"}
 
 EXAMPLES = [
     {
-        "id": "youtube-_rpdUcbkG7A-52608",
-        "name": "Default video",
-        "url": "https://youtu.be/_rpdUcbkG7A?t=52608",
+        "id": "youtube-_rpdUcbkG7A-52610",
+        "name": "Traffic intersection",
+        "url": "https://youtu.be/_rpdUcbkG7A?t=52610",
         "source": "youtube",
     },
     {

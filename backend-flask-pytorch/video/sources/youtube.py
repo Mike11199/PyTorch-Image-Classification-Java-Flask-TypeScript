@@ -20,6 +20,8 @@ from ..config import MAX_SECONDS, youtube_enabled
 
 YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}
 log = logging.getLogger(__name__)
+# Operator-known source quality, even when an exit advertises fewer formats.
+KNOWN_RESOLUTIONS = {"_rpdUcbkG7A": 2160}
 
 
 class DownloadFailure(ValueError):
@@ -77,6 +79,9 @@ def downloader_command(arguments, url, timeout, proxy="", progress=lambda: None)
         "yt_dlp",
         "--ignore-config",
         "--no-playlist",
+        "--format-sort",
+        "res",
+        "--format-sort-force",
         "--extractor-args",
         "youtube:player_client=mweb",
         "--js-runtimes",
@@ -140,15 +145,41 @@ def clip_end(metadata, start_seconds):
     return min(start_seconds + MAX_SECONDS, duration)
 
 
-def download_section(url, output, start_seconds, end_seconds, timeout=180, proxy="", progress=lambda: None):
+def metadata_resolution(metadata):
+    """Find the highest advertised video resolution, ignoring audio/storyboards."""
+    resolutions = []
+    for item in [metadata, *metadata.get("formats", [])]:
+        if item.get("vcodec") == "none" or item.get("has_drm"):
+            continue
+        try:
+            resolutions.append(min(int(item.get("width") or 0), int(item.get("height") or 0)))
+        except (ValueError, TypeError, OverflowError):
+            continue
+    return max(resolutions, default=0)
+
+
+def verify_resolution(output, minimum):
+    """Reject a downgraded file before it can reach processing or the cache."""
+    from ..processing.media import probe, validate_probe
+
+    try:
+        stream = validate_probe(probe(output))
+        actual = min(int(stream["width"]), int(stream["height"]))
+    except (ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as error:
+        raise DownloadFailure("Unable to verify downloaded video resolution") from error
+    if actual < minimum:
+        raise DownloadFailure(f"YouTube downloaded {actual}p; at least {minimum}p is required")
+
+
+def download_section(url, output, start_seconds, end_seconds, timeout=180, proxy="", progress=lambda: None, minimum_resolution=0):
     """Fetch the selected section at the highest available source resolution."""
     arguments = [
         "--download-sections",
         f"*{start_seconds:g}-{end_seconds:g}",
         "--format",
-        "bv*+ba/b",
-        "--format-sort",
-        "res",
+        (f"bv*[width>={minimum_resolution}][height>={minimum_resolution}]+ba/"
+         f"b[width>={minimum_resolution}][height>={minimum_resolution}]")
+        if minimum_resolution else "bv*+ba/b",
         "--merge-output-format",
         "mp4",
         "--no-progress",
@@ -161,7 +192,7 @@ def download_section(url, output, start_seconds, end_seconds, timeout=180, proxy
     ]
     downloader_command(arguments, url, timeout, proxy, progress)
     if not output.is_file():
-        raise ValueError(
+        raise DownloadFailure(
             "YouTube import finished without producing a video file. Please retry."
         )
 
@@ -183,6 +214,9 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
         retry_errors += (TorConnectionFailure,)
     proxy = f"http://{os.getenv('VIDEO_TOR_HOST', '127.0.0.1')}:9080" if use_tor else ""
     attempts = 5 if use_tor else 1
+    # Import here because cache.py also imports URL validation from this module.
+    from ..cache import youtube_video_id
+    minimum_resolution = KNOWN_RESOLUTIONS.get(youtube_video_id(url), 0)
     try:
         for attempt in range(attempts):
             progress()
@@ -206,10 +240,20 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
                                 "YouTube returned invalid video metadata"
                             ) from error
                         end_seconds = clip_end(metadata, start_seconds)
+                        available = metadata_resolution(metadata)
+                        minimum_resolution = max(minimum_resolution, available)
+                        if not available or available < minimum_resolution:
+                            raise DownloadFailure(
+                                f"YouTube offered {available}p; at least {minimum_resolution}p is required"
+                            )
                         download_section(
                             url, output, start_seconds, end_seconds,
                             min(180, deadline - time.monotonic()), proxy, progress,
+                            minimum_resolution=minimum_resolution,
                         )
+                        progress()
+                        verify_resolution(output, minimum_resolution)
+                        progress()
                         output.replace(path)
                         return
             except retry_errors as error:
@@ -217,7 +261,7 @@ def download_youtube(url, path, start_seconds=0, on_progress=lambda: None):
                 progress()
                 if (isinstance(error, DownloadFailure) and not error.retryable) or attempt == attempts - 1:
                     raise ValueError(
-                        "YouTube could not provide this video. Please try another public link or upload the file."
+                        "YouTube could not provide this video at the required resolution. Please retry or upload the file."
                     ) from error
     except InterruptedError:
         raise

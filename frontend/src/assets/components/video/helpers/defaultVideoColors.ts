@@ -64,7 +64,7 @@ export const isDefaultVideo = (status: VideoStatus | null) => {
     const id = url.hostname === "youtu.be"
       ? parts[0]
       : url.searchParams.get("v") || parts[1];
-    return (id === "_rpdUcbkG7A" && status.startSeconds === 52608)
+    return (id === "_rpdUcbkG7A" && [52608, 52610].includes(status.startSeconds ?? 0))
       || (id === "VjmUlxRamwg" && status.startSeconds === 7572);
   } catch {
     return false;
